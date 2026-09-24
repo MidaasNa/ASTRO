@@ -1070,7 +1070,69 @@ function periodRemedy(C, md, ad, themes) {
   return [...new Set(r)];
 }
 
+// ---------- money calendar (personal financial timing from the book's wealth rules) ----------
+// ch.11.9 Dhana yogas: 5th & 9th lords give money in their dasas; 2nd (wealth) and 11th (gains) matter.
+// ch.7: 8th = debts, 12th = losses/expenditure, 6th = loans; 5th = speculation (Table 16: Mars/Jupiter signify it).
+// ch.25 transit tables (from the Moon) for Jupiter, Saturn, Rahu.
+function moneyLordScore(C, b) {
+  const p = C.P[b], why = [];
+  let w = 0;
+  if (p.lordOf.includes(2)) { w += 1.5; why.push(`${b} rules your 2nd (wealth)`); }
+  if (p.lordOf.includes(11)) { w += 1.5; why.push(`${b} rules your 11th (gains)`); }
+  if (p.lordOf.some(h => h === 5 || h === 9)) { w += 1; why.push(`${b} is a 5th/9th lord, which give money in their periods`); }
+  if ([2, 11].includes(p.house)) { w += 0.5; why.push(`${b} sits in your ${ORD(p.house)}`); }
+  if (b === 'Jupiter') { w += 0.5; why.push('Jupiter signifies wealth'); }
+  if (p.lordOf.includes(8)) { w -= 1.5; why.push(`${b} rules your 8th (debts, sudden losses)`); }
+  if (p.lordOf.includes(12)) { w -= 1; why.push(`${b} rules your 12th (expenditure)`); }
+  if (p.lordOf.includes(6) && !p.lordOf.includes(11)) { w -= 0.5; why.push(`${b} rules your 6th (loans)`); }
+  if ([8, 12].includes(p.house)) { w -= 0.5; why.push(`${b} sits in your ${ORD(p.house)}`); }
+  // strength: a strong planet delivers its promise, a weak one struggles (ch.3)
+  const st = score(C, b);
+  w += Math.max(-1, Math.min(1, st/3));
+  return {w, why};
+}
+function moneyCalendar(C, from, months) {
+  const to = new Date(from.getTime() + months*30.44*864e5), rows = [];
+  const lagna = C.lagna, moonS = C.P.Moon.sign;
+  const cache = {};
+  const ls = b => (cache[b] = cache[b] || moneyLordScore(C, b));
+  for (const md of C.dasa.MD) for (const ad of md.ads) {
+    if (ad.end < from || ad.start > to) continue;
+    const len = ad.end - ad.start; let ps = ad.start.getTime();
+    for (let k = 0; k < 9; k++) {
+      const pl = VIM_ORDER[(VIM_ORDER.indexOf(ad.lord) + k) % 9], pe = ps + len*VIM_YEARS[pl]/120;
+      if (pe > from.getTime() && ps < to.getTime()) {
+        const s = Math.max(ps, from.getTime()), e = pe, mid = new Date((s + Math.min(e, to.getTime()))/2);
+        const T = transitPositions(mid), why = [], warn = [];
+        let v = 0.25*ls(md.lord).w + 0.3*ls(ad.lord).w + 0.45*ls(pl).w;
+        [[md.lord,'main period'],[ad.lord,'sub-period'],[pl,'sub-sub-period']].forEach(([b, lvl]) => {
+          const r = ls(b); if (r.why.length) why.push(`${lvl} ${b}: ${r.why[0]}${r.why[1] ? '; ' + r.why[1] : ''}`);
+        });
+        const jm = hFrom(moonS, T.Jupiter.sign), sm = hFrom(moonS, T.Saturn.sign), rm = hFrom(moonS, T.Rahu.sign);
+        const jGood = TRANSIT.Jupiter[jm - 1][0], sGood = TRANSIT.Saturn[sm - 1][0];
+        v += jGood ? 0.6 : -0.4; why.push(`transit Jupiter ${ORD(jm)} from your Moon (${jGood ? 'good' : 'difficult'}: ${TRANSIT.Jupiter[jm - 1][1].toLowerCase()})`);
+        v += sGood ? 0.6 : -0.5; (sGood ? why : warn).push(`transit Saturn ${ORD(sm)} from your Moon (${TRANSIT.Saturn[sm - 1][1].toLowerCase()})`);
+        const jl = hFrom(lagna, T.Jupiter.sign);
+        if ([2, 11].includes(jl)) { v += 0.4; why.push(`transit Jupiter in your ${ORD(jl)} house of ${jl === 2 ? 'wealth' : 'gains'}`); }
+        const rating = v >= 0.9 ? 'favourable' : v <= -0.2 ? 'caution' : 'neutral';
+        // speculation (5th house): warning signs add up; one sign alone = caution, several together = avoid
+        let sw = 0; const specWhy = [];
+        const fifthL = (lagna + 4) % 12, fifthM = (moonS + 4) % 12;
+        for (const b of ['Saturn','Rahu','Ketu']) if (T[b].sign === fifthL || T[b].sign === fifthM) { sw += 1; specWhy.push(`transit ${b} in the 5th (speculation) from your ${T[b].sign === fifthL ? 'lagna' : 'Moon'}`); }
+        if (C.P[pl].lordOf.some(h => h === 8 || h === 12)) { sw += 1; specWhy.push(`sub-sub-period lord ${pl} rules your ${C.P[pl].lordOf.filter(h => h === 8 || h === 12).map(ORD).join(' & ')}`); }
+        if (!TRANSIT.Mars[hFrom(moonS, T.Mars.sign) - 1][0]) { sw += 0.5; specWhy.push(`transit Mars ${ORD(hFrom(moonS, T.Mars.sign))} from your Moon`); }
+        if (rating === 'caution') { sw += 1; specWhy.push('the money period itself is weak'); }
+        const spec = sw >= 2.5 ? 'avoid' : sw >= 1 ? 'caution' : 'ok';
+        rows.push({start: new Date(s), end: new Date(e), md: md.lord, ad: ad.lord, pd: pl, score: v, rating, why, warn, spec, specWhy,
+          jup: `${SAB[T.Jupiter.sign]} (${ORD(jm)} from Moon)`, sat: `${SAB[T.Saturn.sign]} (${ORD(sm)} from Moon)`});
+      }
+      ps = pe;
+    }
+  }
+  return rows;
+}
+
 const API = {SIGNS, SANSK, SAB, PL, PAB, SEVEN, SIGN_LORD, NAKS, PD, RASI, HOUSE, VIM_YEARS, ORD, fmtDeg, hFrom,
-  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon};
+  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar};
 if (typeof module !== 'undefined') module.exports = API; else root.Jyotish = API;
 })(typeof window !== 'undefined' ? window : globalThis);
