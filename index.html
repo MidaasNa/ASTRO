@@ -233,6 +233,11 @@ tr.now td{background:var(--accent-soft)}
 .trow.dl{background:var(--accent-soft)}
 @media (max-width:900px){.tgrid{grid-template-columns:minmax(0,1fr)}}
 
+/* aspects table */
+.asptable td{font-size:13px}
+.asptable td.aspeff{min-width:220px;max-width:380px}
+.asptable td:first-child,.asptable td:nth-child(2){white-space:nowrap}
+
 /* remedies */
 .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
 .rcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:7px;align-content:start}
@@ -336,6 +341,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <button role="tab" data-t="overview" aria-selected="false">Overview</button>
     <button role="tab" data-t="planets" aria-selected="false">Planets &amp; effects</button>
     <button role="tab" data-t="yogas" aria-selected="false">Yogas</button>
+    <button role="tab" data-t="aspects" aria-selected="false">Aspects</button>
     <button role="tab" data-t="dasas" aria-selected="false">Dasa periods</button>
     <button role="tab" data-t="transits" aria-selected="false">Transits now</button>
     <button role="tab" data-t="remedies" aria-selected="false">Remedies</button>
@@ -2029,9 +2035,11 @@ document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click
   store.set('jk-tab', tab); renderTab();
 }));
 function renderTab() {
-  const f = {events: tEvents, overview: tOverview, planets: tPlanets, yogas: tYogas, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails}[tab];
+  const f = {events: tEvents, overview: tOverview, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails}[tab];
   $('#pane').innerHTML = f();
   if (tab === 'transits') initTransit();
+  $('#pane').querySelectorAll('[data-aspscope]').forEach(b => b.addEventListener('click', () => { aspScope = b.dataset.aspscope; renderTab(); }));
+  $('#pane').querySelectorAll('[data-asptone]').forEach(b => b.addEventListener('click', () => { aspTone = b.dataset.asptone; renderTab(); }));
   $('#pane').querySelectorAll('[data-evarea]').forEach(b => b.addEventListener('click', () => { evArea = b.dataset.evarea; renderTab(); }));
   $('#pane').querySelectorAll('[data-evscope]').forEach(b => b.addEventListener('click', () => { evScope = b.dataset.evscope; renderTab(); }));
   $('#pane').querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); document.querySelector(`#tabs [data-t="${a.dataset.goto}"]`).click(); }));
@@ -2088,6 +2096,131 @@ function tEvents() {
   </div>
   ${evScope === 'past' ? '<p class="note" style="margin-bottom:12px">Compare these with what actually happened. If the past periods don’t match, the birth time may be off by a few minutes; this is how astrologers correct it (chapter 32).</p>' : ''}
   <div class="ev-list">${rows || '<p class="muted">No periods match this filter.</p>'}</div>`;
+}
+
+// ---------- Aspects tab: planet-to-planet aspects at birth and now (ch.10, ch.13, ch.34) ----------
+const ASP_ACT = {
+  Sun:'adds authority, ego and heat to', Moon:'adds emotion and sensitivity to', Mars:'energises, but can make hasty or aggressive,',
+  Mercury:'sharpens and makes more analytical', Jupiter:'protects, expands and blesses', Venus:'adds comfort, charm and harmony to',
+  Saturn:'restricts, delays and disciplines', Rahu:'amplifies and unsettles', Ketu:'detaches or disrupts'
+};
+const natBen = (b, waxing, merc) => b === 'Jupiter' || b === 'Venus' || (b === 'Moon' && waxing) || (b === 'Mercury' && merc);
+function relWord(a, b) {
+  const n = J.NAT[a], m = J.NAT[b]; if (!n || !m) return {w:'', v:0};
+  const ra = n.f.includes(b) ? 1 : n.e.includes(b) ? -1 : 0, rb = m.f.includes(a) ? 1 : m.e.includes(a) ? -1 : 0;
+  if (ra > 0 && rb > 0) return {w:'natural friends, so the influence flows easily', v:0.5};
+  if (ra < 0 && rb < 0) return {w:'natural enemies, so expect friction', v:-0.5};
+  if (ra < 0) return {w:`${a} is hostile to ${b}, so the influence comes with friction`, v:-0.4};
+  if (rb < 0) return {w:`${b} is hostile to ${a}`, v:-0.2};
+  return {w:'', v:0};
+}
+const lordStr = b => C.P[b].lordOf.length ? `lord of your ${C.P[b].lordOf.map(J.ORD).join(' & ')}` : '';
+function aspectRow(a, b, kind, isTransit, extra) {
+  // tone: nature of the aspecting planet, its functional role for you, and the pair's friendship
+  const waxing = isTransit ? extra.waxing : C.waxing, merc = isTransit ? true : C.mercuryBenefic;
+  const rel = relWord(a, b);
+  let v = (natBen(a, waxing, merc) ? 1 : -1) + rel.v;
+  const f = C.func[a];
+  if (f === 'benefic' || f === 'yogakaraka') v += 0.8; else if (f === 'malefic') v -= 0.6;
+  if (kind === 'conjunction' && b !== a && ['Rahu','Ketu'].includes(b)) v -= 0.5;
+  const tone = v >= 1 ? 'good' : v <= -0.8 ? 'bad' : 'mixed';
+  const bInfo = `${J.PD[b].gov}${lordStr(b) ? ', ' + lordStr(b) : ''}, in your ${J.ORD(C.P[b].house)} house`;
+  const aFunc = f && f !== 'node' ? ` For your ascendant ${a} is a ${({yogakaraka:'yogakaraka', benefic:'functional benefic', neutral:'functionally neutral planet', malefic:'functional malefic'})[f]}${f === 'malefic' && C.P[a].lordOf.length ? `, so it brings in the matters of your ${C.P[a].lordOf.map(J.ORD).join(' & ')} house` : ''}.` : (a === 'Rahu' || a === 'Ketu') ? ` ${a} acts for ${J.SIGN_LORD[(isTransit ? extra.T[a] : C.P[a]).sign]}, its sign lord.` : '';
+  const verb = isTransit ? (kind === 'conjunction' ? TR_ACT[a] : ASP_ACT[a]) : ASP_ACT[a];
+  let effect = `${a} ${verb} ${b} (${bInfo}).${aFunc}${rel.w ? ' ' + rel.w[0].toUpperCase() + rel.w.slice(1) + '.' : ''}`;
+  if (a === 'Jupiter' && kind !== 'conjunction') effect += ' Jupiter’s aspect is protective (ch.10).';
+  // remedy
+  const ra = J.PD[a], rb = J.PD[b], out = [];
+  const aGood = ['benefic','yogakaraka'].includes(C.func[a]);
+  if (tone === 'bad') {
+    out.push(`Pacify ${a}: ${ra.deed}${ra.grain ? `; donate ${ra.grain} on ${ra.day}s` : ''}; mantra ${ra.count}× or worship ${ra.deity.split(',')[0]}.`);
+    if (['benefic','yogakaraka'].includes(C.func[b])) out.push(`Support ${b}: ${rb.gem.toLowerCase()} in ${rb.metal.toLowerCase()} is safe for you.`);
+    else out.push(`Support ${b}: ${rb.deed}.`);
+    if (isTransit && extra.until) out.push(`Most needed until about ${J.fmt(extra.until)}.`);
+  } else if (tone === 'mixed') {
+    if (aGood) out.push(`${a} is good for your chart, so don’t pacify it; channel it positively: ${ra.deed}.`);
+    else out.push(`Soften ${a}: ${ra.deed}${ra.grain ? `; donate ${ra.grain} on ${ra.day}s` : ''}.`);
+    if (isTransit && extra.until && !aGood) out.push(`Until about ${J.fmt(extra.until)}.`);
+  } else {
+    if (['benefic','yogakaraka'].includes(C.func[a])) out.push(`Favourable. To amplify it you may wear ${ra.gem.toLowerCase()} (${a}).`);
+    else out.push('Favourable; no remedy needed.');
+  }
+  return {a, b, kind, tone, effect, remedy: out.join(' ')};
+}
+const signChangeCache = new Map();
+function nextSignChange(b, from) {
+  if (b === 'Moon') return new Date(from.getTime() + (30 - J.transitPositions(from).Moon.deg)/13.2*864e5);
+  const key = b + from.toDateString(); if (signChangeCache.has(key)) return signChangeCache.get(key);
+  const step = {Sun:1, Mercury:1, Venus:1, Mars:2, Jupiter:4, Saturn:8, Rahu:8, Ketu:8}[b] || 2;
+  const sign0 = Math.floor(J.sidLon(b, from)/30); let res = null, prev = from;
+  for (let k = step; k <= 1200; k += step) {
+    const d = new Date(from.getTime() + k*864e5);
+    if (Math.floor(J.sidLon(b, d)/30) !== sign0) {
+      let lo = prev.getTime(), hi = d.getTime();
+      for (let i = 0; i < 18; i++) { const m = (lo + hi)/2; if (Math.floor(J.sidLon(b, new Date(m))/30) === sign0) lo = m; else hi = m; }
+      res = new Date(hi); break;
+    }
+    prev = d;
+  }
+  signChangeCache.set(key, res); return res;
+}
+function natalAspectRows() {
+  const P = C.P, rows = [];
+  for (const a of J.SEVEN) for (const o of (ASP_OFF[a] || [7])) {
+    const s = (P[a].sign + o - 1) % 12;
+    for (const b of J.PL) if (b !== a && P[b].sign === s) rows.push({...aspectRow(a, b, `${J.ORD(o)} aspect`, false), orb: null});
+  }
+  for (let i = 0; i < J.PL.length; i++) for (let j = i + 1; j < J.PL.length; j++) {
+    const a = J.PL[i], b = J.PL[j];
+    if (P[a].sign !== P[b].sign) continue;
+    const r1 = aspectRow(a, b, 'conjunction', false), r2 = aspectRow(b, a, 'conjunction', false);
+    const tone = r1.tone === r2.tone ? r1.tone : 'mixed';
+    rows.push({a, b, kind:'conjunction', tone, orb: Math.abs(P[a].deg - P[b].deg), effect: `${r1.effect} ${r2.effect}`, remedy: tone === 'good' ? r1.remedy : [r1.remedy, r2.remedy].filter(x => !x.startsWith('Favourable')).join(' ')});
+  }
+  return rows;
+}
+function transitAspectRows(when) {
+  const T = J.transitPositions(when), P = C.P, rows = [];
+  const waxing = ((T.Moon.lon - T.Sun.lon + 360) % 360) < 180;
+  const untilCache = {}; const until = b => (untilCache[b] = untilCache[b] || nextSignChange(b, when));
+  for (const a of J.SEVEN) for (const o of (ASP_OFF[a] || [7])) {
+    const s = (T[a].sign + o - 1) % 12;
+    for (const b of J.PL) if (P[b].sign === s) rows.push({...aspectRow(a, b, `${J.ORD(o)} aspect`, true, {T, waxing, until: until(a)}), until: until(a), orb: null});
+  }
+  for (const a of J.PL) for (const b of J.PL) {
+    if (T[a].sign !== P[b].sign) continue;
+    const orb = Math.abs(norm180(T[a].lon - P[b].lon));
+    const ex = orb > 1 && a !== 'Moon' ? exactDate(a, P[b].lon, when) : null;
+    rows.push({...aspectRow(a, b, 'conjunction', true, {T, waxing, until: until(a)}), until: until(a), orb, exact: orb <= 1 ? 'exact now' : ex ? `exact ~${J.fmt(ex)}` : ''});
+  }
+  return rows;
+}
+let aspScope = 'both', aspTone = 'all';
+function aspTable(rows, isTransit) {
+  const tl = {good:['Favourable','good'], mixed:['Mixed','mixed'], bad:['Difficult','bad']};
+  const f = rows.filter(r => aspTone === 'all' || r.tone === aspTone);
+  if (!f.length) return '<p class="muted">No aspects match this filter.</p>';
+  return `<div class="tablewrap"><table class="asptable"><thead><tr><th>Aspecting</th><th>Aspected (natal)</th><th>Aspect</th><th></th><th>Effect for you</th><th>Remedy</th></tr></thead><tbody>
+    ${f.map(r => `<tr><td>${pdot(r.a)}<b>${isTransit ? 'Transit ' : ''}${r.a}</b>${isTransit && r.until ? `<br><span class="muted">in this sign until ${J.fmt(r.until)}</span>` : ''}</td>
+      <td>${pdot(r.b)}<b>${r.b}</b><br><span class="muted">${J.ORD(C.P[r.b].house)} house</span></td>
+      <td>${r.kind}${r.orb !== null && r.orb !== undefined ? `<br><span class="muted">${r.orb.toFixed(1)}°${r.exact ? ' · ' + r.exact : ''}</span>` : ''}</td>
+      <td>${chip(tl[r.tone][0], tl[r.tone][1])}</td>
+      <td class="aspeff">${esc(r.effect)}</td><td class="aspeff">${esc(r.remedy)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+let tDateAsp = new Date();
+function tAspects() {
+  tDateAsp = new Date();
+  const natal = natalAspectRows(), tr = transitAspectRows(tDateAsp);
+  const cnt = rows => ['good','mixed','bad'].map(k => rows.filter(r => r.tone === k).length);
+  const [ng, nm, nb] = cnt(natal), [tg, tm, tb] = cnt(tr);
+  return `<p class="lead">Which planet aspects which, at your birth and today. Aspects are full planetary aspects (graha drishti, ch.10): every planet aspects the 7th from itself; Mars also the 4th and 8th, Jupiter the 5th and 9th, Saturn the 3rd and 10th. Rahu and Ketu have no full aspects in the book, so they appear only in conjunctions. Each row is judged from the aspecting planet's nature, its functional role for your Aries ascendant (Table 30) and the natural friendship between the two (Table 7); remedies follow chapter 34.</p>
+  <div class="ev-filters">
+    <div class="seg" role="group" aria-label="Show">${[['both','Birth & now'],['natal','At birth'],['transit','Now (transits)']].map(([k, l]) => `<button type="button" data-aspscope="${k}" aria-pressed="${aspScope === k}">${l}</button>`).join('')}</div>
+    <div class="ev-areas">${[['all','All'],['good','Favourable'],['mixed','Mixed'],['bad','Difficult']].map(([k, l]) => `<button type="button" class="fchip" data-asptone="${k}" aria-pressed="${aspTone === k}">${l}</button>`).join('')}</div>
+  </div>
+  ${aspScope !== 'transit' ? `<div class="section"><h3>At birth</h3><p class="lead">${natal.length} aspects and conjunctions: ${ng} favourable, ${nm} mixed, ${nb} difficult. These are lifelong patterns; they are felt most in the dasas of the planets involved.</p>${aspTable(natal, false)}</div>` : ''}
+  ${aspScope !== 'natal' ? `<div class="section"><h3>Now · ${esc(J.fmt(tDateAsp))}</h3><p class="lead">Transiting planets aspecting or sitting on your natal planets: ${tg} favourable, ${tm} mixed, ${tb} difficult. Each lasts while the transiting planet stays in its sign (date shown). The transit Moon changes sign every 2–3 days.</p>${aspTable(tr, true)}</div>` : ''}`;
 }
 
 function tOverview() {
