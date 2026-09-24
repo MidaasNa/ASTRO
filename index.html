@@ -73,7 +73,10 @@ form.birth{background:var(--panel);border:1px solid var(--line);border-radius:10
 .examplebar b{font-weight:600}
 
 /* summary */
-.top{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:22px;margin-top:22px;align-items:start}
+.top{display:grid;grid-template-columns:repeat(2,minmax(0,470px));justify-content:start;gap:22px;margin-top:22px;align-items:start}
+.top > .facts{grid-column:1 / -1}
+.top > .chartcard .chartctl{min-height:74px;align-content:flex-start}
+@media (max-width:900px){.top > .chartcard .chartctl{min-height:0}}
 .chartcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
 .seg button{background:transparent;border:0;padding:6px 11px;font-size:13px;cursor:pointer;color:var(--muted)}
@@ -86,6 +89,7 @@ form.birth{background:var(--panel);border:1px solid var(--line);border-radius:10
 .chartbox.show-asp .asp path{opacity:.72}
 .chartbox.hl .asp path{opacity:0}
 .chartbox.hl .asp path.hit{opacity:.95;stroke-width:2.4}
+.togs{display:inline-flex;gap:6px;flex-wrap:wrap}
 .asptoggle{background:transparent;border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-size:13px;cursor:pointer;color:var(--muted)}
 .asptoggle[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--panel)}
 @media (prefers-reduced-motion:reduce){.chartbox .asp path{transition:none}}
@@ -215,6 +219,10 @@ tr.now td{background:var(--accent-soft)}
 .ev-rem ul{margin:8px 0 0;padding-left:18px;display:grid;gap:5px;font-size:13.5px}
 @media (max-width:620px){ .ev{grid-template-columns:minmax(0,1fr);gap:8px} .ev-when{grid-template-columns:auto auto auto;justify-content:start;gap:4px 10px;align-items:center} }
 
+/* planets-now card */
+.nowcard{min-width:0}
+.nowdate{font-family:var(--display);font-size:17px;margin-top:2px}
+
 /* transit chart */
 .tgrid{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:22px;align-items:start}
 .tdatebox{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -294,7 +302,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
           <button type="button" data-v="d9" aria-pressed="false">Navamsa D-9</button>
           <button type="button" data-v="d10" aria-pressed="false">Dasamsa D-10</button>
         </div>
-        <button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button>
+        <div class="togs"><button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
         <div class="seg" role="group" aria-label="Chart style">
           <button type="button" data-s="south" aria-pressed="true">South</button>
           <button type="button" data-s="north" aria-pressed="false">North</button>
@@ -303,6 +311,18 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
       <div class="chartbox" id="chartbox"></div>
       <div class="chartlegend" id="chartlegend" aria-label="House owners"></div>
       <p class="hint" id="chartnote" style="margin-top:8px"></p>
+    </div>
+    <div class="chartcard nowcard">
+      <div class="chartctl">
+        <div><div class="eyebrow">Planets now · transits</div><div class="nowdate" id="nowdate"></div></div>
+        <div class="togs">
+          <div class="seg" role="group" aria-label="Count houses from"><button type="button" data-nref="lagna" aria-pressed="true">From lagna</button><button type="button" data-nref="moon" aria-pressed="false">From Moon</button></div>
+          <button type="button" class="asptoggle" data-taspt aria-pressed="false" title="Show every full aspect of the planets now">Aspects</button>
+          <button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button>
+        </div>
+      </div>
+      <div class="chartbox" id="nowbox"></div>
+      <p class="hint" style="margin-top:8px">Where the planets are today. Grey n: marks your natal planets. Aspects shows every full aspect of the transiting planets as an arrow. Hover over or tap a house for the transit result and any transit over your natal planets. <a href="#" id="nowmore">Transit details and other dates →</a></p>
     </div>
     <div class="facts">
       <div class="who"><div class="eyebrow" id="whoeb">Birth chart</div><h2 id="whoname">—</h2><p class="muted" id="whometa"></p></div>
@@ -1167,6 +1187,11 @@ function remedies(C, cur) {
   return R2;
 }
 
+function sidLon(b, when) {
+  const t = AE.MakeTime(when), ay = ayanamsaLahiri(t.tt);
+  if (b === 'Rahu' || b === 'Ketu') return norm(meanNode(t.tt/36525) - ay + (b === 'Ketu' ? 180 : 0));
+  return norm(tropLon(b, t) - ay);
+}
 // sidereal positions of all nine planets on any date (for the transit chart)
 function transitPositions(when) {
   const t = AE.MakeTime(when), ay = ayanamsaLahiri(t.tt), out = {};
@@ -1399,7 +1424,7 @@ function periodRemedy(C, md, ad, themes) {
 }
 
 const API = {SIGNS, SANSK, SAB, PL, PAB, SEVEN, SIGN_LORD, NAKS, PD, RASI, HOUSE, VIM_YEARS, ORD, fmtDeg, hFrom,
-  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT};
+  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon};
 if (typeof module !== 'undefined') module.exports = API; else root.Jyotish = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1514,7 +1539,7 @@ function cast(isExample) {
   C.events = J.lifeEvents(C);
   $('#examplebar').hidden = !isExample;
   if (!isExample) store.set('jk-birth', {nm: inp.name, dt: inp.dv, tm: inp.tv, city: inp.city, lat: inp.lat, lon: inp.lon, tz: inp.tz, tzname: $('#tzname').value, yr: $('#yr').value});
-  renderTop(); renderChart(); renderTab();
+  renderTop(); renderChart(); renderNow(); renderTab();
 }
 $('#birth').addEventListener('submit', e => { e.preventDefault(); cast(false); });
 $('#yr').addEventListener('change', () => { if (C) cast($('#examplebar').hidden === false); });
@@ -1624,19 +1649,21 @@ function aspectsOn(s) {
   return {full, sign};
 }
 let showAsp = false;
-function aspectLayer(pos, target) {
+function aspectLayer(pos, target, signOfP, titleLag, idp) {
   // pos: planet -> [x,y] of its label; target: sign -> [x,y] point inside that house
   const key = VIEW_KEY();
+  signOfP = signOfP || (b => C.P[b][key]); idp = idp || 'ah';
+  if (titleLag === undefined) titleLag = view === 'd1' ? C.lagna : C.L[view];
   let defs = '<defs>', g = '<g class="asp">';
-  for (const b of J.SEVEN) defs += `<marker id="ah-${b}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(${PCOL[b]})"/></marker>`;
+  for (const b of J.SEVEN) defs += `<marker id="${idp}-${b}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(${PCOL[b]})"/></marker>`;
   for (const b of J.SEVEN) {
     if (!pos[b]) continue;
-    const from = C.P[b][key];
+    const from = signOfP(b);
     for (const o of (ASP_OFF[b] || [7])) {
       const to = (from + o - 1) % 12, [sx, sy] = pos[b]; let [tx, ty] = target[to];
       const mx = (sx + tx)/2, my = (sy + ty)/2, qx = mx + (200 - mx)*0.45, qy = my + (200 - my)*0.45;
       const dx = tx - qx, dy = ty - qy, len = Math.hypot(dx, dy) || 1; tx -= dx/len*8; ty -= dy/len*8;
-      g += `<path data-to="${to}" data-from="${b}" d="M${sx.toFixed(1)},${sy.toFixed(1)} Q${qx.toFixed(1)},${qy.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}" fill="none" style="stroke:var(${PCOL[b]})" stroke-width="1.8" stroke-linecap="round" marker-end="url(#ah-${b})"><title>${b} → house ${J.hFrom(view === 'd1' ? C.lagna : C.L[view], to)} (${J.ORD(o)} aspect)</title></path>`;
+      g += `<path data-to="${to}" data-from="${b}" d="M${sx.toFixed(1)},${sy.toFixed(1)} Q${qx.toFixed(1)},${qy.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}" fill="none" style="stroke:var(${PCOL[b]})" stroke-width="1.8" stroke-linecap="round" marker-end="url(#${idp}-${b})"><title>${b} → house ${J.hFrom(titleLag, to)} (${J.ORD(o)} aspect)</title></path>`;
     }
   }
   return defs + '</defs>' + g + '</g>';
@@ -1767,14 +1794,18 @@ function renderChart() {
   renderLegend();
   $('#chartnote').textContent = {d1:'Rasi chart: existence at the physical level.', d9:'Navamsa: marriage and spouse, dharma, basic skills and the inner self.', d10:'Dasamsa: career, activities and achievements in society.'}[view] + ' Each house is tinted in the colour of the planet that owns it; inner borders mark exalted (▲), own-sign (★) and debilitated (▼) planets; the outlined box is the lagna. Hover over or tap a house for details and to see the aspects landing on it; press Aspects to show them all. R = retrograde.';
 }
+let tipsOn = true;
+function setTips(on) { tipsOn = on; store.set('jk-tips', on); document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', on)); if (!on) document.querySelectorAll('.charttip').forEach(t => t.hidden = true); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-tiptoggle]'); if (b) setTips(!tipsOn); });
 function attachTips(box, tipFn) {
   let pinned = null;
   const tipEl = () => box.querySelector('.charttip');
   const show = (el, px, py) => {
     const tip = tipEl(); if (!tip) return;
-    tip.innerHTML = tipFn(+el.dataset.h, +el.dataset.s); tip.hidden = false;
     box.querySelectorAll('.hz.on').forEach(x => x.classList.remove('on')); el.classList.add('on');
     box.classList.add('hl'); box.querySelectorAll('.asp path').forEach(pth => pth.classList.toggle('hit', pth.dataset.to === el.dataset.s));
+    if (!tipsOn) { tip.hidden = true; return; }
+    tip.innerHTML = tipFn(+el.dataset.h, +el.dataset.s); tip.hidden = false;
     const bw = box.clientWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
     // anchor beside the hovered house (above it if it sits in the lower half, below otherwise) so the house stays visible
     const hr = el.getBoundingClientRect(), br = box.getBoundingClientRect();
@@ -1794,14 +1825,18 @@ function attachTips(box, tipFn) {
 }
 attachTips(document.getElementById('chartbox'), (h, s) => houseTip(h, s));
 // ---------- transit (gochara) chart ----------
-let tDate = null, tRef = 'lagna';
+let tDate = null, tRef = 'lagna', tAspOn = false;
+function applyTAsp() { document.querySelectorAll('#tasptoggle, [data-taspt]').forEach(b => b.setAttribute('aria-pressed', tAspOn)); ['tchartbox', 'nowbox'].forEach(id => { const box = document.getElementById(id); if (box) box.classList.toggle('show-asp', tAspOn); }); }
+document.addEventListener('click', e => { if (e.target.closest('[data-taspt]')) { tAspOn = !tAspOn; store.set('jk-tasp', tAspOn); applyTAsp(); } });
 const dateInputVal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-function transitSVG(T) {
+function transitSVG(T, date, idp) {
+  date = date || tDate; idp = idp || 'tah';
   const ref = tRef === 'moon' ? C.P.Moon.sign : C.lagna;
   const trIn = s => J.PL.filter(b => T[b].sign === s);
   const natIn = s => J.PL.filter(b => C.P[b].sign === s);
   const tok = b => `${J.PAB[b]}${T[b].retro && b !== 'Rahu' && b !== 'Ketu' ? '<tspan font-size="0.72em" dy="-0.35em">R</tspan><tspan dy="0.35em"></tspan>' : ''}`;
   const refLbl = tRef === 'moon' ? 'natal Moon' : 'natal lagna';
+  const pos = {}, target = {}, tAsp = () => aspectLayer(pos, target, b => T[b].sign, ref, idp);
   let g = '';
   if (style === 'south') {
     const S = 100;
@@ -1818,7 +1853,9 @@ function transitSVG(T) {
         const col = two ? i % 2 : 0, row = two ? Math.floor(i/2) : i;
         const tx = two ? x + 8 + col*46 : x + 10, ty = y + 31 + row*(two ? 14 : 16);
         g += `<text x="${tx}" y="${ty}" font-size="${two ? 12 : 13}" fill="var(--ink)" font-weight="600" font-family="var(--mono)">${tok(b)}${two ? '' : `<tspan font-size="0.78em" fill="var(--muted)" font-weight="400"> ${Math.floor(T[b].deg)}°</tspan>`}</text>`;
+        pos[b] = [tx + (two ? 10 : 12), ty - 4.5];
       });
+      target[s] = [x + 50, y + 62];
       const nat = natIn(s);
       if (nat.length) g += `<text x="${x+6}" y="${y+S-8}" font-size="9" fill="var(--muted)" font-family="var(--mono)">n: ${nat.map(b => J.PAB[b]).join(' ')}</text>`;
     }
@@ -1826,10 +1863,10 @@ function transitSVG(T) {
     g += `<rect x="${lc*S+1.5}" y="${lr*S+1.5}" width="${S-3}" height="${S-3}" fill="none" stroke="var(--accent)" stroke-width="3" pointer-events="none"/>`;
     g += `<rect x="100" y="100" width="200" height="200" fill="var(--chart-bg)" stroke="var(--chart-line)" stroke-width="1.2"/>`;
     g += `<text x="200" y="184" text-anchor="middle" font-family="var(--display)" font-size="20" fill="var(--indigo)">Transits</text>`;
-    g += `<text x="200" y="206" text-anchor="middle" font-family="var(--body)" font-size="11.5" fill="var(--muted)">${esc(J.fmt(tDate))}</text>`;
+    g += `<text x="200" y="206" text-anchor="middle" font-family="var(--body)" font-size="11.5" fill="var(--muted)">${esc(J.fmt(date))}</text>`;
     g += `<text x="200" y="222" text-anchor="middle" font-family="var(--body)" font-size="11.5" fill="var(--muted)">houses from ${refLbl}</text>`;
     g += `<text x="200" y="238" text-anchor="middle" font-family="var(--body)" font-size="10.5" fill="var(--muted)">grey n: = natal planets</text>`;
-    return g + '</svg>';
+    return g + tAsp() + '</svg>';
   }
   const Tp=[200,0],TL=[0,0],TR=[400,0],BR=[400,400],BL=[0,400],R=[400,200],B=[200,400],L=[0,200],Cc=[200,200],P1=[100,100],P2=[300,100],P3=[300,300],P4=[100,300];
   const polys = [[Tp,P2,Cc,P1],[TL,Tp,P1],[TL,P1,L],[L,P1,Cc,P4],[L,P4,BL],[BL,P4,B],[B,P4,Cc,P3],[B,P3,BR],[BR,P3,R],[R,P3,Cc,P2],[R,P2,TR],[TR,P2,Tp]];
@@ -1841,20 +1878,68 @@ function transitSVG(T) {
   g += `<polygon points="${polys[0].map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" pointer-events="none"/>`;
   for (let h = 0; h < 12; h++) {
     const s = (ref + h) % 12, [nx, ny] = nums[h], [cx, cy] = centers[h];
+    target[s] = [cx + (200 - cx)*0.18, cy + (200 - cy)*0.18];
     g += `<text x="${nx}" y="${ny+4}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--body)">${s+1}</text>`;
     g += `<text x="${hlab[h][0]}" y="${hlab[h][1]+3.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--indigo)" font-family="var(--body)" opacity=".8">H${h+1}</text>`;
     const items = trIn(s), tri = ![0,3,6,9].includes(h), per = tri ? 2 : 3, rows = Math.ceil(items.length/per);
     items.forEach((b, i) => {
       const row = Math.floor(i/per), col = i % per, inRow = Math.min(per, items.length - row*per);
-      g += `<text x="${cx + (col - (inRow - 1)/2)*30}" y="${cy + (row - (rows - 1)/2)*15 + 4}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)" font-family="var(--mono)">${tok(b)}</text>`;
+      const lx = cx + (col - (inRow - 1)/2)*30, ly = cy + (row - (rows - 1)/2)*15 + 4;
+      g += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)" font-family="var(--mono)">${tok(b)}</text>`;
+      pos[b] = [lx, ly - 4];
     });
     const nat = natIn(s);
     if (nat.length) g += `<text x="${cx}" y="${cy + Math.max(rows, 1)*7.5 + 12}" text-anchor="middle" font-size="8.5" fill="var(--muted)" font-family="var(--mono)">n:${nat.map(b => J.PAB[b]).join(' ')}</text>`;
   }
-  return g + '</svg>';
+  return g + tAsp() + '</svg>';
 }
-function transitTip(h, s) {
-  const T = C.T, P = C.P, paaka = P[J.SIGN_LORD[C.lagna]].sign;
+// transit-over-natal helpers
+const TR_ACT = {Sun:'spotlights and energises', Moon:'colours the mood for 2\u20133 days', Mars:'energises and can inflame', Mercury:'brings talk, paperwork and decisions to', Jupiter:'supports and expands', Venus:'brings comfort and pleasure to', Saturn:'presses, delays and tests', Rahu:'amplifies and unsettles', Ketu:'detaches from or disrupts'};
+const exactCache = new Map();
+function exactDate(tb, natLon, from) {
+  const key = `${tb}|${natLon.toFixed(3)}|${from.toDateString()}`;
+  if (exactCache.has(key)) return exactCache.get(key);
+  const cfg = {Sun:[1,40], Mercury:[1,80], Venus:[1,80], Mars:[1,160], Jupiter:[2,500], Saturn:[3,900], Rahu:[4,700], Ketu:[4,700]}[tb];
+  let res = null;
+  if (cfg) {
+    const diff = d => norm180(J.sidLon(tb, d) - natLon);
+    let prevD = from, prev = diff(from);
+    for (let k = cfg[0]; k <= cfg[1]; k += cfg[0]) {
+      const d = new Date(from.getTime() + k*864e5), v = diff(d);
+      if (Math.sign(v) !== Math.sign(prev) && Math.abs(v - prev) < 20) {
+        // refine by bisection
+        let lo = prevD.getTime(), hi = d.getTime();
+        for (let i = 0; i < 20; i++) { const m = (lo + hi)/2; if (Math.sign(diff(new Date(m))) === Math.sign(prev)) lo = m; else hi = m; }
+        res = new Date((lo + hi)/2); break;
+      }
+      prev = v; prevD = d;
+    }
+  }
+  exactCache.set(key, res); return res;
+}
+const norm180 = x => ((x % 360) + 540) % 360 - 180;
+function transitOverNatal(T, s, date) {
+  date = date || tDate;
+  const P = C.P, here = J.PL.filter(b => T[b].sign === s), nat = J.PL.filter(b => P[b].sign === s);
+  if (!nat.length) return '';
+  const rows = [];
+  for (const tb of here) for (const nb of nat) {
+    const d = norm180(T[tb].lon - P[nb].lon), orb = Math.abs(d);
+    const approaching = (d < 0) !== T[tb].retro;
+    let status = orb <= 1 ? '<span class="tipnow">exact now</span>' : approaching ? 'approaching' : 'separating';
+    if (orb > 1 && tb !== 'Moon') { const x = exactDate(tb, P[nb].lon, date); if (x) status += `${approaching ? '' : (T[tb].retro ? ' (retrograde, will return)' : '')}, exact around ${J.fmt(x)}`; }
+    const lords = P[nb].lordOf.length ? `, lord of your ${P[nb].lordOf.map(J.ORD).join(' & ')}` : '';
+    rows.push(`<div class="tippl">${pdot(tb)}<b>${tb}</b> over natal ${pdot(nb)}<b>${nb}</b>: ${orb.toFixed(1)}\u00b0 ${status}<br><span class="tipread">Transit ${tb} ${TR_ACT[tb]} natal ${nb} (${J.PD[nb].gov}${lords}).</span></div>`);
+  }
+  const asp = [];
+  for (const b of J.SEVEN) for (const o of (ASP_OFF[b] || [7])) if ((T[b].sign + o - 1) % 12 === s) asp.push(`${pdot(b)}${b} <span class="muted">(${J.ORD(o)})</span>`);
+  return `<div class="tipr"><span class="tipk">Your natal planets here</span>${nat.map(b => `${pdot(b)}${b} ${J.fmtDeg(P[b].deg)}`).join(', ')}</div>
+    ${rows.length ? `<div class="tipr"><span class="tipk">Transit over natal</span>${rows.join('')}</div>` : ''}
+    ${asp.length ? `<div class="tipr"><span class="tipk">Transit aspects on these natal planets</span>${asp.join(', ')}</div>` : ''}`;
+}
+function transitTip(h, s, T, date) {
+  T = T || C.T; date = date || tDate;
+  const P = C.P, paaka = P[J.SIGN_LORD[C.lagna]].sign;
   const here = J.PL.filter(b => T[b].sign === s), nat = J.PL.filter(b => P[b].sign === s);
   const fromMoon = J.hFrom(P.Moon.sign, s), fromLag = J.hFrom(C.lagna, s);
   const tags = [s === C.lagna ? 'your natal ascendant sign' : '', s === P.Moon.sign ? 'your janma rasi (Moon sign)' : '', s === paaka ? 'your paaka lagna (sign of your lagna lord)' : ''].filter(Boolean);
@@ -1866,8 +1951,8 @@ function transitTip(h, s) {
   return `<div class="tiph">House ${h} · ${J.SIGNS[s]}</div>
     <div class="tipr"><span class="tipk">Counted from ${tRef === 'moon' ? 'natal Moon' : 'natal lagna'}</span>${esc(J.HOUSE[h].n)}: ${esc(J.HOUSE[h].sig)}.${tRef === 'moon' ? ` (${J.ORD(fromLag)} from your lagna)` : ` (${J.ORD(fromMoon)} from your Moon)`}</div>
     ${tags.length ? `<div class="tipr tipown">★ This is ${tags.join(' and ')}.</div>` : ''}
-    <div class="tipr"><span class="tipk">Transiting here on ${esc(J.fmt(tDate))}</span>${rows}</div>
-    ${nat.length ? `<div class="tipr"><span class="tipk">Your natal planets here</span>${nat.map(b => `${pdot(b)}${b} ${J.fmtDeg(P[b].deg)}`).join(', ')}${over.length ? `<br><span class="tipread">Transit ${J.list(over)} ${over.length > 1 ? 'are' : 'is'} passing over them; their natal significations are stirred now.</span>` : ''}</div>` : ''}
+    <div class="tipr"><span class="tipk">Transiting here on ${esc(J.fmt(date))}</span>${rows}</div>
+    ${transitOverNatal(T, s, date)}
     ${sat.length ? `<div class="tipr tipdebil">${sat.join(' ')}</div>` : ''}`;
 }
 function renderTransitChart() {
@@ -1885,21 +1970,34 @@ function renderTransitChart() {
   document.getElementById('tnotes').hidden = !notes.length;
   document.querySelectorAll('[data-tref]').forEach(x => x.setAttribute('aria-pressed', x.dataset.tref === tRef));
 }
+let nowDate = new Date();
+function renderNow() {
+  const box = document.getElementById('nowbox'); if (!box || !C) return;
+  nowDate = new Date(); C.Tnow = J.transitPositions(nowDate);
+  box.innerHTML = transitSVG(C.Tnow, nowDate, 'nah') + '<div class="charttip" role="tooltip" hidden></div>';
+  document.getElementById('nowdate').textContent = nowDate.toLocaleString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  document.querySelectorAll('[data-nref]').forEach(x => x.setAttribute('aria-pressed', x.dataset.nref === tRef));
+  document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', tipsOn));
+}
+attachTips(document.getElementById('nowbox'), (h, s) => transitTip(h, s, C.Tnow, nowDate));
+document.querySelectorAll('[data-nref]').forEach(b => b.addEventListener('click', () => { tRef = b.dataset.nref; store.set('jk-tref', tRef); renderNow(); if (tab === 'transits') renderTransitChart(); }));
+document.getElementById('nowmore').addEventListener('click', e => { e.preventDefault(); document.querySelector('#tabs [data-t="transits"]').click(); document.getElementById('tabs').scrollIntoView({behavior:'smooth'}); });
 function initTransit() {
   if (!tDate) tDate = new Date();
   const di = document.getElementById('tdate');
   di.value = dateInputVal(tDate);
   di.addEventListener('change', () => { if (!di.value) return; const [y, m, d] = di.value.split('-').map(Number); tDate = new Date(y, m - 1, d, 12, 0); renderTransitChart(); });
   document.getElementById('ttoday').addEventListener('click', () => { tDate = new Date(); di.value = dateInputVal(tDate); renderTransitChart(); });
-  document.querySelectorAll('[data-tref]').forEach(b => b.addEventListener('click', () => { tRef = b.dataset.tref; store.set('jk-tref', tRef); renderTransitChart(); }));
-  attachTips(document.getElementById('tchartbox'), transitTip);
-  renderTransitChart();
+  document.querySelectorAll('[data-tref]').forEach(b => b.addEventListener('click', () => { tRef = b.dataset.tref; store.set('jk-tref', tRef); renderTransitChart(); renderNow(); }));
+  document.getElementById('tasptoggle').addEventListener('click', () => { tAspOn = !tAspOn; store.set('jk-tasp', tAspOn); applyTAsp(); });
+  attachTips(document.getElementById('tchartbox'), (h, s) => transitTip(h, s));
+  renderTransitChart(); applyTAsp();
 }
 
 document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => { view = b.dataset.v; document.querySelectorAll('[data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); renderChart(); }));
 document.getElementById('asptoggle').addEventListener('click', () => { showAsp = !showAsp; store.set('jk-asp', showAsp); applyAspToggle(); });
 function applyAspToggle() { document.getElementById('asptoggle').setAttribute('aria-pressed', showAsp); document.getElementById('chartbox').classList.toggle('show-asp', showAsp); }
-document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => { style = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); store.set('jk-style', style); renderChart(); if (tab === 'transits') renderTransitChart(); }));
+document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => { style = b.dataset.s; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x === b)); store.set('jk-style', style); renderChart(); renderNow(); if (tab === 'transits') renderTransitChart(); }));
 
 // ---------- summary ----------
 function renderTop() {
@@ -2049,10 +2147,11 @@ function tTransits() {
     <div class="chartcard">
       <div class="chartctl">
         <div class="tdatebox"><label for="tdate" class="eyebrow">Date</label><input type="date" id="tdate"><button type="button" class="asptoggle" id="ttoday">Today</button></div>
+        <div class="togs"><button type="button" class="asptoggle" id="tasptoggle" aria-pressed="false" title="Show every full aspect of the transiting planets">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="${tipsOn}" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
         <div class="seg" role="group" aria-label="Count houses from"><button type="button" data-tref="lagna" aria-pressed="true">From lagna</button><button type="button" data-tref="moon" aria-pressed="false">From Moon</button></div>
       </div>
       <div class="chartbox" id="tchartbox"></div>
-      <p class="hint" style="margin-top:8px">Hover over or tap a house for the transit details and the book's result. R = retrograde. The outlined box is the house you count from. Chart style follows the South/North switch above.</p>
+      <p class="hint" style="margin-top:8px">Hover over or tap a house for the transit details and the book's result, and to highlight the aspects landing on it. Turn Tooltips off to see the arrows unobstructed. R = retrograde. The outlined box is the house you count from. Chart style follows the South/North switch above.</p>
     </div>
     <div class="tside">
       <h3>Planets on this date</h3>
@@ -2125,6 +2224,8 @@ function boot() {
   const saved = store.get('jk-birth');
   showAsp = store.get('jk-asp') === true; applyAspToggle();
   if (store.get('jk-tref') === 'moon') tRef = 'moon';
+  tAspOn = store.get('jk-tasp') === true; applyTAsp();
+  if (store.get('jk-tips') === false) setTips(false);
   const st = store.get('jk-style'); if (st === 'north' || st === 'south') { style = st; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x.dataset.s === style)); }
   const tb = store.get('jk-tab'); if (tb && document.querySelector(`#tabs [data-t="${tb}"]`)) { tab = tb; document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', x.dataset.t === tab)); }
   if (saved && saved.dt) {

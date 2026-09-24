@@ -834,6 +834,11 @@ function remedies(C, cur) {
   return R2;
 }
 
+function sidLon(b, when) {
+  const t = AE.MakeTime(when), ay = ayanamsaLahiri(t.tt);
+  if (b === 'Rahu' || b === 'Ketu') return norm(meanNode(t.tt/36525) - ay + (b === 'Ketu' ? 180 : 0));
+  return norm(tropLon(b, t) - ay);
+}
 // sidereal positions of all nine planets on any date (for the transit chart)
 function transitPositions(when) {
   const t = AE.MakeTime(when), ay = ayanamsaLahiri(t.tt), out = {};
@@ -1066,6 +1071,6 @@ function periodRemedy(C, md, ad, themes) {
 }
 
 const API = {SIGNS, SANSK, SAB, PL, PAB, SEVEN, SIGN_LORD, NAKS, PD, RASI, HOUSE, VIM_YEARS, ORD, fmtDeg, hFrom,
-  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT};
+  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon};
 if (typeof module !== 'undefined') module.exports = API; else root.Jyotish = API;
 })(typeof window !== 'undefined' ? window : globalThis);
