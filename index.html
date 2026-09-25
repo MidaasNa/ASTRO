@@ -233,6 +233,59 @@ tr.now td{background:var(--accent-soft)}
 .trow.dl{background:var(--accent-soft)}
 @media (max-width:900px){.tgrid{grid-template-columns:minmax(0,1fr)}}
 
+/* learn tab */
+.ln-wrap{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;align-items:start}
+.ln-side{position:sticky;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:2px;max-height:calc(100vh - 24px);overflow:auto}
+.ln-side button{display:flex;gap:9px;align-items:center;text-align:left;background:transparent;border:0;border-radius:7px;padding:7px 8px;font-size:13.5px;color:var(--ink);cursor:pointer}
+.ln-side button:hover{background:var(--panel-2)}
+.ln-side button[aria-current="true"]{background:var(--accent-soft);font-weight:600}
+.ln-n{flex:none;min-width:24px;height:24px;border-radius:999px;background:var(--panel-2);display:inline-grid;place-items:center;font-size:11px;font-weight:600;color:var(--muted);padding:0 4px}
+.ln-lvl{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:10px 8px 2px}
+.ln-prog{display:grid;gap:5px;font-size:12px;color:var(--muted);margin:0 6px 4px}
+.ln-bar{height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden}.ln-bar span{display:block;height:100%;background:var(--good)}
+.ln-main{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 26px;font-size:15.5px;line-height:1.65;min-width:0}
+.ln-main p{margin:0 0 12px;max-width:78ch}.ln-main h4{font-family:var(--display);font-weight:400;font-size:19px;margin:20px 0 8px}
+.ln-kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ln-title{font-family:var(--display);font-weight:400;font-size:28px;margin:4px 0 14px;line-height:1.2}
+.ln-list{margin:0 0 14px;padding-left:22px;display:grid;gap:6px;max-width:80ch}
+.ln-simple{background:var(--accent-soft);border-radius:9px;padding:12px 16px;margin:14px 0;max-width:80ch}
+.ln-mine{border:1px solid var(--good);background:var(--good-soft);border-radius:9px;padding:12px 16px;margin:16px 0}
+.ln-mine-h{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--good);margin-bottom:6px}
+.ln-mine p:last-child,.ln-mine ul:last-child{margin-bottom:0}
+.ln-note{border-left:3px solid var(--mixed);padding:6px 12px;color:var(--muted);font-size:14px;margin:14px 0}
+.ln-try a{font-weight:600;color:var(--indigo)}
+.ln-t{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 14px}
+.ln-t th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--line)}
+.ln-t td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.ln-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ln-south{display:grid;grid-template-columns:repeat(4,1fr);width:min(260px,100%);border:1px solid var(--line);margin:6px 0 10px}
+.ln-south div{aspect-ratio:1;border:1px solid var(--line);display:grid;place-items:center;text-align:center;font-size:13px;font-weight:600;line-height:1.1}
+.ln-south .blank{border:0}.ln-south .lag{background:var(--accent-soft)}.ln-south small{font-size:9.5px;font-weight:400;color:var(--muted)}
+.ln-quiz{margin-top:22px;border-top:1px solid var(--line);padding-top:6px}
+.ln-q p{margin:10px 0 6px;font-weight:600}
+.ln-opts{display:flex;flex-wrap:wrap;gap:8px}
+.ln-opts button{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font-size:14px;cursor:pointer;color:var(--ink)}
+.ln-opts button:hover{border-color:var(--accent)}
+.ln-opts button.right{background:var(--good-soft);border-color:var(--good);color:var(--good);font-weight:600}
+.ln-opts button.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.ln-fb{font-size:13px;color:var(--muted);min-height:1.2em;margin:4px 0 0!important;font-weight:400!important}
+.ln-nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:24px;border-top:1px solid var(--line);padding-top:14px}
+.ln-done{background:transparent;border:1px solid var(--good);color:var(--good);border-radius:999px;padding:6px 16px;font-weight:600;cursor:pointer;font-size:13.5px}
+.ln-done.on{background:var(--good);color:var(--panel)}
+.ln-search{width:100%;max-width:360px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font-size:14px;margin-bottom:8px}
+@media (max-width:860px){.ln-wrap{grid-template-columns:1fr}.ln-side{position:static;max-height:none}.ln-two{grid-template-columns:1fr}.ln-main{padding:16px}}
+
+/* table toolbar */
+.tbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 8px;font-size:12.5px}
+.tbar-k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:2px}
+.colchip{background:var(--accent-soft);color:var(--ink);border:1px solid transparent;border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.colchip[aria-pressed="false"]{background:transparent;border-color:var(--line);color:var(--muted);text-decoration:line-through}
+.colchip.reset{background:transparent;border-color:var(--accent);color:var(--accent)}
+.tbar-sz{display:inline-flex;align-items:center;gap:4px;margin-left:auto}
+.szbtn{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.szbtn:hover,.colchip:hover{border-color:var(--accent)}
+.szv{min-width:40px;text-align:center;font-size:12px}
+
 /* planet remedies */
 .pl-rem{margin-top:6px;background:var(--panel-2);border-radius:8px;padding:10px 14px}
 .pl-rem h4{font-family:var(--display);font-weight:400;font-size:16px;margin:0 0 6px}
@@ -400,6 +453,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <button role="tab" data-t="transits" aria-selected="false">Transits now</button>
     <button role="tab" data-t="remedies" aria-selected="false">Remedies</button>
     <button role="tab" data-t="details" aria-selected="false">Chart details</button>
+    <button role="tab" data-t="learn" aria-selected="false">Learn astrology</button>
   </nav>
   <section class="pane" id="pane"></section>
 
@@ -2236,6 +2290,7 @@ function renderTransitChart() {
   document.getElementById('tnotes').innerHTML = notes.map(n => `<p>${esc(n)}</p>`).join('');
   document.getElementById('tnotes').hidden = !notes.length;
   document.querySelectorAll('[data-tref]').forEach(x => x.setAttribute('aria-pressed', x.dataset.tref === tRef));
+  if (tab === 'transits') enhanceTables();
 }
 let nowDate = new Date();
 function renderNow() {
@@ -2295,10 +2350,372 @@ document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click
   tab = b.dataset.t; document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
   store.set('jk-tab', tab); renderTab();
 }));
+// ---------- table toolbar: hide/show columns and resize text (saved per table in this browser) ----------
+function enhanceTables() {
+  const tables = [...document.querySelectorAll('#pane table')].filter(t => !t.classList.contains('ln-t') && t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells.length >= 4);
+  tables.forEach((t, i) => {
+    const key = `jk-tbl-${tab}-${i}`;
+    const st = Object.assign({h: [], fs: 1}, store.get(key) || {});
+    const hdr = [...t.tHead.rows[0].cells].map((c, j) => c.textContent.trim() || (j === 0 ? 'First' : 'Rating'));
+    const wrap = t.closest('.tablewrap') || t;
+    let bar = wrap.previousElementSibling && wrap.previousElementSibling.classList.contains('tbar') ? wrap.previousElementSibling : null;
+    if (!bar) { bar = document.createElement('div'); bar.className = 'tbar'; wrap.parentNode.insertBefore(bar, wrap); }
+    if (t.dataset.minw === undefined) t.dataset.minw = t.style.minWidth || '';
+    const apply = () => {
+      st.h = st.h.filter(j => j < hdr.length);
+      [...t.rows].forEach(r => { if (r.cells.length !== hdr.length) return; [...r.cells].forEach((c, j) => { c.style.display = st.h.includes(j) ? 'none' : ''; }); });
+      t.style.zoom = st.fs === 1 ? '' : String(st.fs);
+      t.style.minWidth = st.h.length ? '0' : t.dataset.minw;
+      bar.innerHTML = `<span class="tbar-k">Columns</span>${hdr.map((h, j) => `<button type="button" class="colchip" data-col="${j}" aria-pressed="${!st.h.includes(j)}" title="${st.h.includes(j) ? 'Show' : 'Hide'} this column">${esc(h)}</button>`).join('')}${st.h.length ? '<button type="button" class="colchip reset" data-showall>Show all</button>' : ''}
+        <span class="tbar-sz"><span class="tbar-k">Text</span><button type="button" class="szbtn" data-fs="-1" aria-label="Smaller text">A−</button><span class="mono szv">${Math.round(st.fs*100)}%</span><button type="button" class="szbtn" data-fs="1" aria-label="Larger text">A+</button>${st.fs !== 1 ? '<button type="button" class="szbtn" data-fs="0">Reset</button>' : ''}</span>`;
+      bar.querySelectorAll('[data-col]').forEach(b => b.addEventListener('click', () => {
+        const j = +b.dataset.col;
+        if (st.h.includes(j)) st.h = st.h.filter(x => x !== j);
+        else if (hdr.length - st.h.length > 1) st.h.push(j);
+        store.set(key, st); apply();
+      }));
+      const sa = bar.querySelector('[data-showall]'); if (sa) sa.addEventListener('click', () => { st.h = []; store.set(key, st); apply(); });
+      bar.querySelectorAll('[data-fs]').forEach(b => b.addEventListener('click', () => {
+        const d = +b.dataset.fs;
+        st.fs = d === 0 ? 1 : Math.min(1.8, Math.max(0.8, Math.round((st.fs + d*0.1)*10)/10));
+        store.set(key, st); apply();
+      }));
+    };
+    apply();
+  });
+}
+
+// ---------- Learn astrology: a beginner course that uses the user's own chart as the worked example ----------
+let learnId = null;
+function lnMine(html) { return C ? `<div class="ln-mine"><div class="ln-mine-h">In your chart</div>${html}</div>` : ''; }
+function lnTry(t, label) { return `<p class="ln-try"><a href="#" data-goto="${t}">${label} →</a></p>`; }
+function lnSimple(html) { return `<div class="ln-simple"><b>Remember it like this:</b> ${html}</div>`; }
+function lnTable(head, rows) { return `<div class="tablewrap"><table class="ln-t"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; }
+const lnS = s => `${J.SIGNS[s]} (${J.SANSK[s]})`;
+const lnPl = b => `${pdot(b)}<b>${b}</b>`;
+const lnDate = d => d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+const PL_EASY = {
+  Sun: ['Soul, ego, father, boss, government, health', 'The king', 'Orange / copper', 'Malefic (mild)'],
+  Moon: ['Mind, emotions, mother, sleep, peace, public', 'The queen', 'White', 'Benefic when bright, malefic when dark'],
+  Mars: ['Energy, courage, anger, siblings, land, surgery, police', 'The army chief', 'Red', 'Malefic'],
+  Mercury: ['Intellect, speech, business, maths, computers, skin', 'The prince', 'Green', 'Benefic (takes colour from company)'],
+  Jupiter: ['Wisdom, teacher, children, luck, wealth, husband (female chart)', 'The minister / guru', 'Yellow', 'Great benefic'],
+  Venus: ['Love, spouse, comforts, vehicles, beauty, arts, luxury', 'The minister / demon guru', 'White / pastel', 'Benefic'],
+  Saturn: ['Hard work, delay, discipline, servants, old age, sorrow, longevity', 'The servant', 'Black / dark blue', 'Great malefic (but a fair teacher)'],
+  Rahu: ['Obsession, foreign things, sudden rise, technology, confusion', 'The head of the dragon', 'Smoky', 'Malefic (shadow planet)'],
+  Ketu: ['Detachment, spirituality, past life, sudden cuts, research', 'The tail of the dragon', 'Grey / multicolour', 'Malefic (shadow planet)']
+};
+const SIGN_EASY = ['bold starter', 'steady and comfort-loving', 'curious talker', 'caring and emotional', 'proud leader', 'careful analyst', 'balanced diplomat', 'intense and secretive', 'optimistic teacher', 'practical worker', 'humanitarian thinker', 'dreamy and spiritual'];
+const HOUSE_EASY = ['', 'You: body, health, personality', 'Money in hand, family, speech, food', 'Courage, younger siblings, skills, short trips', 'Mother, home, vehicles, inner peace', 'Children, intelligence, romance, speculation', 'Enemies, debts, disease, daily job, competition', 'Spouse, partnerships, business deals', 'Sudden events, secrets, longevity, in-laws’ money', 'Luck, father, guru, dharma, long trips', 'Career, status, boss, reputation', 'Gains, income, friends, wishes fulfilled', 'Expenses, loss, sleep, foreign lands, moksha'];
+
+const LESSONS = [
+{id: 'what', t: 'What is Vedic astrology?', lvl: 'Start here', body: () => `
+  <p>At the moment you were born, the Sun, the Moon and the planets were at particular places in the sky. A <b>birth chart</b> (kundali or jathakam) is simply a map of that sky, drawn from the exact place you were born.</p>
+  <p>Vedic astrology (Jyotisha, “the science of light”) reads that map to describe your nature, the areas of life that come easily or with effort, and <i>when</i> those things are likely to unfold.</p>
+  <p>Every chart is built from three ingredients:</p>
+  <ul class="ln-list">
+    <li><b>9 planets (grahas)</b>: the <i>actors</i>. Each one stands for certain people and things (Sun = father, Venus = spouse…).</li>
+    <li><b>12 signs (rasis)</b>: the <i>costumes</i>. A sign colours how an actor behaves.</li>
+    <li><b>12 houses (bhavas)</b>: the <i>stages</i>. Each house is one area of life (money, home, career…).</li>
+  </ul>
+  ${lnSimple('a planet (<i>who</i>) sits in a sign (<i>how</i>) in a house (<i>where in your life</i>). “Saturn in Sagittarius in the 9th house” means the discipline-and-delay actor, dressed as a teacher, performing on the stage of luck, father and bosses.')}
+  <h4>Why is my Vedic sign different from my newspaper sign?</h4>
+  <p>Western astrology measures signs from the seasons (tropical zodiac). Vedic astrology measures them from the actual stars (sidereal zodiac). The two have drifted about 24° apart, so most people’s Vedic Sun sign is one sign earlier than their Western one. This app uses the <b>Lahiri ayanamsa</b>, the standard correction used in India.</p>
+  ${lnMine(`<p>Your Sun is in ${lnS(C.P.Sun.sign)} in Vedic astrology; a Western magazine would put it one sign later.</p>`)}
+  <div class="ln-note">Astrology describes tendencies and timing; it is not a verdict. Effort, choices and circumstances still matter a great deal.</div>`,
+  quiz: [['A birth chart is a map of…', ['your palm lines', 'the sky at your time and place of birth', 'your family tree'], 1],
+         ['In the “actor / costume / stage” picture, the houses are…', ['the actors', 'the costumes', 'the stages (areas of life)'], 2]]},
+
+{id: 'signs', t: 'The 12 signs (rasis)', lvl: 'Basics', body: () => `
+  <p>The sky is divided into 12 equal slices of 30° each, called signs. Each sign has an <b>element</b> (fire, earth, air, water), a <b>quality</b> (movable, fixed, dual) and a <b>ruling planet</b> (its owner, or lord).</p>
+  ${lnTable(['#', 'Sign', 'Element', 'Quality', 'Owner', 'Personality in one line'], J.SIGNS.map((s, i) => [i + 1, `<b>${s}</b><br><span class="muted">${J.SANSK[i]}</span>`, J.RASI[i].el, J.RASI[i].q, lnPl(J.SIGN_LORD[i]), SIGN_EASY[i]]))}
+  ${lnSimple('Fire = action, Earth = practical, Air = ideas, Water = feelings. Movable signs start things, fixed signs keep them going, dual signs adapt.')}
+  <p>Only 7 planets own signs: the Sun and Moon own one each, the other five own two each. Rahu and Ketu are shadow planets and own none in the classical scheme.</p>
+  ${lnMine(`<p>Your <b>ascendant (lagna)</b> is ${lnS(C.lagna)}: a ${SIGN_EASY[C.lagna]}. Your <b>Moon sign (rasi)</b> is ${lnS(C.P.Moon.sign)}: a ${SIGN_EASY[C.P.Moon.sign]}. In South India, “what is your rasi?” means the Moon sign.</p>`)}`,
+  quiz: [['Which planet owns Aries and Scorpio?', ['Venus', 'Mars', 'Saturn'], 1],
+         ['How many degrees is one sign?', ['30°', '12°', '27°'], 0],
+         ['Which element is Pisces?', ['Fire', 'Air', 'Water'], 2]]},
+
+{id: 'planets', t: 'The 9 planets (grahas)', lvl: 'Basics', body: () => `
+  <p>Vedic astrology uses nine “grahas” (graspers): the Sun, the Moon, five visible planets, and the two lunar nodes Rahu and Ketu. Uranus, Neptune and Pluto are not used.</p>
+  ${lnTable(['Planet', 'What it stands for', 'Role', 'Colour', 'By nature'], J.PL.map(b => [lnPl(b), PL_EASY[b][0], PL_EASY[b][1], PL_EASY[b][2], PL_EASY[b][3]]))}
+  ${lnSimple('<b>Benefics</b> (Jupiter, Venus, bright Moon, Mercury) give, soften and protect. <b>Malefics</b> (Saturn, Mars, Sun, Rahu, Ketu) cut, delay and test. But malefics are not “bad”: Saturn gives discipline and Mars gives courage. What matters is how well-placed they are.')}
+  <p>Each planet is also a <b>karaka</b> (natural significator). Want to know about your father? Look at the Sun. Spouse? Venus (and Jupiter for a woman). Mother and mind? The Moon.</p>
+  ${lnMine(`<p>Your planets at a glance:</p><ul class="ln-list">${J.PL.map(b => `<li>${lnPl(b)} in ${J.SIGNS[C.P[b].sign]}, your ${J.ORD(C.P[b].house)} house</li>`).join('')}</ul>`)}
+  ${lnTry('planets', 'Read what each of your planets does')}`,
+  quiz: [['Which planet is the karaka (natural signifier) of the mind and mother?', ['Sun', 'Moon', 'Mercury'], 1],
+         ['Rahu and Ketu are…', ['physical planets', 'the two lunar nodes (shadow points)', 'stars'], 1],
+         ['Which is the great benefic?', ['Saturn', 'Jupiter', 'Mars'], 1]]},
+
+{id: 'houses', t: 'The 12 houses (bhavas)', lvl: 'Basics', body: () => `
+  <p>Houses are the 12 areas of life. The 1st house starts at your ascendant; the rest follow in order. This app uses <b>whole-sign houses</b>: the whole ascendant sign is the 1st house, the next sign is the 2nd, and so on.</p>
+  ${lnTable(['House', 'Life area (easy)', 'Natural karaka'], Array.from({length: 12}, (_, i) => [`<b>${i + 1}</b>`, HOUSE_EASY[i + 1], lnPl(J.HOUSE_KARAKA[i + 1])]))}
+  <h4>House groups: learn these four and you can read half a chart</h4>
+  <ul class="ln-list">
+    <li><b>Kendras (angles) 1, 4, 7, 10</b>: the pillars. Planets here are strong and visible.</li>
+    <li><b>Trikonas (trines) 1, 5, 9</b>: luck and blessings. The best houses.</li>
+    <li><b>Dusthanas 6, 8, 12</b>: difficult houses: disease, sudden trouble, loss. Planets here struggle (but give research, service and spiritual depth).</li>
+    <li><b>Upachayas 3, 6, 10, 11</b>: houses that <i>grow with time</i>. Malefics do well here; results improve with age.</li>
+  </ul>
+  ${lnSimple('Kendra = strength, Trikona = luck, Dusthana = struggle, Upachaya = slow improvement.')}
+  ${lnMine(`<p>Planets in your angles: ${J.PL.filter(b => [1,4,7,10].includes(C.P[b].house)).map(lnPl).join(', ') || 'none'}. In your trines: ${J.PL.filter(b => [5,9].includes(C.P[b].house)).map(lnPl).join(', ') || 'none'}. In your dusthanas: ${J.PL.filter(b => [6,8,12].includes(C.P[b].house)).map(lnPl).join(', ') || 'none'}.</p>`)}
+  ${lnTry('houses', 'Open your house-by-house table')}`,
+  quiz: [['Which house shows career and status?', ['4th', '7th', '10th'], 2],
+         ['6, 8 and 12 are called…', ['trikonas', 'dusthanas', 'kendras'], 1],
+         ['Which houses are trines (luck)?', ['1, 5, 9', '3, 6, 11', '4, 8, 12'], 0]]},
+
+{id: 'lagna', t: 'The ascendant (lagna) and why birth time matters', lvl: 'Basics', body: () => `
+  <p>The <b>ascendant</b> (lagna) is the sign rising on the eastern horizon at the moment of birth. Because the Earth spins, a new sign rises roughly <b>every 2 hours</b>. That is why the time of birth matters so much: two babies born a few hours apart on the same day get different lagnas and so different houses.</p>
+  <p>The lagna is <i>you</i>: your body, temperament and the lens through which the whole chart is read. Its owner, the <b>lagna lord</b>, is the most personal planet in your chart.</p>
+  <p>Finer details (divisional charts, exact dasa dates) change within minutes. Astrologers check a birth time against known life events; this is called <b>rectification</b>.</p>
+  ${lnSimple('Moon sign = your mind. Lagna = your body and life path. Sun sign = your soul. Vedic astrology gives the lagna and Moon the most weight.')}
+  ${lnMine(`<p>Your lagna is ${lnS(C.lagna)}, so your lagna lord is ${lnPl(J.SIGN_LORD[C.lagna])}, sitting in your ${J.ORD(C.P[J.SIGN_LORD[C.lagna]].house)} house (${C.P[J.SIGN_LORD[C.lagna]].dignity}). Your time was rectified against your life events (father’s passing, your daughter’s birth), which fixed it to about 23:39–23:40.</p>`)}`,
+  quiz: [['Roughly how often does the rising sign change?', ['Every 2 hours', 'Every day', 'Every month'], 0],
+         ['The lagna lord is…', ['the planet that owns your rising sign', 'always the Sun', 'the planet in the 7th house'], 0]]},
+
+{id: 'read', t: 'How to read the chart picture', lvl: 'Basics', body: () => `
+  <p>There are two common drawing styles; both show exactly the same information. You can switch between them above your chart.</p>
+  <div class="ln-two">
+    <div><h4>South Indian (fixed signs)</h4>
+      <div class="ln-south">${[11,0,1,2,10,-1,-1,3,9,-1,-1,4,8,7,6,5].map(s => s < 0 ? '<div class="blank"></div>' : `<div class="${C && s === C.lagna ? 'lag' : ''}">${J.SAB[s]}${C && s === C.lagna ? '<br><small>Lagna</small>' : ''}</div>`).join('')}</div>
+      <p>Signs never move: Pisces is always top-left, Aries next to it, going clockwise. The lagna box is marked (a diagonal line or “Asc”). Count houses clockwise from there.</p></div>
+    <div><h4>North Indian (fixed houses)</h4>
+      <p>The diamond at the top-centre is always the <b>1st house</b>; houses run anti-clockwise. The small numbers are <i>sign</i> numbers (1 = Aries … 12 = Pisces), and they change from chart to chart.</p></div>
+  </div>
+  <p>Inside a box you’ll see short planet names (Su, Mo, Ma, Me, Ju, Ve, Sa, Ra, Ke), often with degrees. “(R)” means retrograde: the planet looks as if it is moving backwards, which makes it stronger and more internal.</p>
+  ${lnMine(`<p>In your chart, find the ${J.SIGNS[C.lagna]} box: that is your 1st house. The Moon in ${J.SIGNS[C.P.Moon.sign]} is in your ${J.ORD(C.P.Moon.house)} house. Hover any box in the chart above to see its tooltip.</p>`)}`,
+  quiz: [['In a South Indian chart, which never moves?', ['The houses', 'The signs', 'The planets'], 1],
+         ['In a North Indian chart the top-centre diamond is…', ['Aries', 'the 1st house', 'the 10th house'], 1]]},
+
+{id: 'lords', t: 'House lords: the key to prediction', lvl: 'Core skill', body: () => `
+  <p>Each house holds a sign, and that sign’s owner becomes the <b>lord</b> of the house. Wherever the lord goes, it carries that house’s matters with it. This one idea is the heart of Vedic prediction.</p>
+  ${lnSimple('“Lord of house X sitting in house Y” = the things of X are linked to (and played out through) Y. The 10th lord (career) in the 11th (gains) links career and income; the 2nd lord (money) in the 12th (loss) makes money flow out.')}
+  <p>Judge a lord by three things: <b>which house</b> it sits in (good: 1, 2, 4, 5, 7, 9, 10, 11; hard: 6, 8, 12), <b>its dignity</b> (next lesson), and <b>who joins or aspects it</b>.</p>
+  ${lnMine(lnTable(['House', 'Sign', 'Lord', 'Lord sits in'], Array.from({length: 12}, (_, i) => { const s = (C.lagna + i) % 12, L = J.SIGN_LORD[s]; return [`<b>${i + 1}</b> ${HOUSE_EASY[i + 1].split(',')[0]}`, J.SIGNS[s], lnPl(L), `${J.ORD(C.P[L].house)} house${[6,8,12].includes(C.P[L].house) ? ' <span class="chip bad">dusthana</span>' : ''}`]; })) +
+    `<p>Example: your 4th lord (home) is ${lnPl(J.SIGN_LORD[(C.lagna + 3) % 12])} in your ${J.ORD(C.P[J.SIGN_LORD[(C.lagna + 3) % 12]].house)} house. That is the classic reason property comes with effort or later in life.</p>`)}
+  ${lnTry('houses', 'See all your lords with their effects')}`,
+  quiz: [['If the 2nd lord (money) sits in the 12th house (expenses), money tends to…', ['multiply easily', 'flow out as expenses', 'come from father'], 1],
+         ['The lord of a house is…', ['the planet sitting in it', 'the owner of the sign in that house', 'always Jupiter'], 1]]},
+
+{id: 'dignity', t: 'Planet strength: exalted, own, debilitated', lvl: 'Core skill', body: () => `
+  <p>A planet behaves differently depending on whose “home” it is in. This is its <b>dignity</b>, from strongest to weakest:</p>
+  <ol class="ln-list">
+    <li><b>Exalted</b>: like a guest of honour. Very strong.</li>
+    <li><b>Moolatrikona</b>: its office. Strong and purposeful.</li>
+    <li><b>Own sign</b>: at home. Comfortable and strong.</li>
+    <li><b>Friend’s sign</b>: a welcome guest.</li>
+    <li><b>Neutral sign</b>: neither helped nor hurt.</li>
+    <li><b>Enemy’s sign</b>: uncomfortable; results come with friction.</li>
+    <li><b>Debilitated</b>: in its weakest sign. Struggles, unless it is “cancelled” (neecha bhanga).</li>
+  </ol>
+  ${lnTable(['Planet', 'Own sign(s)', 'Exalted in', 'Debilitated in'], J.SEVEN.map(b => { const own = {Sun:[4],Moon:[3],Mars:[0,7],Mercury:[2,5],Jupiter:[8,11],Venus:[1,6],Saturn:[9,10]}[b], ex = {Sun:0,Moon:1,Mars:9,Mercury:5,Jupiter:3,Venus:11,Saturn:6}[b]; return [lnPl(b), own.map(s => J.SIGNS[s]).join(', '), J.SIGNS[ex], J.SIGNS[(ex + 6) % 12]]; }))}
+  ${lnSimple('the debilitation sign is always the one exactly opposite (7th from) the exaltation sign.')}
+  <p>Two more weaknesses: <b>combust</b> (too close to the Sun, burnt out) and sitting in a dusthana (6, 8, 12).</p>
+  ${lnMine(`<ul class="ln-list">${J.PL.map(b => `<li>${lnPl(b)}: ${chip(C.P[b].dignity, digCls(C.P[b].dignity))}${C.P[b].combust ? ' ' + chip('combust', 'bad') : ''}</li>`).join('')}</ul>`)}`,
+  quiz: [['Where is the Sun exalted?', ['Leo', 'Aries', 'Libra'], 1],
+         ['The debilitation sign is always…', ['next to the exaltation sign', 'opposite (7th from) the exaltation sign', 'the same as the own sign'], 1],
+         ['A planet too close to the Sun is called…', ['combust', 'retrograde', 'exalted'], 0]]},
+
+{id: 'friends', t: 'Planet friendships', lvl: 'Core skill', body: () => `
+  <p>Planets have natural friends and enemies. This decides whether a planet feels welcome in another’s sign, and whether two planets sitting together cooperate or clash.</p>
+  ${lnTable(['Planet', 'Friends', 'Neutral', 'Enemies'], J.SEVEN.map(b => [lnPl(b), J.NAT[b].f.join(', '), J.NAT[b].n.join(', ') || '—', J.NAT[b].e.join(', ') || '—']))}
+  ${lnSimple('there are roughly two teams. <b>Team Sun</b>: Sun, Moon, Mars, Jupiter. <b>Team Saturn</b>: Saturn, Venus, Mercury. Players tend to like their own team.')}
+  ${lnMine(`<p>Your Venus sits in ${J.SIGNS[C.P.Venus.sign]}, owned by ${lnPl(J.SIGN_LORD[C.P.Venus.sign])}. Venus counts that owner as ${J.NAT.Venus.f.includes(J.SIGN_LORD[C.P.Venus.sign]) ? 'a friend' : J.NAT.Venus.e.includes(J.SIGN_LORD[C.P.Venus.sign]) ? 'an enemy' : 'neutral'}, so its dignity is “${C.P.Venus.dignity}”.</p>`)}`,
+  quiz: [['Is Saturn a friend of the Sun?', ['Yes', 'No, an enemy'], 1],
+         ['Venus’s friends are…', ['Sun and Moon', 'Mercury and Saturn', 'Mars and Jupiter'], 1]]},
+
+{id: 'func', t: 'Good and bad planets for YOUR ascendant', lvl: 'Core skill', body: () => `
+  <p>Beginners often think Jupiter is always good and Saturn is always bad. In Vedic astrology, a planet’s effect for <i>you</i> depends mostly on <b>which houses it owns from your lagna</b>. This is its <b>functional nature</b>.</p>
+  <ul class="ln-list">
+    <li>Lords of trines (5, 9) are good for everyone: <b>functional benefics</b>.</li>
+    <li>A planet owning a kendra <i>and</i> a trine is a <b>yogakaraka</b>: the best planet for you.</li>
+    <li>Lords of 6, 8, 12 (and often 3, 11) are <b>functional malefics</b>: they bring troubles in their periods.</li>
+    <li>The lagna lord is always your friend, even if it also owns a hard house.</li>
+  </ul>
+  ${lnSimple('natural nature = what a planet is in general. Functional nature = what it does for your particular chart. For prediction, functional nature usually wins.')}
+  ${lnMine(`<ul class="ln-list">${J.PL.map(b => `<li>${lnPl(b)} owns ${C.P[b].lordOf.length ? C.P[b].lordOf.map(J.ORD).join(' & ') : 'no house'}: ${chip(funcLbl(C.func[b]), funcCls(C.func[b]))}</li>`).join('')}</ul>`)}
+  <p>This is also why gemstones are chosen per chart: wearing the gem of a functional malefic can strengthen its troubles.</p>`,
+  quiz: [['A yogakaraka owns…', ['two dusthanas', 'a kendra and a trine', 'only the 12th house'], 1],
+         ['For prediction, which matters more for a chart?', ['natural nature', 'functional nature (houses owned from lagna)'], 1]]},
+
+{id: 'aspects', t: 'Aspects and conjunctions', lvl: 'Core skill', body: () => `
+  <p><b>Conjunction</b>: two or more planets in the same sign blend their results, like roommates.</p>
+  <p><b>Aspect (drishti)</b>: a planet also “looks at” other houses and influences them from a distance.</p>
+  <ul class="ln-list">
+    <li><b>Every planet</b> aspects the 7th house from itself (straight across).</li>
+    <li><b>Mars</b> also aspects the 4th and 8th from itself.</li>
+    <li><b>Jupiter</b> also aspects the 5th and 9th (its aspects are blessings).</li>
+    <li><b>Saturn</b> also aspects the 3rd and 10th (its aspects bring delay and pressure).</li>
+    <li>Rahu and Ketu are commonly given the 5th and 9th as well.</li>
+  </ul>
+  ${lnSimple('count from the planet’s own sign as 1. Jupiter in Cancer (1) aspects Scorpio (5th), Capricorn (7th) and Pisces (9th).')}
+  ${lnMine(`<p>Your Jupiter in ${J.SIGNS[C.P.Jupiter.sign]} (house ${C.P.Jupiter.house}) blesses your ${[5,7,9].map(n => J.ORD((C.P.Jupiter.house + n - 2) % 12 + 1)).join(', ')} houses. Your Saturn in ${J.SIGNS[C.P.Saturn.sign]} (house ${C.P.Saturn.house}) presses on your ${[3,7,10].map(n => J.ORD((C.P.Saturn.house + n - 2) % 12 + 1)).join(', ')} houses.</p>`)}
+  ${lnTry('aspects', 'See your aspects table with effects and remedies')}`,
+  quiz: [['Which aspect does every planet have?', ['3rd', '7th', '9th'], 1],
+         ['Saturn’s special aspects are the…', ['4th and 8th', '5th and 9th', '3rd and 10th'], 2],
+         ['Planets in the same sign are…', ['in conjunction', 'in opposition', 'combust'], 0]]},
+
+{id: 'naks', t: 'Nakshatras: the 27 lunar mansions', lvl: 'Core skill', body: () => `
+  <p>The zodiac is also split into <b>27 nakshatras</b> (stars) of 13°20′ each, and each nakshatra into <b>4 padas</b> (quarters) of 3°20′. They are a finer layer on top of the signs.</p>
+  <p>The nakshatra your Moon occupies is your <b>janma nakshatra</b> (birth star). It shapes your emotional nature, is used to match horoscopes, and <b>decides where your dasa sequence starts</b>.</p>
+  <p>Each nakshatra has a ruling planet and a deity. The rulers repeat in a fixed order: Ketu, Venus, Sun, Moon, Mars, Rahu, Jupiter, Saturn, Mercury.</p>
+  ${lnTable(['#', 'Nakshatra', 'Ruler', 'Deity'], J.NAKS.map((n, i) => [i + 1, `<b>${n[0]}</b>`, lnPl(n[1]), n[2]]))}
+  ${lnMine(`<p>Your Moon is in <b>${J.NAKS[C.P.Moon.nak][0]}</b> pada ${C.P.Moon.pada}, ruled by ${lnPl(J.NAKS[C.P.Moon.nak][1])}. So your life began in the ${J.NAKS[C.P.Moon.nak][1]} period.</p>`)}
+  ${lnTry('details', 'Open your nakshatra tables')}`,
+  quiz: [['How many nakshatras are there?', ['12', '27', '9'], 1],
+         ['Your birth star (janma nakshatra) is the nakshatra of your…', ['Sun', 'lagna', 'Moon'], 2]]},
+
+{id: 'yogas', t: 'Yogas: special combinations', lvl: 'Going deeper', body: () => `
+  <p>A <b>yoga</b> is a named combination of planets that produces a specific result. A few famous ones:</p>
+  <ul class="ln-list">
+    <li><b>Raja yoga</b>: a kendra lord joins or aspects a trine lord. Power, status, rise.</li>
+    <li><b>Dhana yoga</b>: lords of wealth houses (2, 5, 9, 11) connect. Money.</li>
+    <li><b>Gajakesari yoga</b>: Jupiter in a kendra from the Moon. Respect and wisdom.</li>
+    <li><b>Pancha Mahapurusha</b>: Mars, Mercury, Jupiter, Venus or Saturn in its own or exalted sign in a kendra. An outstanding personality.</li>
+    <li><b>Vipareeta Raja yoga</b>: a dusthana lord in another dusthana. Rise after (or through) trouble.</li>
+  </ul>
+  ${lnSimple('a yoga is a promise; the planet’s strength decides how much is delivered, and the dasa decides when.')}
+  ${lnMine(C.yogas.length ? `<ul class="ln-list">${C.yogas.slice(0, 8).map(y => `<li><b>${esc(y.name)}</b> ${chip(y.strength, y.strength === 'present' ? 'good' : y.strength === 'weakened' ? 'mixed' : 'bad')}</li>`).join('')}</ul>${C.yogas.length > 8 ? `<p class="muted">…and ${C.yogas.length - 8} more.</p>` : ''}` : '<p>No classical yogas are fully formed.</p>')}
+  ${lnTry('yogas', 'Read your yogas')}`,
+  quiz: [['A Raja yoga links…', ['a kendra lord and a trine lord', 'two dusthana lords', 'Rahu and Ketu'], 0],
+         ['What decides WHEN a yoga gives results?', ['the dasa (planetary period)', 'the weekday', 'the colour you wear'], 0]]},
+
+{id: 'dasa', t: 'Dasas: the timeline of your life', lvl: 'Going deeper', body: () => `
+  <p>The chart shows <i>what</i> is promised; the <b>Vimsottari dasa</b> system shows <i>when</i>. Life is divided into periods, each ruled by one planet. During a planet’s period, the houses it owns and occupies come alive.</p>
+  ${lnTable(['Planet', 'Years'], ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'].map(b => [lnPl(b), J.VIM_YEARS[b]]))}
+  <p>The full cycle is 120 years. Each main period (<b>mahadasa</b>) is split into 9 sub-periods (<b>antardasa / bhukti</b>), and those again into <b>pratyantardasas</b>. The main period sets the season; the sub-period sets the weather.</p>
+  ${lnSimple('to predict an event, ask three questions: (1) is it promised in the chart? (2) does the running dasa lord own or occupy the relevant house? (3) is the transit supporting it now?')}
+  ${lnMine(C.cur ? `<p>You are running <b>${C.cur.md.lord}</b> main period (${lnDate(C.cur.md.start)} – ${lnDate(C.cur.md.end)}), <b>${C.cur.ad.lord}</b> sub-period (until ${lnDate(C.cur.ad.end)}). ${C.cur.md.lord} is your ${C.P[C.cur.md.lord].lordOf.length ? C.P[C.cur.md.lord].lordOf.map(J.ORD).join(' & ') + ' lord' : 'shadow planet'}, sitting in your ${J.ORD(C.P[C.cur.md.lord].house)} house, so those areas are active now.</p>` : '')}
+  ${lnTry('dasas', 'See all your periods')}`,
+  quiz: [['How long is the full Vimsottari cycle?', ['60 years', '100 years', '120 years'], 2],
+         ['Which planet has the longest main period?', ['Saturn (19)', 'Venus (20)', 'Rahu (18)'], 1],
+         ['The main period is called the…', ['mahadasa', 'pada', 'drishti'], 0]]},
+
+{id: 'transit', t: 'Transits (gochara) and Sade Sati', lvl: 'Going deeper', body: () => `
+  <p>Planets keep moving after you are born. Their current positions, read against your birth chart, are <b>transits</b>. In Vedic astrology transits are counted <b>from your Moon sign</b>.</p>
+  <ul class="ln-list">
+    <li><b>Slow planets matter most</b>: Saturn (~2.5 years per sign), Jupiter (~1 year), Rahu/Ketu (~1.5 years).</li>
+    <li><b>Jupiter</b> is good when it transits the 2nd, 5th, 7th, 9th or 11th from your Moon.</li>
+    <li><b>Saturn</b> is good in the 3rd, 6th and 11th from your Moon.</li>
+    <li><b>Sade Sati</b> (“seven and a half”): Saturn passing the 12th, 1st and 2nd from your Moon. About 7.5 years of pressure, responsibility and reshaping.</li>
+  </ul>
+  ${lnSimple('the dasa is the main story; transits are triggers. A good transit in a bad dasa gives short relief; a bad transit in a good dasa gives short hurdles.')}
+  ${lnMine(`<p>Your Moon is in ${J.SIGNS[C.P.Moon.sign]}. Saturn crossing ${J.SIGNS[(C.P.Moon.sign + 11) % 12]}, ${J.SIGNS[C.P.Moon.sign]} and ${J.SIGNS[(C.P.Moon.sign + 1) % 12]} is your Sade Sati.</p>`)}
+  ${lnTry('transits', 'See where the planets are for you now')}`,
+  quiz: [['Transits in Vedic astrology are mainly counted from the…', ['Sun sign', 'Moon sign', 'Western sign'], 1],
+         ['Sade Sati is Saturn in the… from the Moon.', ['12th, 1st and 2nd', '3rd, 6th and 11th', '5th and 9th'], 0]]},
+
+{id: 'varga', t: 'Divisional charts (D9, D10 and others)', lvl: 'Going deeper', body: () => `
+  <p>Each sign can be cut into smaller slices to make <b>divisional charts (vargas)</b>, which zoom into one area of life:</p>
+  ${lnTable(['Chart', 'Name', 'Zooms into'], [['D1', 'Rasi', 'everything (the main chart)'], ['D9', 'Navamsa', 'marriage, spouse, inner strength and dharma; the most important after D1'], ['D10', 'Dasamsa', 'career and status'], ['D7', 'Saptamsa', 'children'], ['D4', 'Chaturthamsa', 'property, home and fixed assets'], ['D12', 'Dwadasamsa', 'parents']])}
+  <p>A planet in the <b>same sign in D1 and D9</b> is <b>vargottama</b> and gains strength.</p>
+  ${lnSimple('D1 is the tree, D9 is its fruit. A planet weak in D1 but strong in D9 improves with age.')}
+  ${lnMine(`<p>Vargottama planets in your chart: ${J.PL.filter(b => C.P[b].vargottama).map(lnPl).join(', ') || 'none'}. Use the D1 / Navamsa / Dasamsa buttons above your chart to switch views.</p>`)}`,
+  quiz: [['Which divisional chart is used for marriage?', ['D10', 'D9 (Navamsa)', 'D7'], 1],
+         ['Vargottama means a planet is…', ['retrograde', 'in the same sign in D1 and D9', 'debilitated'], 1]]},
+
+{id: 'remedies', t: 'Remedies (upayas)', lvl: 'Going deeper', body: () => `
+  <p>Remedies aim to strengthen helpful planets and calm difficult ones. The main kinds, from safest to most powerful:</p>
+  <ol class="ln-list">
+    <li><b>Good deeds and charity</b> linked to the planet (e.g. serving elders for Saturn, feeding birds for Mercury). Safe for everyone.</li>
+    <li><b>Mantras and prayer</b> to the planet or its deity, on its weekday.</li>
+    <li><b>Donating grains or items</b> on the planet’s day.</li>
+    <li><b>Lifestyle</b>: colours, habits and discipline that match the planet.</li>
+    <li><b>Gemstones</b>: they <i>amplify</i> a planet. Wear only for planets that are good for your lagna, never for a functional malefic.</li>
+  </ol>
+  ${lnSimple('<b>Strengthen</b> the good planets (gems allowed), <b>pacify</b> the troublesome ones (charity and prayer, no gems). When unsure, choose charity and mantras; they cannot backfire.')}
+  ${lnMine(`<p>Planets you can strengthen: ${J.PL.filter(b => ['benefic','yogakaraka'].includes(C.func[b]) || b === J.SIGN_LORD[C.lagna]).map(lnPl).join(', ')}. Planets to pacify through charity and prayer rather than gems: ${J.PL.filter(b => C.func[b] === 'malefic' && b !== J.SIGN_LORD[C.lagna]).map(lnPl).join(', ') || 'none'}.</p>`)}
+  ${lnTry('remedies', 'Open your full remedies')}`,
+  quiz: [['You should wear the gemstone of…', ['any planet you like', 'a functional malefic', 'a planet that is good for your lagna'], 2],
+         ['Which remedy is safe for everyone?', ['Charity and good deeds', 'Wearing all 9 gems', 'Strict fasting'], 0]]},
+
+{id: 'method', t: 'Putting it together: read any chart in 7 steps', lvl: 'Practice', body: () => `
+  <ol class="ln-list ln-steps">
+    <li><b>Lagna and its lord.</b> Which sign rises, and where and how strong is its lord? This is the person’s health and overall luck.</li>
+    <li><b>Moon.</b> Sign, house, nakshatra and dignity: the mind and emotional life.</li>
+    <li><b>Functional benefics and malefics</b> for this lagna. Mark the yogakaraka.</li>
+    <li><b>Go house by house.</b> For each area of life, look at (a) the house, (b) its lord, (c) its karaka. Two or three of them strong = good results; all weak = struggle.</li>
+    <li><b>Yogas.</b> Note Raja, Dhana and other combinations and how strong their planets are.</li>
+    <li><b>Timing.</b> Which dasa and sub-period are running? Which houses do those lords own and occupy?</li>
+    <li><b>Transits.</b> Jupiter and Saturn from the Moon, and Sade Sati. They trigger what the dasa promises.</li>
+  </ol>
+  ${lnMine(`<p><b>Worked example: home and property.</b></p><ul class="ln-list">
+    <li>House: 4th = ${J.SIGNS[(C.lagna + 3) % 12]}; planets there: ${J.PL.filter(b => C.P[b].house === 4).map(lnPl).join(', ') || 'none'}.</li>
+    <li>Lord: ${lnPl(J.SIGN_LORD[(C.lagna + 3) % 12])} in the ${J.ORD(C.P[J.SIGN_LORD[(C.lagna + 3) % 12]].house)} house, ${C.P[J.SIGN_LORD[(C.lagna + 3) % 12]].dignity}.</li>
+    <li>Karakas: Mars (land) in the ${J.ORD(C.P.Mars.house)}, ${C.P.Mars.dignity}; Venus (comforts, vehicles) in the ${J.ORD(C.P.Venus.house)}, ${C.P.Venus.dignity}.</li>
+    <li>Now check which periods activate the 4th lord or planets in the 4th, and look for Jupiter transiting the 4th from the lagna or Moon.</li></ul>`)}
+  ${lnTry('houses', 'Practise with your house-by-house table')}`,
+  quiz: [['What is the first thing to check in a chart?', ['The 12th house', 'The lagna and its lord', 'Rahu'], 1],
+         ['To judge a life area you look at…', ['only the house', 'the house, its lord and its karaka', 'only transits'], 1]]},
+
+{id: 'wisdom', t: 'Using astrology wisely', lvl: 'Practice', body: () => `
+  <ul class="ln-list">
+    <li><b>Tendencies, not fate.</b> A chart shows pressures and openings. Effort, skills, health care and good advice still change outcomes.</li>
+    <li><b>Never one factor alone.</b> One bad placement never “ruins” a life. Always weigh house, lord, karaka, dasa and transit together.</li>
+    <li><b>Beware fear-selling.</b> Anyone who predicts disaster and then sells an expensive fix is not following the classics, which favour charity, prayer and conduct.</li>
+    <li><b>Money and health decisions</b> need real-world evidence too: doctors, qualified financial advice, records. Astrology can help with timing and mindset, not replace them.</li>
+    <li><b>Birth time matters.</b> If predictions keep missing, check the time first.</li>
+  </ul>
+  <h4>Where to go next</h4>
+  <p>This app follows P.V.R. Narasimha Rao’s <i>Vedic Astrology: An Integrated Approach</i>. The classical source for most rules is <i>Brihat Parasara Hora Sastra</i>. Practise by reading the charts of family members whose life events you know well: it is the fastest way to learn.</p>`,
+  quiz: [['A single “bad” placement…', ['decides your whole life', 'must be weighed with lord, karaka, dasa and transit', 'can be ignored always'], 1]]}
+];
+
+const GLOSSARY = [['Lagna', 'Ascendant; the sign rising at birth, your 1st house'], ['Rasi', 'Sign; also used for the Moon sign'], ['Graha', 'Planet'], ['Bhava', 'House'], ['Nakshatra', 'One of 27 lunar mansions'], ['Pada', 'Quarter of a nakshatra'], ['Drishti', 'Aspect'], ['Dasa / Mahadasa', 'Main planetary period'], ['Antardasa / Bhukti', 'Sub-period'], ['Gochara', 'Transit'], ['Karaka', 'Natural significator'], ['Kendra', 'Angular house: 1, 4, 7, 10'], ['Trikona', 'Trine: 1, 5, 9'], ['Dusthana', 'Difficult house: 6, 8, 12'], ['Upachaya', 'Growth house: 3, 6, 10, 11'], ['Uchcha', 'Exalted'], ['Neecha', 'Debilitated'], ['Neecha bhanga', 'Cancellation of debilitation'], ['Swakshetra', 'Own sign'], ['Vakri', 'Retrograde'], ['Asta', 'Combust'], ['Yogakaraka', 'Planet owning a kendra and a trine; the best planet for a lagna'], ['Vargottama', 'Same sign in D1 and D9'], ['Navamsa', 'D9 divisional chart'], ['Sade Sati', 'Saturn over the 12th, 1st and 2nd from the Moon'], ['Ayanamsa', 'Gap between the tropical and sidereal zodiacs'], ['Upaya', 'Remedy'], ['Muhurta', 'Choosing an auspicious time'], ['Tithi', 'Lunar day'], ['Arudha', 'The “image” of a house; how the world sees it']];
+
+function tLearn() {
+  const done = store.get('jk-learn-done') || {};
+  if (!learnId || !LESSONS.some(l => l.id === learnId)) learnId = store.get('jk-learn') || LESSONS[0].id;
+  if (learnId === 'glossary') {
+    return learnShell(done, `<h3 class="ln-title">Glossary</h3><p class="lead">Sanskrit words you’ll meet in astrology books and in this app.</p>
+      <input type="search" class="ln-search" placeholder="Search a word…" aria-label="Search glossary">
+      ${lnTable(['Word', 'Meaning'], GLOSSARY.map(g => [`<b>${g[0]}</b>`, g[1]]))}`);
+  }
+  const i = LESSONS.findIndex(l => l.id === learnId), L = LESSONS[i];
+  let body; try { body = L.body(); } catch (e) { body = `<p class="err">${esc(e.message)}</p>`; }
+  const quiz = L.quiz ? `<div class="ln-quiz"><h4>Quick check</h4>${L.quiz.map((q, qi) => `<div class="ln-q" data-q="${qi}"><p>${qi + 1}. ${q[0]}</p><div class="ln-opts">${q[1].map((o, oi) => `<button type="button" data-ans="${oi}" data-ok="${q[2]}">${o}</button>`).join('')}</div><p class="ln-fb" aria-live="polite"></p></div>`).join('')}</div>` : '';
+  const nav = `<div class="ln-nav">${i > 0 ? `<button type="button" class="szbtn" data-lesson="${LESSONS[i - 1].id}">← ${LESSONS[i - 1].t}</button>` : '<span></span>'}
+    <button type="button" class="ln-done ${done[L.id] ? 'on' : ''}" data-done="${L.id}">${done[L.id] ? '✓ Completed' : 'Mark as completed'}</button>
+    ${i < LESSONS.length - 1 ? `<button type="button" class="szbtn" data-lesson="${LESSONS[i + 1].id}">${LESSONS[i + 1].t} →</button>` : '<button type="button" class="szbtn" data-lesson="glossary">Glossary →</button>'}</div>`;
+  return learnShell(done, `<div class="ln-kicker">Lesson ${i + 1} of ${LESSONS.length} · ${L.lvl}</div><h3 class="ln-title">${L.t}</h3>${body}${quiz}${nav}`);
+}
+function learnShell(done, main) {
+  const n = LESSONS.filter(l => done[l.id]).length;
+  let lvl = '';
+  const items = LESSONS.map((l, i) => { const h = l.lvl !== lvl ? `<div class="ln-lvl">${l.lvl}</div>` : ''; lvl = l.lvl;
+    return `${h}<button type="button" data-lesson="${l.id}" aria-current="${l.id === learnId}"><span class="ln-n">${done[l.id] ? '✓' : i + 1}</span>${l.t}</button>`; }).join('');
+  return `<p class="lead">A step-by-step course in Vedic astrology for complete beginners. Each lesson takes a few minutes, uses <b>your own chart</b> as the example, and ends with a short quiz.</p>
+  <div class="ln-wrap"><nav class="ln-side" aria-label="Lessons">
+    <div class="ln-prog"><div class="ln-bar"><span style="width:${Math.round(n / LESSONS.length * 100)}%"></span></div><span class="mono">${n} / ${LESSONS.length} done</span></div>
+    ${items}<div class="ln-lvl">Reference</div><button type="button" data-lesson="glossary" aria-current="${learnId === 'glossary'}"><span class="ln-n">A–Z</span>Glossary</button>
+  </nav><article class="ln-main">${main}</article></div>`;
+}
+function wireLearn() {
+  const pane = $('#pane');
+  pane.querySelectorAll('[data-lesson]').forEach(b => b.addEventListener('click', () => {
+    learnId = b.dataset.lesson; store.set('jk-learn', learnId); renderTab();
+    const m = document.querySelector('.ln-wrap'); if (m && m.getBoundingClientRect().top < 0) m.scrollIntoView({behavior: 'smooth'});
+  }));
+  pane.querySelectorAll('[data-done]').forEach(b => b.addEventListener('click', () => {
+    const d = store.get('jk-learn-done') || {}; d[b.dataset.done] = !d[b.dataset.done]; store.set('jk-learn-done', d); renderTab();
+  }));
+  pane.querySelectorAll('.ln-q').forEach(q => q.querySelectorAll('[data-ans]').forEach(b => b.addEventListener('click', () => {
+    const ok = b.dataset.ans === b.dataset.ok;
+    q.querySelectorAll('[data-ans]').forEach(x => { x.classList.remove('right', 'wrong'); if (x.dataset.ans === x.dataset.ok && ok) x.classList.add('right'); });
+    b.classList.add(ok ? 'right' : 'wrong');
+    q.querySelector('.ln-fb').textContent = ok ? 'Correct!' : 'Not quite; try again.';
+  })));
+  const s = pane.querySelector('.ln-search');
+  if (s) s.addEventListener('input', () => { const v = s.value.toLowerCase(); pane.querySelectorAll('.ln-t tbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(v) ? '' : 'none'; }); });
+}
+
 function renderTab() {
-  const f = {events: tEvents, money: tMoney, overview: tOverview, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails}[tab];
+  const f = {events: tEvents, money: tMoney, overview: tOverview, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn}[tab];
   try { $('#pane').innerHTML = f(); } catch (err) { console.error(err); $('#pane').innerHTML = `<p class="err">This tab hit an error (${esc(err.message)}). The rest of the app still works; please report it.</p>`; return; }
   if (tab === 'transits') initTransit();
+  if (tab === 'planets') wirePlanets();
+  if (tab === 'learn') wireLearn();
+  enhanceTables();
   $('#pane').querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => { moneyMonths = +b.dataset.mm; renderTab(); }));
   $('#pane').querySelectorAll('[data-aspscope]').forEach(b => b.addEventListener('click', () => { aspScope = b.dataset.aspscope; renderTab(); }));
   $('#pane').querySelectorAll('[data-asptone]').forEach(b => b.addEventListener('click', () => { aspTone = b.dataset.asptone; renderTab(); }));
@@ -2700,18 +3117,50 @@ function planetRemedy(b) {
   return {mode, list: out};
 }
 function tPlanets() {
-  return `<p class="lead">Each planet’s sign, house, dignity and functional role for your ascendant, what that means for you, and its remedies. Open a planet to read its full effects and remedies.</p>` +
-  J.PL.map((b, i) => {
-    const p = C.P[b], v = J.verdict(C, b);
-    const read = J.planetReading(C, b), rm = planetRemedy(b);
-    return `<details class="pl"${i === 0 ? ' open' : ''}><summary>
+  const pv = Object.assign({view: 'cards', effects: true, remedies: true, fs: 1}, store.get('jk-plview') || {});
+  const remLi = rm => rm.list.map(x => `<li>${x.startsWith('<b>') ? x : esc(x)}</li>`).join('');
+  const where = (b, p) => `${J.fmtDeg(p.deg)} ${J.SIGNS[p.sign]} · ${J.ORD(p.house)} house${p.retro && b !== 'Rahu' && b !== 'Ketu' ? ' · retrograde' : ''}${p.combust ? ' · combust' : ''}`;
+  const bar = `<div class="tbar pl-bar">
+    <span class="tbar-k">View</span><div class="seg" role="group" aria-label="View"><button type="button" data-plv="cards" aria-pressed="${pv.view === 'cards'}">Cards</button><button type="button" data-plv="table" aria-pressed="${pv.view === 'table'}">Table</button></div>
+    ${pv.view === 'cards' ? `<span class="tbar-k" style="margin-left:10px">Show</span>
+      <button type="button" class="colchip" data-plsec="effects" aria-pressed="${pv.effects}">Effects</button>
+      <button type="button" class="colchip" data-plsec="remedies" aria-pressed="${pv.remedies}">Remedies</button>
+      <button type="button" class="szbtn" data-plall="open">Expand all</button><button type="button" class="szbtn" data-plall="close">Collapse all</button>
+      <span class="tbar-sz"><span class="tbar-k">Text</span><button type="button" class="szbtn" data-plfs="-1" aria-label="Smaller text">A−</button><span class="mono szv">${Math.round(pv.fs*100)}%</span><button type="button" class="szbtn" data-plfs="1" aria-label="Larger text">A+</button>${pv.fs !== 1 ? '<button type="button" class="szbtn" data-plfs="0">Reset</button>' : ''}</span>` : '<span class="muted" style="margin-left:10px">Use the table toolbar below to hide columns and resize text.</span>'}
+  </div>`;
+  const lead = `<p class="lead">Each planet’s sign, house, dignity and functional role for your ascendant, what that means for you, and its remedies.</p>`;
+  if (pv.view === 'table') {
+    const rows = J.PL.map(b => {
+      const p = C.P[b], v = J.verdict(C, b), rm = planetRemedy(b), read = J.planetReading(C, b);
+      return `<tr><td>${pdot(b)}<b>${b}</b></td><td class="mono" style="white-space:nowrap">${where(b, p).replace(/ · /g, '<br>')}</td>
+        <td>${chip(p.dignity, digCls(p.dignity))}</td><td>${chip(funcLbl(C.func[b]), funcCls(C.func[b]))}</td><td>${chip(v[0], v[1])}</td>
+        <td class="nt-w">${read.map(t => `<p>${esc(t)}</p>`).join('')}</td>
+        <td class="nt-r">${chip(rm.mode, {Strengthen:'good', Support:'ok', Soften:'mixed', Pacify:'bad'}[rm.mode])}<ul class="asp-rem">${remLi(rm)}</ul></td></tr>`;
+    }).join('');
+    return lead + `<div class="pl-top">${bar}</div>` + `<div class="tablewrap bleed"><table class="asptable nt pl-table"><thead><tr><th>Planet</th><th>Position</th><th>Dignity</th><th>Role for you</th><th>Strength</th><th>Effects</th><th>Remedies</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  const cards = J.PL.map((b, i) => {
+    const p = C.P[b], v = J.verdict(C, b), read = J.planetReading(C, b), rm = planetRemedy(b);
+    const open = pv.openAll === true ? true : pv.openAll === false ? false : i === 0;
+    return `<details class="pl"${open ? ' open' : ''}><summary>
       <span class="glyph">${J.PAB[b]}</span>
-      <span><span class="name">${b}</span><br><span class="where mono">${J.fmtDeg(p.deg)} ${J.SIGNS[p.sign]} · ${J.ORD(p.house)} house${p.retro && b !== 'Rahu' && b !== 'Ketu' ? ' · retrograde' : ''}${p.combust ? ' · combust' : ''}</span></span>
+      <span><span class="name">${b}</span><br><span class="where mono">${where(b, p)}</span></span>
       <span class="chips">${chip(p.dignity, digCls(p.dignity))}${chip(funcLbl(C.func[b]), funcCls(C.func[b]))}${chip(v[0], v[1])}${chip('Remedy: ' + rm.mode, {Strengthen:'good', Support:'ok', Soften:'mixed', Pacify:'bad'}[rm.mode])}</span>
-    </summary><div class="body">${read.map(t => `<p>${esc(t)}</p>`).join('')}
-      <div class="pl-rem"><h4>Remedies for ${b}</h4><ul>${rm.list.map(x => `<li>${x.startsWith('<b>') ? x : esc(x)}</li>`).join('')}</ul></div></div></details>`;
+    </summary><div class="body">${pv.effects ? read.map(t => `<p>${esc(t)}</p>`).join('') : ''}
+      ${pv.remedies ? `<div class="pl-rem"><h4>Remedies for ${b}</h4><ul>${remLi(rm)}</ul></div>` : ''}
+      ${!pv.effects && !pv.remedies ? '<p class="muted">Effects and remedies are hidden; turn them on in the toolbar above.</p>' : ''}</div></details>`;
   }).join('');
+  return lead + bar + `<div class="pl-cards" style="${pv.fs !== 1 ? `zoom:${pv.fs}` : ''}">${cards}</div>`;
 }
+function wirePlanets() {
+  const get = () => Object.assign({view: 'cards', effects: true, remedies: true, fs: 1}, store.get('jk-plview') || {});
+  const put = pv => { store.set('jk-plview', pv); renderTab(); };
+  $('#pane').querySelectorAll('[data-plv]').forEach(b => b.addEventListener('click', () => { const pv = get(); pv.view = b.dataset.plv; put(pv); }));
+  $('#pane').querySelectorAll('[data-plsec]').forEach(b => b.addEventListener('click', () => { const pv = get(); pv[b.dataset.plsec] = !pv[b.dataset.plsec]; put(pv); }));
+  $('#pane').querySelectorAll('[data-plall]').forEach(b => b.addEventListener('click', () => { const pv = get(); pv.openAll = b.dataset.plall === 'open'; put(pv); }));
+  $('#pane').querySelectorAll('[data-plfs]').forEach(b => b.addEventListener('click', () => { const pv = get(), d = +b.dataset.plfs; pv.fs = d === 0 ? 1 : Math.min(1.8, Math.max(0.8, Math.round((pv.fs + d*0.1)*10)/10)); put(pv); }));
+}
+
 function tYogas() {
   const cats = [...new Set(C.yogas.map(y => y.cat))];
   if (!cats.length) return `<p class="lead">No classical yogas from chapter 11 are fully formed in this chart. The book notes that partial results can still be felt when most conditions are met.</p>`;
