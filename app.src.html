@@ -233,6 +233,12 @@ tr.now td{background:var(--accent-soft)}
 .trow.dl{background:var(--accent-soft)}
 @media (max-width:900px){.tgrid{grid-template-columns:minmax(0,1fr)}}
 
+/* nakshatra tables */
+.nt{min-width:1400px}
+.nt td{vertical-align:top}
+.nt-w{min-width:260px;max-width:330px}
+.nt-m{min-width:200px;max-width:250px;color:var(--muted)}
+
 /* houses table */
 .ht{font-size:13px;min-width:1780px}
 .ht-rem{min-width:260px;max-width:320px}
@@ -1616,6 +1622,87 @@ function tRemedies() {
   </div></div>`;
 }
 const w2 = f => `${f.planet} is your ${f.why}`;
+// nakshatra themes — general Jyotish tradition (symbol + core theme); the book gives only names, lords and deities (Table 2)
+const NAK_THEME = [
+  ['horse’s head','speed, healing, fresh starts and quick action'],
+  ['yoni','restraint, bearing responsibility, endurance and deep transformation'],
+  ['razor / flame','sharpness, purification, cutting through problems, a fiery temper'],
+  ['chariot','growth, beauty, comfort, fertility and material abundance'],
+  ['deer’s head','searching, curiosity, gentleness, travel and restlessness'],
+  ['teardrop','storms and upheaval that lead to renewal; sharp intellect, emotional intensity'],
+  ['quiver of arrows','return and recovery, second chances, generosity, love of home'],
+  ['flower / cow’s udder','nourishment, protection, discipline, prosperity and learning'],
+  ['coiled serpent','penetrating insight, secrecy, strategy, clinging attachments'],
+  ['throne','authority, lineage, status, tradition and pride'],
+  ['front legs of a bed','pleasure, rest, romance, creativity and enjoyment'],
+  ['back legs of a bed','contracts, loyalty, patronage, marriage and service'],
+  ['hand','skill with the hands, craft, dexterity and cleverness'],
+  ['bright jewel','design, beauty, architecture, creativity and charisma'],
+  ['young shoot in the wind','independence, flexibility, trade, movement and diplomacy'],
+  ['triumphal arch','ambition, focus on a goal, determination and rivalry'],
+  ['lotus','friendship, devotion, cooperation, organisation and success away from home'],
+  ['umbrella / earring','seniority, protection, power, responsibility and jealousy'],
+  ['bunch of roots','getting to the root, investigation, tearing down to rebuild, detachment'],
+  ['fan','conviction, persuasion, invincibility and purification'],
+  ['elephant’s tusk','lasting victory, integrity, leadership and responsibility'],
+  ['ear','listening, learning, connection, communication and reputation'],
+  ['drum','wealth, rhythm, music, fame and group effort'],
+  ['empty circle','healing, secrets, research, solitude and independence'],
+  ['sword','intensity, idealism, sacrifice and transformation'],
+  ['serpent of the deep','depth, wisdom, patience, stability and spirituality'],
+  ['fish','nourishment, guidance, safe journeys, compassion and completion']
+];
+const NAT_REL = (a, b) => { const n = J.NAT[a]; return !n || a === b ? null : n.f.includes(b) ? 'friend' : n.e.includes(b) ? 'enemy' : 'neutral'; };
+const d9Dignity = (b, s) => {
+  const EXS = {Sun:0, Moon:1, Mars:9, Mercury:5, Jupiter:3, Venus:11, Saturn:6, Rahu:2, Ketu:8};
+  if (EXS[b] === s) return 'exalted'; if ((EXS[b] + 6) % 12 === s) return 'debilitated';
+  if (J.SIGN_LORD[s] === b || (b === 'Rahu' && s === 10) || (b === 'Ketu' && s === 7)) return 'own sign'; return null;
+};
+function planetNakReading(b) {
+  const P = C.P, p = P[b], sl = J.SIGN_LORD[p.sign], slp = P[sl];
+  // 1) sitting in another planet's sign (its "house"): the sign lord (dispositor) decides how the planet can deliver
+  let signTxt;
+  if (sl === b) signTxt = `In its own sign: it acts freely and naturally.`;
+  else {
+    const r = NAT_REL(b, sl);
+    signTxt = `In ${sl}’s sign (${J.SIGNS[p.sign]}): ${b} works through ${sl}’s agenda${r ? `; ${sl} is its natural ${r}, so it ${r === 'friend' ? 'is well hosted' : r === 'enemy' ? 'feels unwelcome and works with friction' : 'is neither helped nor hindered'}` : ''}. Its results also depend on ${sl}, which sits in your ${J.ORD(slp.house)} house, ${slp.dignity}${[6,8,12].includes(slp.house) ? ', a dusthana, so delivery is weakened' : ['exalted','own','moolatrikona'].includes(slp.dignity) ? ', strong, so delivery is helped' : ''}.`;
+  }
+  // 2) nakshatra
+  const nk = J.NAKS[p.nak], th = NAK_THEME[p.nak], stl = nk[1];
+  const rs = NAT_REL(b, stl);
+  const stlRole = P[stl].lordOf.length && !['Rahu','Ketu'].includes(stl) ? `lord of your ${P[stl].lordOf.map(J.ORD).join(' & ')}, sitting in your ${J.ORD(P[stl].house)} house` : `sitting in your ${J.ORD(P[stl].house)} house`;
+  const nakSig = `${nk[0]} (symbol: ${th[0]}): ${th[1]}. Star lord ${stl}.`;
+  const nakEff = `${b} (${J.PD[b].gov}) expresses itself through ${nk[0]}’s themes of ${th[1].split(',').slice(0, 3).join(',').trim()}. By tradition it also carries the results of its star lord ${stl} (${stlRole})${stl === b ? '; in its own star it is especially self-directed' : rs ? `; ${stl} is its natural ${rs}, so this ${rs === 'enemy' ? 'mixes in friction' : rs === 'friend' ? 'blends smoothly' : 'is neutral'}` : ''}.`;
+  // 3) pada = navamsa sign (book: navamsa shows the inner self and skills)
+  const d9 = p.d9, dd = d9Dignity(b, d9), ind = J.RASI[d9].ind.split(';')[0].split(',').slice(0, 3).join(',').trim();
+  const padaEff = `Pada ${p.pada} falls in ${J.SIGNS[d9]} navamsa (lord ${J.SIGN_LORD[d9]}): inwardly ${b} takes on a ${J.RASI[d9].el.toLowerCase()} colour: ${ind}.${dd ? ` ${b} is ${dd} in navamsa: ${dd === 'debilitated' ? 'its inner strength and skills are weak' : 'its inner strength and skills are high'}.` : ''}${p.vargottama ? ' Same sign in birth chart and navamsa (vargottama): strengthened.' : ''}`;
+  return {sl, signTxt, nk: nk[0], pada: p.pada, stl, nakSig, nakEff, padaEff};
+}
+function nakTables() {
+  const P = C.P;
+  const lordRows = Array.from({length: 12}, (_, i) => i + 1).map(h => {
+    const s = (C.lagna + h - 1) % 12, l = J.SIGN_LORD[s], r = planetNakReading(l), ht = C._houseTable[h - 1];
+    return `<tr><td class="ht-h"><div class="ht-num">${h}</div>${J.SIGNS[s]}</td><td>${pdot(l)}<b>${l}</b></td>
+      <td>${J.ORD(P[l].house)} house<br><span class="muted">${J.SIGNS[P[l].sign]}, ${P[l].dignity}</span></td>
+      <td class="nt-w">${esc(ht.lordEffect)}</td>
+      <td style="white-space:nowrap"><b>${r.nk}</b><br><span class="muted">pada ${r.pada} · star lord ${r.stl}</span></td>
+      <td class="nt-m">${esc(r.nakSig)}</td><td class="nt-w">${esc(r.nakEff)}<p class="muted">${esc(r.padaEff)}</p></td></tr>`;
+  }).join('');
+  const planetRows = J.PL.map(b => {
+    const r = planetNakReading(b), p = P[b];
+    return `<tr><td>${pdot(b)}<b>${b}</b><br><span class="muted">${J.fmtDeg(p.deg)} ${J.SAB[p.sign]}</span></td>
+      <td>${J.ORD(p.house)} house<br><span class="muted">${esc(J.HOUSE[p.house].n)}</span></td>
+      <td class="nt-w">${esc(r.signTxt)}</td>
+      <td style="white-space:nowrap"><b>${r.nk}</b><br><span class="muted">pada ${r.pada} · star lord ${r.stl}</span></td>
+      <td class="nt-m">${esc(r.nakSig)}</td><td class="nt-w">${esc(r.nakEff)}</td><td class="nt-w">${esc(r.padaEff)}</td></tr>`;
+  }).join('');
+  return `<div class="section"><h3>House lords</h3><p class="lead">Each house’s lord, where it sits and what that does (ch.7), and the nakshatra and pada it occupies.</p>
+    <div class="tablewrap"><table class="asptable nt"><thead><tr><th>House</th><th>Lord</th><th>Lord sits in</th><th>Effect of the lord sitting there</th><th>Lord’s nakshatra</th><th>Nakshatra signifies</th><th>Effect in this nakshatra &amp; pada</th></tr></thead><tbody>${lordRows}</tbody></table></div></div>
+  <div class="section"><h3>Planets in signs &amp; nakshatras</h3><p class="lead">Every planet sits in a sign owned by some planet (its sign lord, or dispositor), in a nakshatra ruled by a star lord, and in a pada that fixes its navamsa sign.</p>
+    <div class="tablewrap"><table class="asptable nt"><thead><tr><th>Planet</th><th>House</th><th>Sitting in another planet’s sign</th><th>Nakshatra</th><th>Nakshatra signifies</th><th>Effect in this nakshatra</th><th>Effect of the pada</th></tr></thead><tbody>${planetRows}</tbody></table></div>
+    <p class="note">Nakshatra themes and the "results of the star lord" rule come from general Jyotish tradition; the book lists only nakshatra names, lords and deities (Table 2). Sign-lord and navamsa readings follow the book (dispositors, ch.3 friendships, navamsa = inner self and skills).</p></div>`;
+}
+
 function tDetails() {
   const P = C.P, pc = C.panchanga;
   return `<div class="section"><h3>Planetary positions</h3><div class="tablewrap"><table><thead><tr><th>Body</th><th>Longitude</th><th>Sign</th><th>House</th><th>Nakshatra</th><th>Navamsa</th><th>D-10</th><th>Dignity</th></tr></thead><tbody>
@@ -1634,9 +1721,7 @@ function tDetails() {
   <div class="section"><h3>Arudha padas</h3><div class="tablewrap"><table><thead><tr><th>Pada</th><th>Sign</th><th>Shows</th></tr></thead><tbody>
    ${Array.from({length:12}, (_, i) => i + 1).map(h => `<tr><td>${h === 1 ? 'AL' : h === 12 ? 'UL (A12)' : 'A' + h}</td><td>${J.SIGNS[C.arudha[h]]}</td><td>${h === 1 ? 'your image and status' : h === 12 ? 'upapada: marriage' : h === 10 ? 'rajyapada: career image' : h === 7 ? 'darapada: partners' : h === 3 ? 'writings and initiatives' : 'perception of ' + J.HOUSE[h].n.toLowerCase()}</td></tr>`).join('')}
    </tbody></table></div></div>
-  <div class="section"><h3>House lords</h3><div class="tablewrap"><table><thead><tr><th>House</th><th>Sign</th><th>Lord</th><th>Lord sits in</th><th>Significations</th></tr></thead><tbody>
-   ${Array.from({length:12}, (_, i) => i + 1).map(h => { const s = (C.lagna + h - 1) % 12, l = J.SIGN_LORD[s]; return `<tr><td>${h}</td><td>${J.SIGNS[s]}</td><td>${l}</td><td>${J.ORD(P[l].house)} house</td><td>${J.HOUSE[h].sig}</td></tr>`; }).join('')}
-   </tbody></table></div></div>`;
+  ${(C._houseTable = J.houseTable(C), nakTables())}`;
 }
 
 // ---------- boot ----------
