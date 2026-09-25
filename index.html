@@ -233,14 +233,22 @@ tr.now td{background:var(--accent-soft)}
 .trow.dl{background:var(--accent-soft)}
 @media (max-width:900px){.tgrid{grid-template-columns:minmax(0,1fr)}}
 
+/* planet remedies */
+.pl-rem{margin-top:6px;background:var(--panel-2);border-radius:8px;padding:10px 14px}
+.pl-rem h4{font-family:var(--display);font-weight:400;font-size:16px;margin:0 0 6px}
+.pl-rem ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+
 /* nakshatra tables */
-.nt{min-width:1400px}
+.bleed{width:min(1880px, calc(100vw - 48px));position:relative;left:50%;transform:translateX(-50%)}
+.nt{width:100%;min-width:1180px}
 .nt td{vertical-align:top}
-.nt-w{min-width:260px;max-width:330px}
-.nt-m{min-width:200px;max-width:250px;color:var(--muted)}
+.nt-w{min-width:220px}
+.nt-m{min-width:170px;color:var(--muted)}
+.nt-r{min-width:240px}
+@media (max-width:1240px){.bleed{width:auto;left:auto;transform:none}}
 
 /* houses table */
-.ht{font-size:13px;min-width:1780px}
+.ht{font-size:13px;width:100%;min-width:1500px}
 .ht-rem{min-width:260px;max-width:320px}
 .ht-rem ul{margin:0;padding-left:16px;display:grid;gap:4px}
 .ht td{vertical-align:top}
@@ -2650,7 +2658,7 @@ function tHouses() {
     </tr>`;
   }).join('');
   return `<p class="lead">Your chart, house by house. Each row gives what the house rules (ch.7), its lord and what the lord’s placement does, the planets sitting in it and what they do, the planets aspecting it, and a verdict with the periods when that house comes alive (the lord’s and the occupants’ dasas). Houses are whole signs from your ${J.SIGNS[C.lagna]} ascendant. For the 6th, 8th and 12th houses the verdict is about how much trouble to expect, because those houses signify difficulties.</p>
-  <div class="tablewrap ht-wrap"><table class="ht"><thead><tr>
+  <div class="tablewrap ht-wrap bleed"><table class="ht"><thead><tr>
     <th>House</th><th>Signifies</th><th>Lord</th><th>Lord’s effects</th><th>In this house</th><th>Their effects</th><th>Aspected by</th><th>Prediction</th><th>Remedies</th>
   </tr></thead><tbody>${rows}</tbody></table></div>
   <p class="note">"Natural" benefic/malefic is the planet’s own nature (ch.3); "good/bad for you" is its functional role for your ascendant (Table 30). A natural malefic can still be good for you, and a natural benefic can be bad for you. Timing: a house gives its results mainly in the main periods and sub-periods of its lord and of the planets in it. Remedies follow chapter 34: common sense first, then good deeds, mantras and deities; gems only for planets that are good for you, with budget substitutes from general tradition. Scroll sideways on a small screen.</p>`;
@@ -2666,16 +2674,42 @@ function tOverview() {
   <article><h3>At a glance</h3><p>${strongP.length ? `<b>Strongest planets:</b> ${strongP.join(', ')}. ` : ''}${weakP.length ? `<b>Needing support:</b> ${weakP.join(', ')}. ` : ''}${top.length ? `<b>Notable yogas:</b> ${top.map(y => y.name).join(', ')}. ` : ''}${hard.length ? `<b>Watch:</b> ${hard.map(y => y.name).join(', ')}.` : ''}</p>
   <p class="note"><a href="#" data-goto="planets">Read each planet’s effects</a> · <a href="#" data-goto="remedies">See remedies</a></p></article></div>`;
 }
+// per-planet remedies (ch.34): strengthen planets good for you, support neutral ones, soften/pacify the rest
+function planetRemedy(b) {
+  const P = C.P, p = P[b], d = J.PD[b], f = C.func[b], lagL = J.SIGN_LORD[C.lagna];
+  const good = ['benefic','yogakaraka'].includes(f) || b === lagL;
+  const hard = ['Saturn','Rahu','Ketu','Mars','Sun'].includes(b);
+  const mode = good ? 'Strengthen' : f === 'neutral' ? 'Support' : hard ? 'Pacify' : 'Soften';
+  const day = `${d.day}s${['Rahu','Ketu'].includes(b) ? ' (traditional)' : ''}`;
+  const out = [];
+  const cur = C.cur ? [C.cur.md.lord, C.cur.ad.lord, C.cur.pd && C.cur.pd.lord] : [];
+  const lvl = cur[0] === b ? 'main period' : cur[1] === b ? 'sub-period' : cur[2] === b ? 'sub-sub-period' : null;
+  const weak = ['inimical','bitter enemy\u2019s sign','debilitated'].includes(p.dignity) || p.combust || [6,8,12].includes(p.house);
+  const why = good ? (b === lagL && !['benefic','yogakaraka'].includes(f) ? 'your ascendant lord' : f === 'yogakaraka' ? 'a yogakaraka for you' : 'a functional benefic for you')
+                   : f === 'neutral' ? 'functionally neutral for you' : f === 'node' ? 'a shadow planet' : 'a functional malefic for you';
+  out.push(`<b>${mode}</b> ${b} (${why}${weak ? ', and weak in your chart' : ''}${lvl ? `; it runs your current ${lvl}, so this matters most now` : ''}).`);
+  out.push(`Good deed: ${d.deed}.`);
+  if (d.grain) out.push(`Donate ${d.grain} on ${d.day} mornings${['Rahu','Ketu'].includes(b) ? ' (traditional day)' : ''}.`);
+  out.push(`Worship ${d.deity.split(',').slice(0, 2).join(',').trim()} on ${day}; or recite its mantra ${d.count} times (Remedies tab has the text).`);
+  if (good) out.push(`Gem (optional): ${d.gem.toLowerCase()} in ${d.metal.toLowerCase()}${BUDGET_GEM[b] ? `, or the budget ${BUDGET_GEM[b][0]} in ${BUDGET_GEM[b][1]}` : ''}; first wear on a ${d.day}.`);
+  else if (f === 'neutral') out.push(`Gem: the main gem isn\u2019t prescribed; a mild substitute (${BUDGET_GEM[b][0]} in ${BUDGET_GEM[b][1]}) is fine if it helps you.`);
+  else out.push(`No gem: the book advises against gems of planets that aren\u2019t good for your chart.`);
+  const lk = LK_EXTRA[`${b}|${p.house}`]; if (lk) out.push(lk);
+  const hs = (['Rahu','Ketu'].includes(b) || !p.lordOf.length) ? [p.house] : p.lordOf;
+  const pr = HOUSE_PRACTICAL[hs[0]]; if (pr) out.push(`Practical (${J.ORD(hs[0])}-house matters): ${pr}`);
+  return {mode, list: out};
+}
 function tPlanets() {
-  return `<p class="lead">Each planet’s sign, house, dignity and functional role for your ascendant, and what that means for you. Open a planet to read its full effects.</p>` +
+  return `<p class="lead">Each planet’s sign, house, dignity and functional role for your ascendant, what that means for you, and its remedies. Open a planet to read its full effects and remedies.</p>` +
   J.PL.map((b, i) => {
     const p = C.P[b], v = J.verdict(C, b);
-    const read = J.planetReading(C, b);
+    const read = J.planetReading(C, b), rm = planetRemedy(b);
     return `<details class="pl"${i === 0 ? ' open' : ''}><summary>
       <span class="glyph">${J.PAB[b]}</span>
       <span><span class="name">${b}</span><br><span class="where mono">${J.fmtDeg(p.deg)} ${J.SIGNS[p.sign]} · ${J.ORD(p.house)} house${p.retro && b !== 'Rahu' && b !== 'Ketu' ? ' · retrograde' : ''}${p.combust ? ' · combust' : ''}</span></span>
-      <span class="chips">${chip(p.dignity, digCls(p.dignity))}${chip(funcLbl(C.func[b]), funcCls(C.func[b]))}${chip(v[0], v[1])}</span>
-    </summary><div class="body">${read.map(t => `<p>${esc(t)}</p>`).join('')}</div></details>`;
+      <span class="chips">${chip(p.dignity, digCls(p.dignity))}${chip(funcLbl(C.func[b]), funcCls(C.func[b]))}${chip(v[0], v[1])}${chip('Remedy: ' + rm.mode, {Strengthen:'good', Support:'ok', Soften:'mixed', Pacify:'bad'}[rm.mode])}</span>
+    </summary><div class="body">${read.map(t => `<p>${esc(t)}</p>`).join('')}
+      <div class="pl-rem"><h4>Remedies for ${b}</h4><ul>${rm.list.map(x => `<li>${x.startsWith('<b>') ? x : esc(x)}</li>`).join('')}</ul></div></div></details>`;
   }).join('');
 }
 function tYogas() {
@@ -2941,6 +2975,35 @@ const d9Dignity = (b, s) => {
   if (EXS[b] === s) return 'exalted'; if ((EXS[b] + 6) % 12 === s) return 'debilitated';
   if (J.SIGN_LORD[s] === b || (b === 'Rahu' && s === 10) || (b === 'Ketu' && s === 7)) return 'own sign'; return null;
 };
+const nakMoonCache = {};
+function nextMoonIn(nak) { // next time the transiting Moon enters this nakshatra (checked every 3 hours)
+  if (nak in nakMoonCache) return nakMoonCache[nak];
+  const now = Date.now(); let res = null, prevIn = Math.floor(J.sidLon('Moon', new Date(now))/(360/27)) === nak;
+  for (let k = 1; k <= 30*8; k++) {
+    const t = now + k*3*3600e3, inNak = Math.floor(J.sidLon('Moon', new Date(t))/(360/27)) === nak;
+    if (inNak && !prevIn) { res = new Date(t); break; }
+    prevIn = inNak;
+  }
+  return (nakMoonCache[nak] = res);
+}
+function nakRemedies(b) {
+  const P = C.P, p = P[b], nk = J.NAKS[p.nak], stl = nk[1], out = [];
+  const lagL = J.SIGN_LORD[C.lagna], good = x => ['benefic','yogakaraka'].includes(C.func[x]) || x === lagL;
+  const day = x => `${J.PD[x].day}s${['Rahu','Ketu'].includes(x) ? ' (traditional)' : ''}`;
+  const bud = x => BUDGET_GEM[x] ? ` (budget: ${BUDGET_GEM[x][0]} in ${BUDGET_GEM[x][1]})` : '';
+  const nm = nextMoonIn(p.nak);
+  out.push(`Nakshatra deity (book Table 2): pray to ${nk[2]}, ideally on the day the Moon is in ${nk[0]}${nm ? ` (next: ${J.fmt(nm)})` : ''}.`);
+  if (stl !== b) {
+    if (good(stl)) out.push(`Star lord ${stl} is good for you, so channel it: ${J.PD[stl].deed}, on ${day(stl)}.`);
+    else out.push(`${['Saturn','Rahu','Ketu','Mars','Sun'].includes(stl) ? 'Pacify' : 'Soften'} star lord ${stl}: ${J.PD[stl].deed}${J.PD[stl].grain ? `; donate ${J.PD[stl].grain}` : ''} on ${day(stl)}.`);
+  }
+  const weak = ['inimical','bitter enemy\u2019s sign','debilitated'].includes(p.dignity) || d9Dignity(b, p.d9) === 'debilitated';
+  if (weak) out.push(good(b) ? `${b} is weak here, so strengthen it: ${J.PD[b].deed}; optional ${J.PD[b].gem.toLowerCase()}${bud(b)}.`
+                              : `${b} is weak here; support it without a gem: ${J.PD[b].deed}; worship ${J.PD[b].deity.split(',')[0]} on ${day(b)}.`);
+  else out.push(`${b} itself is comfortable here; ${good(b) ? `keep it strong: ${J.PD[b].deed}` : `no gem needed; its good deed is to ${J.PD[b].deed}`}.`);
+  return out;
+}
+const remList = arr => `<ul class="asp-rem">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
 function planetNakReading(b) {
   const P = C.P, p = P[b], sl = J.SIGN_LORD[p.sign], slp = P[sl];
   // 1) sitting in another planet's sign (its "house"): the sign lord (dispositor) decides how the planet can deliver
@@ -2969,7 +3032,7 @@ function nakTables() {
       <td>${J.ORD(P[l].house)} house<br><span class="muted">${J.SIGNS[P[l].sign]}, ${P[l].dignity}</span></td>
       <td class="nt-w">${esc(ht.lordEffect)}</td>
       <td style="white-space:nowrap"><b>${r.nk}</b><br><span class="muted">pada ${r.pada} · star lord ${r.stl}</span></td>
-      <td class="nt-m">${esc(r.nakSig)}</td><td class="nt-w">${esc(r.nakEff)}<p class="muted">${esc(r.padaEff)}</p></td></tr>`;
+      <td class="nt-m">${esc(r.nakSig)}</td><td class="nt-w">${esc(r.nakEff)}<p class="muted">${esc(r.padaEff)}</p></td><td class="nt-r">${remList(nakRemedies(l))}</td></tr>`;
   }).join('');
   const planetRows = J.PL.map(b => {
     const r = planetNakReading(b), p = P[b];
@@ -2977,12 +3040,12 @@ function nakTables() {
       <td>${J.ORD(p.house)} house<br><span class="muted">${esc(J.HOUSE[p.house].n)}</span></td>
       <td class="nt-w">${esc(r.signTxt)}</td>
       <td style="white-space:nowrap"><b>${r.nk}</b><br><span class="muted">pada ${r.pada} · star lord ${r.stl}</span></td>
-      <td class="nt-m">${esc(r.nakSig)}</td><td class="nt-w">${esc(r.nakEff)}</td><td class="nt-w">${esc(r.padaEff)}</td></tr>`;
+      <td class="nt-m">${esc(r.nakSig)}</td><td class="nt-w">${esc(r.nakEff)}</td><td class="nt-w">${esc(r.padaEff)}</td><td class="nt-r">${remList(nakRemedies(b))}</td></tr>`;
   }).join('');
   return `<div class="section"><h3>House lords</h3><p class="lead">Each house’s lord, where it sits and what that does (ch.7), and the nakshatra and pada it occupies.</p>
-    <div class="tablewrap"><table class="asptable nt"><thead><tr><th>House</th><th>Lord</th><th>Lord sits in</th><th>Effect of the lord sitting there</th><th>Lord’s nakshatra</th><th>Nakshatra signifies</th><th>Effect in this nakshatra &amp; pada</th></tr></thead><tbody>${lordRows}</tbody></table></div></div>
+    <div class="tablewrap bleed"><table class="asptable nt"><thead><tr><th>House</th><th>Lord</th><th>Lord sits in</th><th>Effect of the lord sitting there</th><th>Lord’s nakshatra</th><th>Nakshatra signifies</th><th>Effect in this nakshatra &amp; pada</th><th>Remedies</th></tr></thead><tbody>${lordRows}</tbody></table></div></div>
   <div class="section"><h3>Planets in signs &amp; nakshatras</h3><p class="lead">Every planet sits in a sign owned by some planet (its sign lord, or dispositor), in a nakshatra ruled by a star lord, and in a pada that fixes its navamsa sign.</p>
-    <div class="tablewrap"><table class="asptable nt"><thead><tr><th>Planet</th><th>House</th><th>Sitting in another planet’s sign</th><th>Nakshatra</th><th>Nakshatra signifies</th><th>Effect in this nakshatra</th><th>Effect of the pada</th></tr></thead><tbody>${planetRows}</tbody></table></div>
+    <div class="tablewrap bleed"><table class="asptable nt"><thead><tr><th>Planet</th><th>House</th><th>Sitting in another planet’s sign</th><th>Nakshatra</th><th>Nakshatra signifies</th><th>Effect in this nakshatra</th><th>Effect of the pada</th><th>Remedies</th></tr></thead><tbody>${planetRows}</tbody></table></div>
     <p class="note">Nakshatra themes and the "results of the star lord" rule come from general Jyotish tradition; the book lists only nakshatra names, lords and deities (Table 2). Sign-lord and navamsa readings follow the book (dispositors, ch.3 friendships, navamsa = inner self and skills).</p></div>`;
 }
 
