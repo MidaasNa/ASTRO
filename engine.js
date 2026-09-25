@@ -1132,7 +1132,152 @@ function moneyCalendar(C, from, months) {
   return rows;
 }
 
+// ---------- where the struggle comes from (afflictions to key houses, hard dasas, heavy Saturn transits) ----------
+const digPhrase = d => ({exalted:'exalted', moolatrikona:'in its moolatrikona sign', own:'in its own sign', 'great friend’s sign':'in a great friend’s sign', friendly:'in a friendly sign', neutral:'in a neutral sign', inimical:'in an enemy’s sign', 'bitter enemy’s sign':'in a bitter enemy’s sign', debilitated:'debilitated'})[d] || d;
+function chartChallenges(C) {
+  const P = C.P, lag = C.lagna, lord8 = SIGN_LORD[(lag + 7) % 12], lagLord = SIGN_LORD[lag];
+  const AREAS_H = [[2,'Savings & family wealth',['Jupiter']],[11,'Income & gains',['Jupiter']],[4,'Home, property & vehicles',['Venus','Mars']],
+    [10,'Career & status',['Sun','Saturn']],[7,'Marriage & partnerships',['Venus']],[1,'Health, vitality & confidence',['Sun']],[5,'Mind, children & speculation',['Jupiter']],[9,'Fortune, father & bosses',['Sun']]];
+  const areas = [];
+  for (const [h, name, kars] of AREAS_H) {
+    const s = (lag + h - 1) % 12, L = SIGN_LORD[s], p = P[L], bad = [], good = [];
+    const d = DIG_SCORE[p.dignity] || 0;
+    if (p.dignity === 'debilitated') bad.push(`${L}, your ${ORD(h)} lord, is debilitated in ${SIGNS[p.sign]}: it struggles to deliver these matters`);
+    else if (d < 0) bad.push(`${L}, your ${ORD(h)} lord, is in an enemy’s sign (${SIGNS[p.sign]}): results come with friction and delay`);
+    else if (d >= 2) good.push(`${L}, your ${ORD(h)} lord, is ${digPhrase(p.dignity)} (strong)`);
+    if (DUSTHANA.includes(p.house) && p.house !== h) bad.push(`${L} (${ORD(h)} lord) sits in your ${ORD(p.house)}, a dusthana: setbacks, losses or hidden drains in these matters`);
+    const disp = SIGN_LORD[p.sign];
+    if (disp !== L && DUSTHANA.includes(P[disp].house)) bad.push(`${L}’s sign lord ${disp} sits in your ${ORD(P[disp].house)}, so ${L} cannot fully deliver`);
+    if (p.combust) bad.push(`${L} is combust`);
+    const nodesWith = PL.filter(x => x !== L && P[x].sign === p.sign && ['Saturn','Rahu','Ketu'].includes(x));
+    if (nodesWith.length) bad.push(`${L} sits with ${list(nodesWith)}`);
+    const aspL = C.grahaAspects[p.sign].filter(x => x !== L);
+    if (aspL.includes('Saturn')) bad.push(`Saturn aspects ${L}: delays and restriction`);
+    if (aspL.includes(lord8) && lord8 !== L) bad.push(`${lord8} (your 8th lord${lord8 === lagLord ? ', also your lagna lord' : ''}) aspects ${L}: sudden costs and losses`);
+    if (aspL.includes('Jupiter') && L !== 'Jupiter') good.push(`Jupiter aspects ${L} (protective)`);
+    const occ = PL.filter(x => P[x].house === h);
+    for (const x of occ.filter(x => ['Saturn','Rahu','Ketu'].includes(x))) bad.push(`${x} sits in your ${ORD(h)} house${x === 'Ketu' ? ': detachment and disruption' : x === 'Rahu' ? ': restlessness and illusion' : ': delay'}`);
+    if (occ.includes('Jupiter')) good.push(`exalted/strong Jupiter sits in your ${ORD(h)} house`.replace('exalted/strong ', P.Jupiter.dignity === 'exalted' ? 'exalted ' : ''));
+    const aspH = C.grahaAspects[s];
+    if (aspH.includes('Saturn') && L !== 'Saturn') bad.push(`Saturn aspects your ${ORD(h)} house: slow, hard-earned results`);
+    if (aspH.includes(lord8) && lord8 !== L) bad.push(`${lord8} (8th lord) aspects your ${ORD(h)} house`);
+    for (const k of kars) if (k !== L) { const kd = DIG_SCORE[P[k].dignity] || 0; if (kd < 0) bad.push(`${k}, the natural significator of ${h === 4 && k === 'Venus' ? 'vehicles and comforts' : h === 4 ? 'property' : 'these matters'}, is ${digPhrase(P[k].dignity)}`); else if (kd >= 2) good.push(`${k}, the natural significator${h === 4 && k === 'Mars' ? ' of property' : ''}, is ${digPhrase(P[k].dignity)}`); }
+    const sev = bad.length - 0.6*good.length;
+    areas.push({h, name, lord: L, bad, good, sev, level: sev >= 3 ? 'heavy' : sev >= 1.5 ? 'moderate' : 'light'});
+  }
+  areas.sort((a, b) => b.sev - a.sev);
+  // dasas: who ran your life, and were they good for you?
+  const birth = C.date.getTime(), yr = 365.2425*864e5, dasas = [];
+  for (const md of C.dasa.MD) {
+    if (md.end.getTime() < birth + 0.2*yr || md.start.getTime() > birth + 90*yr) continue;
+    const b = md.lord, p = P[b], why = [];
+    if (C.func[b] === 'malefic') why.push('a functional malefic for your ascendant');
+    if ((DIG_SCORE[p.dignity] || 0) < 0) why.push(digPhrase(p.dignity));
+    const dsp = SIGN_LORD[p.sign]; if (dsp !== b && DUSTHANA.includes(P[dsp].house)) why.push(`its sign lord ${dsp} sits in your ${ORD(P[dsp].house)}`);
+    if (DUSTHANA.includes(p.house)) why.push(`in your ${ORD(p.house)} house`);
+    if (p.lordOf.includes(8) && b !== lagLord) why.push('your 8th lord');
+    if (PL.some(x => ['Rahu','Ketu'].includes(x) && x !== b && P[x].sign === p.sign)) why.push('joined by a node');
+    const plus = [];
+    if (['benefic','yogakaraka'].includes(C.func[b])) plus.push('a functional benefic');
+    if ((DIG_SCORE[p.dignity] || 0) >= 2) plus.push(digPhrase(p.dignity));
+    dasas.push({lord: b, start: md.start, end: md.end, age0: Math.max(0, Math.floor((md.start - birth)/yr)), age1: Math.floor((md.end - birth)/yr), why, plus, hard: why.length > plus.length});
+  }
+  // heavy Saturn transits from the Moon (Table 59): Sade Sati (12th/1st/2nd), 4th and 8th
+  const sat = []; let prev = null, st = null;
+  const endT = Date.now() + 12*yr;
+  for (let t = birth; t < endT; t += 10*864e5) {
+    const h = hFrom(P.Moon.sign, Math.floor(sidLon('Saturn', new Date(t))/30));
+    const tag = [12,1,2].includes(h) ? 'Sade Sati (Saturn over the 12th, 1st and 2nd from your Moon)' : h === 8 ? 'Saturn 8th from your Moon: "suffering, loss of status" (Table 59)' : h === 4 ? 'Saturn 4th from your Moon: "stomach problems, separation from family" (Table 59)' : null;
+    if (tag !== prev) { if (prev) sat.push({tag: prev, start: new Date(st), end: new Date(t)}); prev = tag; st = t; }
+  }
+  if (prev) sat.push({tag: prev, start: new Date(st), end: new Date(endT)});
+  // merge brief retrograde gaps (< 1 year) for the same tag
+  const merged = [];
+  for (const x of sat) { const last = merged[merged.length - 1]; if (last && last.tag === x.tag && x.start - last.end < yr) last.end = x.end; else merged.push({...x}); }
+  return {areas, dasas, saturn: merged.map(x => ({...x, age0: Math.floor((x.start - birth)/yr), age1: Math.floor((x.end - birth)/yr)}))};
+}
+
+// ---------- house-by-house table (ch.7 houses, ch.3 dignities, ch.8 Table 15 karakas, ch.10 aspects, ch.13 functional nature, ch.16 timing) ----------
+const HOUSE_KARAKA = [null,'Sun','Jupiter','Mars','Moon','Jupiter','Mars','Venus','Saturn','Jupiter','Mercury','Jupiter','Saturn'];
+const OCC_VERB = {Sun:'brings authority, ego and visibility to', Moon:'brings emotion, fluctuation and care to', Mars:'brings energy, courage and conflict to',
+  Mercury:'brings intellect, communication and trade to', Jupiter:'expands, protects and blesses', Venus:'brings comfort, beauty and pleasure to',
+  Saturn:'brings delay, discipline and hard work to', Rahu:'brings ambition, restlessness and unconventional turns to', Ketu:'brings detachment, disruption and spiritual interest to'};
+const DIG_WORD = {exalted:'exalted', moolatrikona:'in its moolatrikona', own:'in its own sign', 'great friend’s sign':'in a great friend’s sign', friendly:'in a friendly sign', neutral:'in a neutral sign', inimical:'in an enemy’s sign', 'bitter enemy’s sign':'in a bitter enemy’s sign', debilitated:'debilitated'};
+const FUNC_WORD = {yogakaraka:'yogakaraka (excellent for you)', benefic:'functional benefic', neutral:'functionally neutral', malefic:'functional malefic', node:'shadow planet'};
+function periodsOf(C, b) {
+  const birth = C.date.getTime(), now = Date.now(), yr = 365.2425*864e5, out = [];
+  for (const md of C.dasa.MD) if (md.lord === b && md.end.getTime() > birth + 0.2*yr && md.start.getTime() < birth + 95*yr)
+    out.push(`${b} period ${Math.max(md.start.getFullYear(), C.date.getFullYear())}–${md.end.getFullYear()} (age ${Math.max(0, Math.floor((md.start - birth)/yr))}–${Math.floor((md.end - birth)/yr)})${now >= md.start && now < md.end ? ' — running now' : ''}`);
+  const cur = C.dasa.MD.find(m => now >= m.start && now < m.end), nxt = cur && C.dasa.MD[C.dasa.MD.indexOf(cur) + 1];
+  const ads = [];
+  for (const m of [cur, nxt].filter(Boolean)) for (const ad of m.ads) if (ad.lord === b && ad.end.getTime() > now && m.lord !== b) ads.push(`${m.lord}–${b} ${fmt(ad.start)} → ${fmt(ad.end)}${now >= ad.start && now < ad.end ? ' (now)' : ''}`);
+  return {md: out, ad: ads.slice(0, 2)};
+}
+function houseTable(C) {
+  const P = C.P, lag = C.lagna, rows = [];
+  const natB = b => C.natBenefic(b), fnGood = b => ['benefic','yogakaraka'].includes(C.func[b]), fnBad = b => C.func[b] === 'malefic';
+  for (let h = 1; h <= 12; h++) {
+    const s = (lag + h - 1) % 12, L = SIGN_LORD[s], p = P[L], co = s === 7 ? 'Ketu' : s === 10 ? 'Rahu' : null;
+    const dus = DUSTHANA.includes(h);
+    // ---- lord
+    const lh = p.house, dg = DIG_SCORE[p.dignity] || 0;
+    const withL = PL.filter(x => x !== L && P[x].sign === p.sign), aspL = C.grahaAspects[p.sign].filter(x => x !== L);
+    const lordInfo = `${L} ${DIG_WORD[p.dignity]} in ${SIGNS[p.sign]}, your ${ORD(lh)} house${p.retro && L !== 'Rahu' && L !== 'Ketu' ? ', retrograde' : ''}${p.combust ? ', combust' : ''}. Natural ${natB(L) ? 'benefic' : 'malefic'}; ${FUNC_WORD[C.func[L]]} for you.${withL.length ? ` Joined by ${list(withL)}.` : ''}${aspL.length ? ` Aspected by ${list(aspL)}.` : ''}${co ? ` Co-lord: ${co}.` : ''}`;
+    let lEff = `Ties ${HOUSE[h].n.toLowerCase()} to ${HOUSE[lh].n.toLowerCase()} (${HOUSE[lh].sig.split(',').slice(0, 3).join(',').trim()}). `;
+    let ls = dg*0.8;
+    if (lh === h) { lEff += 'The lord in its own house protects and strengthens it. '; ls += 1.5; }
+    else if (TRIKONA.includes(lh)) { lEff += `In a trine: ${dus ? 'these difficult matters become prominent' : 'these matters prosper'}. `; ls += 1; }
+    else if (KENDRA.includes(lh)) { lEff += `In a quadrant: ${dus ? 'these difficult matters stay active' : 'these matters are sustained and active'}. `; ls += 0.8; }
+    else if (DUSTHANA.includes(lh)) { lEff += dus ? 'A dusthana lord in a dusthana: obstacles run into obstacles (Vipareeta Raja yoga), success after struggle. ' : 'In a dusthana: setbacks, losses or delays in these matters. '; ls += dus ? 0.8 : -1.2; }
+    else if ([3,11].includes(lh)) { lEff += 'In an upachaya: these matters grow with time and effort. '; ls += 0.4; }
+    else lEff += 'In the 2nd: these matters feed your resources and family. ';
+    if (dg >= 2) lEff += `The lord is strong (${DIG_WORD[p.dignity]}), so it can deliver. `;
+    else if (dg < 0) lEff += `The lord is weak (${DIG_WORD[p.dignity]}), so results come with friction and delay. `;
+    const dsp = SIGN_LORD[p.sign]; if (dsp !== L && DUSTHANA.includes(P[dsp].house)) { lEff += `Its sign lord ${dsp} sits in your ${ORD(P[dsp].house)}, weakening delivery. `; ls -= 0.5; }
+    if (withL.some(x => ['Rahu','Ketu','Saturn'].includes(x))) { lEff += `Joined by ${list(withL.filter(x => ['Rahu','Ketu','Saturn'].includes(x)))}: disturbance to these matters. `; ls -= 0.5; }
+    if (aspL.includes('Jupiter')) { lEff += 'Jupiter’s aspect on the lord protects. '; ls += 0.5; }
+    if (aspL.includes('Saturn')) { lEff += 'Saturn’s aspect on the lord brings delay. '; ls -= 0.4; }
+    const l8 = SIGN_LORD[(lag + 7) % 12];
+    if (l8 !== L && (aspL.includes(l8) || withL.includes(l8)) && h !== 8) { lEff += `Your 8th lord ${l8} ${withL.includes(l8) ? 'joins' : 'aspects'} the lord: sudden costs or setbacks. `; ls -= 0.5; }
+    if (dus && dg >= 2) lEff += 'Book rule (ch.7): a strong lord of a difficult house can show real obstacles in its matters. ';
+    if (dus && p.dignity === 'debilitated') lEff += 'Book rule (ch.7): a weak lord of a difficult house means its troubles are easily overcome. ';
+    // ---- karaka
+    const k = HOUSE_KARAKA[h], kp = P[k], kd = DIG_SCORE[kp.dignity] || 0;
+    const kar = `Natural significator: ${k}, ${DIG_WORD[kp.dignity]} in your ${ORD(kp.house)} house${kd >= 2 ? ' (strong)' : kd < 0 ? ' (weak)' : ''}.`;
+    ls += kd*0.3;
+    // ---- occupants
+    const occ = PL.filter(x => P[x].house === h), occRows = [];
+    let os = 0;
+    for (const b of occ) {
+      const q = P[b], qd = DIG_SCORE[q.dignity] || 0;
+      let t = `${b} ${OCC_VERB[b]} ${HOUSE[h].n.toLowerCase()} matters (${HOUSE[h].sig.split(',').slice(0, 3).join(',').trim()}).`;
+      if (qd >= 2) t += ` It is ${DIG_WORD[q.dignity]}: strong results.`; else if (qd < 0) t += ` It is ${DIG_WORD[q.dignity]}: its results come with friction.`;
+      if (q.lordOf.length && b !== 'Rahu' && b !== 'Ketu') t += ` As lord of your ${q.lordOf.map(ORD).join(' & ')}, it brings those matters here.`;
+      if (b === 'Rahu' || b === 'Ketu') t += ` It acts for its sign lord ${SIGN_LORD[q.sign]}${occ.filter(x => x !== b && !['Rahu','Ketu'].includes(x)).length ? ` and for ${list(occ.filter(x => x !== b && !['Rahu','Ketu'].includes(x)))}` : ''}.`;
+      if (q.combust) t += ' Combust: weakened.';
+      const good = natB(b), fg = fnGood(b), fb = fnBad(b);
+      const val = (good ? 1 : -1)*(dus ? -0.5 : 1) + (fg ? 0.7 : fb ? -0.6 : 0) + qd*0.3;
+      os += val;
+      occRows.push({b, nat: good ? 'benefic' : 'malefic', func: C.func[b], dignity: q.dignity, text: t});
+    }
+    // ---- aspects on the house
+    const aspH = [];
+    for (const b of SEVEN) for (const o of ({Mars:[4,7,8], Jupiter:[5,7,9], Saturn:[3,7,10]}[b] || [7])) if ((P[b].sign + o - 1) % 12 === s) aspH.push({b, o, nat: natB(b) ? 'benefic' : 'malefic', func: C.func[b]});
+    let as = 0;
+    for (const a of aspH) as += (a.b === 'Jupiter' ? 0.8 : natB(a.b) ? 0.4 : a.b === 'Saturn' ? -0.6 : -0.3) + (fnGood(a.b) ? 0.2 : fnBad(a.b) ? -0.2 : 0);
+    // ---- verdict
+    const total = ls + os*0.7 + as*0.6;
+    let verdict, tone;
+    if (!dus) { verdict = total >= 2 ? 'Strong' : total >= 0.5 ? 'Good, with some effort' : total >= -0.8 ? 'Mixed' : 'Weak, delayed'; tone = total >= 2 ? 'good' : total >= 0.5 ? 'ok' : total >= -0.8 ? 'mixed' : 'bad'; }
+    else { verdict = total >= 2 ? 'Real trouble possible' : total >= 0.5 ? 'Some trouble' : 'Troubles are manageable'; tone = total >= 2 ? 'bad' : total >= 0.5 ? 'mixed' : 'good'; }
+    // timing: lord and occupants' periods
+    const timers = [L, ...occ.filter(x => x !== L)].slice(0, 4).map(b => ({b, ...periodsOf(C, b)}));
+    rows.push({h, sign: s, name: HOUSE[h].n, sig: HOUSE[h].sig, lord: L, co, lordInfo, lordEffect: lEff.trim(), karaka: kar, occupants: occRows, aspects: aspH, score: total, verdict, tone, timers});
+  }
+  return rows;
+}
+
 const API = {SIGNS, SANSK, SAB, PL, PAB, SEVEN, SIGN_LORD, NAKS, PD, RASI, HOUSE, VIM_YEARS, ORD, fmtDeg, hFrom,
-  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar};
+  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar, chartChallenges, houseTable, HOUSE_KARAKA};
 if (typeof module !== 'undefined') module.exports = API; else root.Jyotish = API;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -233,12 +233,47 @@ tr.now td{background:var(--accent-soft)}
 .trow.dl{background:var(--accent-soft)}
 @media (max-width:900px){.tgrid{grid-template-columns:minmax(0,1fr)}}
 
+/* houses table */
+.ht{font-size:13px;min-width:1780px}
+.ht-rem{min-width:260px;max-width:320px}
+.ht-rem ul{margin:0;padding-left:16px;display:grid;gap:4px}
+.ht td{vertical-align:top}
+.ht td p{margin-top:4px}
+.ht-h{min-width:110px}
+.ht-num{font-family:var(--display);font-size:26px;color:var(--accent);line-height:1}
+.ht-sig{min-width:170px;max-width:210px;color:var(--muted)}
+.ht-lord{min-width:220px;max-width:260px}
+.ht-eff{min-width:240px;max-width:300px}
+.ht-occ-c{min-width:150px}
+.ht-occ + .ht-occ{margin-top:8px}
+.ht-asp{min-width:130px;white-space:nowrap}
+.ht-pred{min-width:230px;max-width:280px}
+.ht .chip{margin:2px 2px 0 0;display:inline-block}
+.ht-wrap{max-height:none}
+
+/* savings & house plan */
+.plan-h{font-family:var(--display);font-weight:400;font-size:17px;margin:14px 0 8px}
+.plan-steps{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--good);border-radius:8px;padding:12px 16px;font-size:14px;max-width:100ch}
+.plan-steps ul{margin:0;padding-left:18px;display:grid;gap:5px}
+
+/* struggle section */
+.chalsec{margin-bottom:26px}
+.chal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.chal{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px;align-content:start}
+.chal-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.chal-h h3{font-size:17px}
+.chal-bad{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}
+.chal-good{font-size:13px;color:var(--good)}
+.chal-sat{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
+.chal-turn{margin-top:14px;background:var(--good-soft);border-radius:10px;padding:12px 16px;font-size:14.5px;max-width:100ch}
+
 /* money calendar */
 .moneynote{background:var(--accent-soft);border-radius:10px;padding:12px 16px;font-size:14px;max-width:100ch}
 
 /* aspects table */
 .asptable td{font-size:13px}
 .asptable td.aspeff{min-width:220px;max-width:380px}
+.asp-rem{margin:0;padding-left:16px;display:grid;gap:4px}
 .asptable td:first-child,.asptable td:nth-child(2){white-space:nowrap}
 
 /* remedies */
@@ -343,6 +378,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <button role="tab" data-t="events" aria-selected="true">Life events</button>
     <button role="tab" data-t="money" aria-selected="false">Money calendar</button>
     <button role="tab" data-t="overview" aria-selected="false">Overview</button>
+    <button role="tab" data-t="houses" aria-selected="false">Houses</button>
     <button role="tab" data-t="planets" aria-selected="false">Planets &amp; effects</button>
     <button role="tab" data-t="yogas" aria-selected="false">Yogas</button>
     <button role="tab" data-t="aspects" aria-selected="false">Aspects</button>
@@ -1495,8 +1531,153 @@ function moneyCalendar(C, from, months) {
   return rows;
 }
 
+// ---------- where the struggle comes from (afflictions to key houses, hard dasas, heavy Saturn transits) ----------
+const digPhrase = d => ({exalted:'exalted', moolatrikona:'in its moolatrikona sign', own:'in its own sign', 'great friend’s sign':'in a great friend’s sign', friendly:'in a friendly sign', neutral:'in a neutral sign', inimical:'in an enemy’s sign', 'bitter enemy’s sign':'in a bitter enemy’s sign', debilitated:'debilitated'})[d] || d;
+function chartChallenges(C) {
+  const P = C.P, lag = C.lagna, lord8 = SIGN_LORD[(lag + 7) % 12], lagLord = SIGN_LORD[lag];
+  const AREAS_H = [[2,'Savings & family wealth',['Jupiter']],[11,'Income & gains',['Jupiter']],[4,'Home, property & vehicles',['Venus','Mars']],
+    [10,'Career & status',['Sun','Saturn']],[7,'Marriage & partnerships',['Venus']],[1,'Health, vitality & confidence',['Sun']],[5,'Mind, children & speculation',['Jupiter']],[9,'Fortune, father & bosses',['Sun']]];
+  const areas = [];
+  for (const [h, name, kars] of AREAS_H) {
+    const s = (lag + h - 1) % 12, L = SIGN_LORD[s], p = P[L], bad = [], good = [];
+    const d = DIG_SCORE[p.dignity] || 0;
+    if (p.dignity === 'debilitated') bad.push(`${L}, your ${ORD(h)} lord, is debilitated in ${SIGNS[p.sign]}: it struggles to deliver these matters`);
+    else if (d < 0) bad.push(`${L}, your ${ORD(h)} lord, is in an enemy’s sign (${SIGNS[p.sign]}): results come with friction and delay`);
+    else if (d >= 2) good.push(`${L}, your ${ORD(h)} lord, is ${digPhrase(p.dignity)} (strong)`);
+    if (DUSTHANA.includes(p.house) && p.house !== h) bad.push(`${L} (${ORD(h)} lord) sits in your ${ORD(p.house)}, a dusthana: setbacks, losses or hidden drains in these matters`);
+    const disp = SIGN_LORD[p.sign];
+    if (disp !== L && DUSTHANA.includes(P[disp].house)) bad.push(`${L}’s sign lord ${disp} sits in your ${ORD(P[disp].house)}, so ${L} cannot fully deliver`);
+    if (p.combust) bad.push(`${L} is combust`);
+    const nodesWith = PL.filter(x => x !== L && P[x].sign === p.sign && ['Saturn','Rahu','Ketu'].includes(x));
+    if (nodesWith.length) bad.push(`${L} sits with ${list(nodesWith)}`);
+    const aspL = C.grahaAspects[p.sign].filter(x => x !== L);
+    if (aspL.includes('Saturn')) bad.push(`Saturn aspects ${L}: delays and restriction`);
+    if (aspL.includes(lord8) && lord8 !== L) bad.push(`${lord8} (your 8th lord${lord8 === lagLord ? ', also your lagna lord' : ''}) aspects ${L}: sudden costs and losses`);
+    if (aspL.includes('Jupiter') && L !== 'Jupiter') good.push(`Jupiter aspects ${L} (protective)`);
+    const occ = PL.filter(x => P[x].house === h);
+    for (const x of occ.filter(x => ['Saturn','Rahu','Ketu'].includes(x))) bad.push(`${x} sits in your ${ORD(h)} house${x === 'Ketu' ? ': detachment and disruption' : x === 'Rahu' ? ': restlessness and illusion' : ': delay'}`);
+    if (occ.includes('Jupiter')) good.push(`exalted/strong Jupiter sits in your ${ORD(h)} house`.replace('exalted/strong ', P.Jupiter.dignity === 'exalted' ? 'exalted ' : ''));
+    const aspH = C.grahaAspects[s];
+    if (aspH.includes('Saturn') && L !== 'Saturn') bad.push(`Saturn aspects your ${ORD(h)} house: slow, hard-earned results`);
+    if (aspH.includes(lord8) && lord8 !== L) bad.push(`${lord8} (8th lord) aspects your ${ORD(h)} house`);
+    for (const k of kars) if (k !== L) { const kd = DIG_SCORE[P[k].dignity] || 0; if (kd < 0) bad.push(`${k}, the natural significator of ${h === 4 && k === 'Venus' ? 'vehicles and comforts' : h === 4 ? 'property' : 'these matters'}, is ${digPhrase(P[k].dignity)}`); else if (kd >= 2) good.push(`${k}, the natural significator${h === 4 && k === 'Mars' ? ' of property' : ''}, is ${digPhrase(P[k].dignity)}`); }
+    const sev = bad.length - 0.6*good.length;
+    areas.push({h, name, lord: L, bad, good, sev, level: sev >= 3 ? 'heavy' : sev >= 1.5 ? 'moderate' : 'light'});
+  }
+  areas.sort((a, b) => b.sev - a.sev);
+  // dasas: who ran your life, and were they good for you?
+  const birth = C.date.getTime(), yr = 365.2425*864e5, dasas = [];
+  for (const md of C.dasa.MD) {
+    if (md.end.getTime() < birth + 0.2*yr || md.start.getTime() > birth + 90*yr) continue;
+    const b = md.lord, p = P[b], why = [];
+    if (C.func[b] === 'malefic') why.push('a functional malefic for your ascendant');
+    if ((DIG_SCORE[p.dignity] || 0) < 0) why.push(digPhrase(p.dignity));
+    const dsp = SIGN_LORD[p.sign]; if (dsp !== b && DUSTHANA.includes(P[dsp].house)) why.push(`its sign lord ${dsp} sits in your ${ORD(P[dsp].house)}`);
+    if (DUSTHANA.includes(p.house)) why.push(`in your ${ORD(p.house)} house`);
+    if (p.lordOf.includes(8) && b !== lagLord) why.push('your 8th lord');
+    if (PL.some(x => ['Rahu','Ketu'].includes(x) && x !== b && P[x].sign === p.sign)) why.push('joined by a node');
+    const plus = [];
+    if (['benefic','yogakaraka'].includes(C.func[b])) plus.push('a functional benefic');
+    if ((DIG_SCORE[p.dignity] || 0) >= 2) plus.push(digPhrase(p.dignity));
+    dasas.push({lord: b, start: md.start, end: md.end, age0: Math.max(0, Math.floor((md.start - birth)/yr)), age1: Math.floor((md.end - birth)/yr), why, plus, hard: why.length > plus.length});
+  }
+  // heavy Saturn transits from the Moon (Table 59): Sade Sati (12th/1st/2nd), 4th and 8th
+  const sat = []; let prev = null, st = null;
+  const endT = Date.now() + 12*yr;
+  for (let t = birth; t < endT; t += 10*864e5) {
+    const h = hFrom(P.Moon.sign, Math.floor(sidLon('Saturn', new Date(t))/30));
+    const tag = [12,1,2].includes(h) ? 'Sade Sati (Saturn over the 12th, 1st and 2nd from your Moon)' : h === 8 ? 'Saturn 8th from your Moon: "suffering, loss of status" (Table 59)' : h === 4 ? 'Saturn 4th from your Moon: "stomach problems, separation from family" (Table 59)' : null;
+    if (tag !== prev) { if (prev) sat.push({tag: prev, start: new Date(st), end: new Date(t)}); prev = tag; st = t; }
+  }
+  if (prev) sat.push({tag: prev, start: new Date(st), end: new Date(endT)});
+  // merge brief retrograde gaps (< 1 year) for the same tag
+  const merged = [];
+  for (const x of sat) { const last = merged[merged.length - 1]; if (last && last.tag === x.tag && x.start - last.end < yr) last.end = x.end; else merged.push({...x}); }
+  return {areas, dasas, saturn: merged.map(x => ({...x, age0: Math.floor((x.start - birth)/yr), age1: Math.floor((x.end - birth)/yr)}))};
+}
+
+// ---------- house-by-house table (ch.7 houses, ch.3 dignities, ch.8 Table 15 karakas, ch.10 aspects, ch.13 functional nature, ch.16 timing) ----------
+const HOUSE_KARAKA = [null,'Sun','Jupiter','Mars','Moon','Jupiter','Mars','Venus','Saturn','Jupiter','Mercury','Jupiter','Saturn'];
+const OCC_VERB = {Sun:'brings authority, ego and visibility to', Moon:'brings emotion, fluctuation and care to', Mars:'brings energy, courage and conflict to',
+  Mercury:'brings intellect, communication and trade to', Jupiter:'expands, protects and blesses', Venus:'brings comfort, beauty and pleasure to',
+  Saturn:'brings delay, discipline and hard work to', Rahu:'brings ambition, restlessness and unconventional turns to', Ketu:'brings detachment, disruption and spiritual interest to'};
+const DIG_WORD = {exalted:'exalted', moolatrikona:'in its moolatrikona', own:'in its own sign', 'great friend’s sign':'in a great friend’s sign', friendly:'in a friendly sign', neutral:'in a neutral sign', inimical:'in an enemy’s sign', 'bitter enemy’s sign':'in a bitter enemy’s sign', debilitated:'debilitated'};
+const FUNC_WORD = {yogakaraka:'yogakaraka (excellent for you)', benefic:'functional benefic', neutral:'functionally neutral', malefic:'functional malefic', node:'shadow planet'};
+function periodsOf(C, b) {
+  const birth = C.date.getTime(), now = Date.now(), yr = 365.2425*864e5, out = [];
+  for (const md of C.dasa.MD) if (md.lord === b && md.end.getTime() > birth + 0.2*yr && md.start.getTime() < birth + 95*yr)
+    out.push(`${b} period ${Math.max(md.start.getFullYear(), C.date.getFullYear())}–${md.end.getFullYear()} (age ${Math.max(0, Math.floor((md.start - birth)/yr))}–${Math.floor((md.end - birth)/yr)})${now >= md.start && now < md.end ? ' — running now' : ''}`);
+  const cur = C.dasa.MD.find(m => now >= m.start && now < m.end), nxt = cur && C.dasa.MD[C.dasa.MD.indexOf(cur) + 1];
+  const ads = [];
+  for (const m of [cur, nxt].filter(Boolean)) for (const ad of m.ads) if (ad.lord === b && ad.end.getTime() > now && m.lord !== b) ads.push(`${m.lord}–${b} ${fmt(ad.start)} → ${fmt(ad.end)}${now >= ad.start && now < ad.end ? ' (now)' : ''}`);
+  return {md: out, ad: ads.slice(0, 2)};
+}
+function houseTable(C) {
+  const P = C.P, lag = C.lagna, rows = [];
+  const natB = b => C.natBenefic(b), fnGood = b => ['benefic','yogakaraka'].includes(C.func[b]), fnBad = b => C.func[b] === 'malefic';
+  for (let h = 1; h <= 12; h++) {
+    const s = (lag + h - 1) % 12, L = SIGN_LORD[s], p = P[L], co = s === 7 ? 'Ketu' : s === 10 ? 'Rahu' : null;
+    const dus = DUSTHANA.includes(h);
+    // ---- lord
+    const lh = p.house, dg = DIG_SCORE[p.dignity] || 0;
+    const withL = PL.filter(x => x !== L && P[x].sign === p.sign), aspL = C.grahaAspects[p.sign].filter(x => x !== L);
+    const lordInfo = `${L} ${DIG_WORD[p.dignity]} in ${SIGNS[p.sign]}, your ${ORD(lh)} house${p.retro && L !== 'Rahu' && L !== 'Ketu' ? ', retrograde' : ''}${p.combust ? ', combust' : ''}. Natural ${natB(L) ? 'benefic' : 'malefic'}; ${FUNC_WORD[C.func[L]]} for you.${withL.length ? ` Joined by ${list(withL)}.` : ''}${aspL.length ? ` Aspected by ${list(aspL)}.` : ''}${co ? ` Co-lord: ${co}.` : ''}`;
+    let lEff = `Ties ${HOUSE[h].n.toLowerCase()} to ${HOUSE[lh].n.toLowerCase()} (${HOUSE[lh].sig.split(',').slice(0, 3).join(',').trim()}). `;
+    let ls = dg*0.8;
+    if (lh === h) { lEff += 'The lord in its own house protects and strengthens it. '; ls += 1.5; }
+    else if (TRIKONA.includes(lh)) { lEff += `In a trine: ${dus ? 'these difficult matters become prominent' : 'these matters prosper'}. `; ls += 1; }
+    else if (KENDRA.includes(lh)) { lEff += `In a quadrant: ${dus ? 'these difficult matters stay active' : 'these matters are sustained and active'}. `; ls += 0.8; }
+    else if (DUSTHANA.includes(lh)) { lEff += dus ? 'A dusthana lord in a dusthana: obstacles run into obstacles (Vipareeta Raja yoga), success after struggle. ' : 'In a dusthana: setbacks, losses or delays in these matters. '; ls += dus ? 0.8 : -1.2; }
+    else if ([3,11].includes(lh)) { lEff += 'In an upachaya: these matters grow with time and effort. '; ls += 0.4; }
+    else lEff += 'In the 2nd: these matters feed your resources and family. ';
+    if (dg >= 2) lEff += `The lord is strong (${DIG_WORD[p.dignity]}), so it can deliver. `;
+    else if (dg < 0) lEff += `The lord is weak (${DIG_WORD[p.dignity]}), so results come with friction and delay. `;
+    const dsp = SIGN_LORD[p.sign]; if (dsp !== L && DUSTHANA.includes(P[dsp].house)) { lEff += `Its sign lord ${dsp} sits in your ${ORD(P[dsp].house)}, weakening delivery. `; ls -= 0.5; }
+    if (withL.some(x => ['Rahu','Ketu','Saturn'].includes(x))) { lEff += `Joined by ${list(withL.filter(x => ['Rahu','Ketu','Saturn'].includes(x)))}: disturbance to these matters. `; ls -= 0.5; }
+    if (aspL.includes('Jupiter')) { lEff += 'Jupiter’s aspect on the lord protects. '; ls += 0.5; }
+    if (aspL.includes('Saturn')) { lEff += 'Saturn’s aspect on the lord brings delay. '; ls -= 0.4; }
+    const l8 = SIGN_LORD[(lag + 7) % 12];
+    if (l8 !== L && (aspL.includes(l8) || withL.includes(l8)) && h !== 8) { lEff += `Your 8th lord ${l8} ${withL.includes(l8) ? 'joins' : 'aspects'} the lord: sudden costs or setbacks. `; ls -= 0.5; }
+    if (dus && dg >= 2) lEff += 'Book rule (ch.7): a strong lord of a difficult house can show real obstacles in its matters. ';
+    if (dus && p.dignity === 'debilitated') lEff += 'Book rule (ch.7): a weak lord of a difficult house means its troubles are easily overcome. ';
+    // ---- karaka
+    const k = HOUSE_KARAKA[h], kp = P[k], kd = DIG_SCORE[kp.dignity] || 0;
+    const kar = `Natural significator: ${k}, ${DIG_WORD[kp.dignity]} in your ${ORD(kp.house)} house${kd >= 2 ? ' (strong)' : kd < 0 ? ' (weak)' : ''}.`;
+    ls += kd*0.3;
+    // ---- occupants
+    const occ = PL.filter(x => P[x].house === h), occRows = [];
+    let os = 0;
+    for (const b of occ) {
+      const q = P[b], qd = DIG_SCORE[q.dignity] || 0;
+      let t = `${b} ${OCC_VERB[b]} ${HOUSE[h].n.toLowerCase()} matters (${HOUSE[h].sig.split(',').slice(0, 3).join(',').trim()}).`;
+      if (qd >= 2) t += ` It is ${DIG_WORD[q.dignity]}: strong results.`; else if (qd < 0) t += ` It is ${DIG_WORD[q.dignity]}: its results come with friction.`;
+      if (q.lordOf.length && b !== 'Rahu' && b !== 'Ketu') t += ` As lord of your ${q.lordOf.map(ORD).join(' & ')}, it brings those matters here.`;
+      if (b === 'Rahu' || b === 'Ketu') t += ` It acts for its sign lord ${SIGN_LORD[q.sign]}${occ.filter(x => x !== b && !['Rahu','Ketu'].includes(x)).length ? ` and for ${list(occ.filter(x => x !== b && !['Rahu','Ketu'].includes(x)))}` : ''}.`;
+      if (q.combust) t += ' Combust: weakened.';
+      const good = natB(b), fg = fnGood(b), fb = fnBad(b);
+      const val = (good ? 1 : -1)*(dus ? -0.5 : 1) + (fg ? 0.7 : fb ? -0.6 : 0) + qd*0.3;
+      os += val;
+      occRows.push({b, nat: good ? 'benefic' : 'malefic', func: C.func[b], dignity: q.dignity, text: t});
+    }
+    // ---- aspects on the house
+    const aspH = [];
+    for (const b of SEVEN) for (const o of ({Mars:[4,7,8], Jupiter:[5,7,9], Saturn:[3,7,10]}[b] || [7])) if ((P[b].sign + o - 1) % 12 === s) aspH.push({b, o, nat: natB(b) ? 'benefic' : 'malefic', func: C.func[b]});
+    let as = 0;
+    for (const a of aspH) as += (a.b === 'Jupiter' ? 0.8 : natB(a.b) ? 0.4 : a.b === 'Saturn' ? -0.6 : -0.3) + (fnGood(a.b) ? 0.2 : fnBad(a.b) ? -0.2 : 0);
+    // ---- verdict
+    const total = ls + os*0.7 + as*0.6;
+    let verdict, tone;
+    if (!dus) { verdict = total >= 2 ? 'Strong' : total >= 0.5 ? 'Good, with some effort' : total >= -0.8 ? 'Mixed' : 'Weak, delayed'; tone = total >= 2 ? 'good' : total >= 0.5 ? 'ok' : total >= -0.8 ? 'mixed' : 'bad'; }
+    else { verdict = total >= 2 ? 'Real trouble possible' : total >= 0.5 ? 'Some trouble' : 'Troubles are manageable'; tone = total >= 2 ? 'bad' : total >= 0.5 ? 'mixed' : 'good'; }
+    // timing: lord and occupants' periods
+    const timers = [L, ...occ.filter(x => x !== L)].slice(0, 4).map(b => ({b, ...periodsOf(C, b)}));
+    rows.push({h, sign: s, name: HOUSE[h].n, sig: HOUSE[h].sig, lord: L, co, lordInfo, lordEffect: lEff.trim(), karaka: kar, occupants: occRows, aspects: aspH, score: total, verdict, tone, timers});
+  }
+  return rows;
+}
+
 const API = {SIGNS, SANSK, SAB, PL, PAB, SEVEN, SIGN_LORD, NAKS, PD, RASI, HOUSE, VIM_YEARS, ORD, fmtDeg, hFrom,
-  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar};
+  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar, chartChallenges, houseTable, HOUSE_KARAKA};
 if (typeof module !== 'undefined') module.exports = API; else root.Jyotish = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -2101,8 +2282,8 @@ document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click
   store.set('jk-tab', tab); renderTab();
 }));
 function renderTab() {
-  const f = {events: tEvents, money: tMoney, overview: tOverview, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails}[tab];
-  $('#pane').innerHTML = f();
+  const f = {events: tEvents, money: tMoney, overview: tOverview, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails}[tab];
+  try { $('#pane').innerHTML = f(); } catch (err) { console.error(err); $('#pane').innerHTML = `<p class="err">This tab hit an error (${esc(err.message)}). The rest of the app still works; please report it.</p>`; return; }
   if (tab === 'transits') initTransit();
   $('#pane').querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => { moneyMonths = +b.dataset.mm; renderTab(); }));
   $('#pane').querySelectorAll('[data-aspscope]').forEach(b => b.addEventListener('click', () => { aspScope = b.dataset.aspscope; renderTab(); }));
@@ -2190,29 +2371,54 @@ function aspectRow(a, b, kind, isTransit, extra) {
   const f = C.func[a];
   if (f === 'benefic' || f === 'yogakaraka') v += 0.8; else if (f === 'malefic') v -= 0.6;
   if (kind === 'conjunction' && b !== a && ['Rahu','Ketu'].includes(b)) v -= 0.5;
+  // an 8th lord's influence brings sudden costs and losses even when it is also your lagna lord (ch.7); 12th lord = expenditure
+  if (C.P[a] && C.P[a].lordOf.includes(8) && !['Rahu','Ketu'].includes(a)) v -= 0.6;
+  else if (C.P[a] && C.P[a].lordOf.includes(12) && !['Rahu','Ketu'].includes(a)) v -= 0.3;
+  // an afflicted planet suffers more from any influence: enemy sign / debilitated, or its sign lord in a dusthana
+  const pb = C.P[b], dspB = J.SIGN_LORD[pb.sign];
+  const weakB = ['inimical','bitter enemy\u2019s sign','debilitated'].includes(pb.dignity) || (dspB !== b && [6,8,12].includes(C.P[dspB].house));
+  if (weakB) v -= 0.4;
   const tone = v >= 1 ? 'good' : v <= -0.8 ? 'bad' : 'mixed';
   const bInfo = `${J.PD[b].gov}${lordStr(b) ? ', ' + lordStr(b) : ''}, in your ${J.ORD(C.P[b].house)} house`;
   const aFunc = f && f !== 'node' ? ` For your ascendant ${a} is a ${({yogakaraka:'yogakaraka', benefic:'functional benefic', neutral:'functionally neutral planet', malefic:'functional malefic'})[f]}${f === 'malefic' && C.P[a].lordOf.length ? `, so it brings in the matters of your ${C.P[a].lordOf.map(J.ORD).join(' & ')} house` : ''}.` : (a === 'Rahu' || a === 'Ketu') ? ` ${a} acts for ${J.SIGN_LORD[(isTransit ? extra.T[a] : C.P[a]).sign]}, its sign lord.` : '';
   const verb = isTransit ? (kind === 'conjunction' ? TR_ACT[a] : ASP_ACT[a]) : ASP_ACT[a];
   let effect = `${a} ${verb} ${b} (${bInfo}).${aFunc}${rel.w ? ' ' + rel.w[0].toUpperCase() + rel.w.slice(1) + '.' : ''}`;
+  if (C.P[a] && C.P[a].lordOf.includes(8) && !['Rahu','Ketu'].includes(a)) effect += ` ${a} also rules your 8th house (debts, sudden losses), so its influence can bring unexpected costs to ${b}\u2019s matters.`;
+  if (weakB) effect += ` ${b} is already weak in your chart (${pb.dignity}${dspB !== b && [6,8,12].includes(C.P[dspB].house) ? `; its sign lord ${dspB} sits in your ${J.ORD(C.P[dspB].house)}` : ''}), so it feels this more.`;
   if (a === 'Jupiter' && kind !== 'conjunction') effect += ' Jupiter’s aspect is protective (ch.10).';
   // remedy
   const ra = J.PD[a], rb = J.PD[b], out = [];
-  const aGood = ['benefic','yogakaraka'].includes(C.func[a]);
+  // remedies (ch.34): channel planets that are good for you, pacify/soften the rest; gems only when safe, with budget substitutes
+  const lagL = J.SIGN_LORD[C.lagna];
+  const isGood = x => ['benefic','yogakaraka'].includes(C.func[x]) || x === lagL;
+  const aGood = isGood(a);
+  const hardA = ['Saturn','Rahu','Ketu','Mars','Sun'].includes(a);
+  const day = x => `${J.PD[x].day}s${['Rahu','Ketu'].includes(x) ? ' (traditional)' : ''}`;
+  const budget = x => BUDGET_GEM[x] ? ` (budget: ${BUDGET_GEM[x][0]} in ${BUDGET_GEM[x][1]})` : '';
+  const practical = (() => {
+    const pb = C.P[b], hs = (b === 'Rahu' || b === 'Ketu' || !pb.lordOf.length) ? [pb.house] : pb.lordOf;
+    const h = hs[0];
+    return HOUSE_PRACTICAL[h] ? `Practical (${b}\u2019s ${J.ORD(h)}-house matters): ${HOUSE_PRACTICAL[h]}` : '';
+  })();
+  const supportB = isGood(b)
+    ? `Strengthen ${b}: ${rb.deed}; optional gem ${rb.gem.toLowerCase()}${budget(b)}.`
+    : `Support ${b} (no gem): ${rb.deed}; worship ${rb.deity.split(',')[0]} on ${day(b)}.`;
   if (tone === 'bad') {
-    out.push(`Pacify ${a}: ${ra.deed}${ra.grain ? `; donate ${ra.grain} on ${ra.day}s` : ''}; mantra ${ra.count}× or worship ${ra.deity.split(',')[0]}.`);
-    if (['benefic','yogakaraka'].includes(C.func[b])) out.push(`Support ${b}: ${rb.gem.toLowerCase()} in ${rb.metal.toLowerCase()} is safe for you.`);
-    else out.push(`Support ${b}: ${rb.deed}.`);
-    if (isTransit && extra.until) out.push(`Most needed until about ${J.fmt(extra.until)}.`);
+    if (aGood) out.push(`Channel ${a}, don\u2019t pacify it (it is good for your chart): ${ra.deed}; worship ${ra.deity.split(',')[0]} on ${day(a)}.`);
+    else out.push(`${hardA ? 'Pacify' : 'Soften'} ${a}: ${ra.deed}${ra.grain ? `; donate ${ra.grain}` : ''} on ${day(a)}; mantra ${ra.count}\u00d7 or worship ${ra.deity.split(',')[0]}.`);
+    out.push(supportB);
+    if (isTransit && extra.until) out.push(`Keep it up until about ${J.fmt(extra.until)}, when transit ${a} changes sign.`);
+    if (practical) out.push(practical);
   } else if (tone === 'mixed') {
-    if (aGood) out.push(`${a} is good for your chart, so don’t pacify it; channel it positively: ${ra.deed}.`);
-    else out.push(`Soften ${a}: ${ra.deed}${ra.grain ? `; donate ${ra.grain} on ${ra.day}s` : ''}.`);
+    if (aGood) out.push(`Channel ${a} (good for your chart): ${ra.deed}, on ${day(a)}.`);
+    else out.push(`${hardA ? 'Pacify' : 'Soften'} ${a} lightly: ${ra.deed}${ra.grain ? `; donate ${ra.grain}` : ''} on ${day(a)}.`);
     if (isTransit && extra.until && !aGood) out.push(`Until about ${J.fmt(extra.until)}.`);
+    if (practical) out.push(practical);
   } else {
-    if (['benefic','yogakaraka'].includes(C.func[a])) out.push(`Favourable. To amplify it you may wear ${ra.gem.toLowerCase()} (${a}).`);
+    if (aGood) out.push(`Favourable; nothing to fix. To amplify it: ${ra.deed}, or optionally wear ${ra.gem.toLowerCase()}${budget(a)}.`);
     else out.push('Favourable; no remedy needed.');
   }
-  return {a, b, kind, tone, effect, remedy: out.join(' ')};
+  return {a, b, kind, tone, effect, remedy: out};
 }
 const signChangeCache = new Map();
 function nextSignChange(b, from) {
@@ -2241,8 +2447,8 @@ function natalAspectRows() {
     const a = J.PL[i], b = J.PL[j];
     if (P[a].sign !== P[b].sign) continue;
     const r1 = aspectRow(a, b, 'conjunction', false), r2 = aspectRow(b, a, 'conjunction', false);
-    const tone = r1.tone === r2.tone ? r1.tone : 'mixed';
-    rows.push({a, b, kind:'conjunction', tone, orb: Math.abs(P[a].deg - P[b].deg), effect: `${r1.effect} ${r2.effect}`, remedy: tone === 'good' ? r1.remedy : [r1.remedy, r2.remedy].filter(x => !x.startsWith('Favourable')).join(' ')});
+    const tone = r1.tone === r2.tone ? r1.tone : (r1.tone === 'bad' || r2.tone === 'bad') ? 'bad' : 'mixed';
+    rows.push({a, b, kind:'conjunction', tone, orb: Math.abs(P[a].deg - P[b].deg), effect: `${r1.effect} ${r2.effect}`, remedy: tone === 'good' ? r1.remedy : [r1.remedy[0], r2.remedy[0], ...new Set([...r1.remedy, ...r2.remedy].filter(x => /^(Practical|Keep it up|Until)/.test(x)))].filter(x => x && !x.startsWith('Favourable'))});
   }
   return rows;
 }
@@ -2267,12 +2473,12 @@ function aspTable(rows, isTransit) {
   const tl = {good:['Favourable','good'], mixed:['Mixed','mixed'], bad:['Difficult','bad']};
   const f = rows.filter(r => aspTone === 'all' || r.tone === aspTone);
   if (!f.length) return '<p class="muted">No aspects match this filter.</p>';
-  return `<div class="tablewrap"><table class="asptable"><thead><tr><th>Aspecting</th><th>Aspected (natal)</th><th>Aspect</th><th></th><th>Effect for you</th><th>Remedy</th></tr></thead><tbody>
+  return `<div class="tablewrap"><table class="asptable"><thead><tr><th>Aspecting</th><th>Aspected (natal)</th><th>Aspect</th><th></th><th>Effect for you</th><th>Remedies</th></tr></thead><tbody>
     ${f.map(r => `<tr><td>${pdot(r.a)}<b>${isTransit ? 'Transit ' : ''}${r.a}</b>${isTransit && r.until ? `<br><span class="muted">in this sign until ${J.fmt(r.until)}</span>` : ''}</td>
       <td>${pdot(r.b)}<b>${r.b}</b><br><span class="muted">${J.ORD(C.P[r.b].house)} house</span></td>
       <td>${r.kind}${r.orb !== null && r.orb !== undefined ? `<br><span class="muted">${r.orb.toFixed(1)}°${r.exact ? ' · ' + r.exact : ''}</span>` : ''}</td>
       <td>${chip(tl[r.tone][0], tl[r.tone][1])}</td>
-      <td class="aspeff">${esc(r.effect)}</td><td class="aspeff">${esc(r.remedy)}</td></tr>`).join('')}
+      <td class="aspeff">${esc(r.effect)}</td><td class="aspeff"><ul class="asp-rem">${r.remedy.map(x => `<li>${esc(x)}</li>`).join('')}</ul></td></tr>`).join('')}
   </tbody></table></div>`;
 }
 let tDateAsp = new Date();
@@ -2282,6 +2488,7 @@ function tAspects() {
   const cnt = rows => ['good','mixed','bad'].map(k => rows.filter(r => r.tone === k).length);
   const [ng, nm, nb] = cnt(natal), [tg, tm, tb] = cnt(tr);
   return `<p class="lead">Which planet aspects which, at your birth and today. Aspects are full planetary aspects (graha drishti, ch.10): every planet aspects the 7th from itself; Mars also the 4th and 8th, Jupiter the 5th and 9th, Saturn the 3rd and 10th. Rahu and Ketu have no full aspects in the book, so they appear only in conjunctions. Each row is judged from the aspecting planet's nature, its functional role for your Aries ascendant (Table 30) and the natural friendship between the two (Table 7); remedies follow chapter 34.</p>
+  <p class="moneynote" style="margin-bottom:14px">Aspects are only one layer of the chart. A life can be hard with few difficult aspects, because the main causes are house lords in enemy signs or dusthanas, their sign lords, the nodes and heavy dasa and Saturn periods. See <a href="#" data-goto="overview">Overview \u2192 Where the struggle comes from</a> for that picture.</p>
   <div class="ev-filters">
     <div class="seg" role="group" aria-label="Show">${[['both','Birth & now'],['natal','At birth'],['transit','Now (transits)']].map(([k, l]) => `<button type="button" data-aspscope="${k}" aria-pressed="${aspScope === k}">${l}</button>`).join('')}</div>
     <div class="ev-areas">${[['all','All'],['good','Favourable'],['mixed','Mixed'],['bad','Difficult']].map(([k, l]) => `<button type="button" class="fchip" data-asptone="${k}" aria-pressed="${aspTone === k}">${l}</button>`).join('')}</div>
@@ -2329,12 +2536,126 @@ function tMoney() {
   <p class="note">Periods are your Vimsottari pratyantardasas (a few weeks to a few months each). Transits are sampled at the middle of each period. Dates can be off by a few days because of birth-time uncertainty (ch.16).</p>`;
 }
 
+function challengesSection() {
+  const X = J.chartChallenges(C), now = Date.now();
+  const lvl = {heavy:['Heavy','bad'], moderate:['Moderate','mixed'], light:['Light','good']};
+  const cards = X.areas.map(a => `<article class="chal"><div class="chal-h"><h3>${esc(a.name)}</h3>${chip(lvl[a.level][0], lvl[a.level][1])}</div>
+    <p class="muted" style="font-size:12.5px">${J.ORD(a.h)} house · lord ${esc(a.lord)}</p>
+    ${a.bad.length ? `<ul class="chal-bad">${a.bad.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="muted" style="font-size:13.5px">No major affliction.</p>'}
+    ${a.good.length ? `<p class="chal-good"><b>What helps:</b> ${esc(a.good.join('; '))}.</p>` : ''}</article>`).join('');
+  const fmtY = d => d.getFullYear();
+  const next = X.dasas.find(d => !d.hard && d.start.getTime() > now);
+  const curSat = X.saturn.find(s => s.start.getTime() <= now && s.end.getTime() > now);
+  const phases = X.dasas.filter(d => d.start.getTime() < now + 20*365.25*864e5).map(d => {
+    const on = now >= d.start && now < d.end;
+    return `<tr${on ? ' class="now"' : ''}><td><b>${d.lord}</b> period${on ? ' ' + chip('Now', 'acc') : ''}</td><td class="mono">${fmtY(d.start)}–${fmtY(d.end)}</td><td>age ${d.age0}–${d.age1}</td><td>${chip(d.hard ? 'Hard' : 'Easier', d.hard ? 'bad' : 'good')}</td><td class="aspeff">${esc(d.why.length ? d.why.join(', ') : '–')}${d.plus.length ? ` <span class="muted">(helps: ${esc(d.plus.join(', '))})</span>` : ''}</td></tr>`;
+  }).join('');
+  const sat = X.saturn.map(s => `<li><span class="mono">${J.fmt(s.start)} → ${J.fmt(s.end)}</span> <span class="muted">(age ${s.age0}–${s.age1})</span>: ${esc(s.tag)}${s.start.getTime() <= now && s.end.getTime() > now ? ' ' + chip('Now', 'acc') : ''}</li>`).join('');
+  return `<section class="section chalsec"><h2 style="margin-bottom:6px">Where the struggle comes from</h2>
+    <p class="lead">Your chart does show long, real difficulty, and it isn’t spread evenly: it falls on specific parts of life, in specific periods. This reads the book’s rules for each area: the house lord’s dignity and placement, its sign lord, planets joining or aspecting it (Saturn, the nodes, your 8th lord), and the natural significator. Then it lists which main periods and which heavy Saturn transits you have lived through.</p>
+    <div class="chal-grid">${cards}</div>
+    <h3 style="margin:18px 0 8px">Your main periods (Vimsottari)</h3>
+    <div class="tablewrap"><table class="asptable"><thead><tr><th>Period</th><th>Years</th><th>Age</th><th></th><th>Why</th></tr></thead><tbody>${phases}</tbody></table></div>
+    <h3 style="margin:18px 0 8px">Heavy Saturn transits from your Moon (Table 59)</h3>
+    <ul class="chal-sat">${sat}</ul>
+    <p class="chal-turn"><b>When it turns:</b> ${curSat ? `the current ${esc(curSat.tag.split(' (')[0].split(':')[0])} ends around <b>${J.fmt(curSat.end)}</b>. ` : ''}${next ? `The <b>${next.lord} period from ${J.fmt(next.start)}</b> (age ${next.age0}) is the first main period ahead that is clearly on your side${next.plus.length ? ` (${esc(next.plus.join(', '))})` : ''}.` : ''} See the Life events and Money calendar tabs for the windows inside the current period.</p>
+  </section>`;
+}
+
+// ---------- Houses tab: one row per house ----------
+const DUS_TEXT = {6:'enemies, disease, loans and conflict at work', 8:'debts, sudden events, chronic illness and hidden problems', 12:'expenses, losses, hospital stays and living away from home'};
+function housePrediction(r) {
+  const short = r.sig.split(',').slice(0, 4).join(',').trim();
+  if ([6,8,12].includes(r.h)) {
+    const lvl = r.tone === 'bad' ? 'noticeable' : r.tone === 'mixed' ? 'some' : 'limited';
+    return `Expect ${lvl} ${DUS_TEXT[r.h]}. ${r.tone === 'good' ? 'Troubles are easily overcome.' : r.tone === 'bad' ? 'Take care in these areas, especially in the periods below.' : 'Manageable with care.'}`;
+  }
+  return {good:`Well supported: ${short} tend to go well, especially in the periods below.`,
+    ok:`Results in ${short} come, but through effort and time.`,
+    mixed:`Ups and downs in ${short}: some parts work, others are delayed.`,
+    bad:`Delays and struggle in ${short}; results come late and through persistence. Remedies for ${r.lord} help.`}[r.tone];
+}
+// per-house remedies (ch.34: common sense first, then good deeds, mantras/deities, and gems only for planets good for you)
+const HOUSE_PRACTICAL = {
+  1:'Guard your health and energy: regular sleep, exercise and check-ups.',
+  2:'Pay yourself first: move savings to a separate account on salary day; watch your words at home.',
+  3:'Put effort into skills and communication: short courses, writing, follow-ups in writing.',
+  4:'Build the down payment and check loan eligibility before your window; keep the home peaceful.',
+  5:'No speculation with borrowed money; meditate before big decisions.',
+  6:'Avoid new loans and lending; settle disputes early; keep up medical care.',
+  7:'Be patient and communicate plainly in partnerships; read agreements fully.',
+  8:'Keep insurance and an emergency fund; avoid debt, speculation and risky shortcuts.',
+  9:'Respect mentors and elders; seek guidance from a good guide, not only from your boss.',
+  10:'Document your work and results; build visibility beyond your direct boss.',
+  11:'Network and keep in touch with friends and seniors; track all income sources.',
+  12:'Budget expenses; protect your sleep; donate a little regularly instead of losing it.'
+};
+function houseRemedies(r) {
+  const P = C.P, dus = [6,8,12].includes(r.h), out = [], seen = new Set();
+  const good = b => ['benefic','yogakaraka'].includes(C.func[b]) || J.SIGN_LORD[C.lagna] === b;
+  const deed = b => { const d = J.PD[b]; return `${d.deed}${d.grain ? `; donate ${d.grain} on ${d.day}s` : ''}`; };
+  const gemTxt = b => BUDGET_GEM[b] ? ` Gem: ${J.PD[b].gem.toLowerCase()}, or budget ${BUDGET_GEM[b][0]} in ${BUDGET_GEM[b][1]}.` : '';
+  const weakHouse = !dus && (r.tone === 'bad' || r.tone === 'mixed');
+  const trouble = dus && r.tone !== 'good';
+  const L = r.lord;
+  if (dus) {
+    // for a difficult house, calm its lord's difficult side rather than boosting it
+    if (trouble) out.push(`<b>Calm ${L}</b> (lord of this difficult house): ${deed(L)}; worship ${J.PD[L].deity.split(',')[0]}.`);
+    else out.push(`${L} keeps these troubles small; no special remedy needed.`);
+  } else if (weakHouse || r.tone === 'ok') {
+    out.push(good(L) ? `<b>Strengthen ${L}</b> (house lord): ${deed(L)}.${gemTxt(L)}` : `<b>Support ${L}</b> (house lord, no gem, ${C.func[L] === 'malefic' ? 'bad for you' : C.func[L] === 'neutral' ? 'neutral for you' : 'a node'}): ${deed(L)}; worship ${J.PD[L].deity.split(',')[0]} on ${J.PD[L].day}s.`);
+  } else {
+    out.push(`Strong house. Keep ${L} happy: ${J.PD[L].deed}.`);
+  }
+  seen.add(L);
+  // troublemakers in the house or with its lord
+  const lordSign = P[L].sign;
+  const trou = J.PL.filter(b => !seen.has(b) && ((P[b].house === r.h && (['Saturn','Rahu','Ketu'].includes(b) || C.func[b] === 'malefic')) || (P[b].sign === lordSign && ['Saturn','Rahu','Ketu'].includes(b))));
+  for (const b of trou) { out.push(`<b>${['Saturn','Rahu','Ketu','Mars','Sun'].includes(b) ? 'Pacify' : 'Soften'} ${b}</b> (${P[b].house === r.h ? 'in this house' : `with the lord ${L}`}${['Saturn','Rahu','Ketu','Mars','Sun'].includes(b) ? '' : ', bad for your ascendant'}): ${deed(b)}; worship ${J.PD[b].deity.split(',')[0]}.`); seen.add(b); }
+  // weak natural significator
+  const k = J.HOUSE_KARAKA[r.h];
+  if (!seen.has(k) && ['inimical','bitter enemy’s sign','debilitated'].includes(P[k].dignity) && !dus) { out.push(`<b>Support ${k}</b> (natural significator, weak): ${deed(k)}.`); seen.add(k); }
+  // Lal Kitab rule for an exact placement in this house
+  const lk = J.PL.filter(b => P[b].house === r.h).map(b => LK_EXTRA[`${b}|${r.h}`]).filter(Boolean);
+  for (const x of lk) out.push(esc(x));
+  out.push(`<span class="muted"><b>Practical:</b> ${esc(HOUSE_PRACTICAL[r.h])}</span>`);
+  return out.map(x => `<li>${x}</li>`).join('');
+}
+
+function tHouses() {
+  const R = J.houseTable(C);
+  const natChip = (n, f) => `${chip(n === 'benefic' ? 'Natural benefic' : 'Natural malefic', n === 'benefic' ? 'good' : 'bad')} ${f && f !== 'node' ? chip({yogakaraka:'Yogakaraka for you', benefic:'Good for you', neutral:'Neutral for you', malefic:'Bad for you'}[f], {yogakaraka:'acc', benefic:'good', neutral:'', malefic:'bad'}[f]) : f === 'node' ? chip('Shadow planet', '') : ''}`;
+  const rows = R.map(r => {
+    const L = C.P[r.lord];
+    const occ = r.occupants.length ? r.occupants.map(o => `<div class="ht-occ">${pdot(o.b)}<b>${o.b}</b> <span class="muted">${esc(o.dignity)}</span><br>${natChip(o.nat, o.func)}</div>`).join('') : '<span class="muted">Empty. Judge the house by its lord and aspects.</span>';
+    const occEff = r.occupants.length ? r.occupants.map(o => `<p>${esc(o.text)}</p>`).join('') : '<span class="muted">–</span>';
+    const asp = r.aspects.length ? r.aspects.map(a => `${pdot(a.b)}${a.b} <span class="muted">(${J.ORD(a.o)})</span> ${chip(a.nat === 'benefic' ? 'benefic' : 'malefic', a.nat === 'benefic' ? 'good' : 'bad')}`).join('<br>') : '<span class="muted">None</span>';
+    const timing = r.timers.map(t => [...t.md, ...t.ad]).flat().slice(0, 5);
+    return `<tr>
+      <td class="ht-h"><div class="ht-num">${r.h}</div><b>${esc(r.name)}</b><br><span class="muted">${J.SIGNS[r.sign]}</span></td>
+      <td class="ht-sig">${esc(r.sig)}.</td>
+      <td class="ht-lord">${pdot(r.lord)}<b>${r.lord}</b>${r.co ? ` <span class="muted">+ ${r.co}</span>` : ''}<br>${natChip(C.natBenefic(r.lord) ? 'benefic' : 'malefic', C.func[r.lord])}<p class="muted">${esc(r.lordInfo)}</p><p class="muted">${esc(r.karaka)}</p></td>
+      <td class="ht-eff">${esc(r.lordEffect)}</td>
+      <td class="ht-occ-c">${occ}</td>
+      <td class="ht-eff">${occEff}</td>
+      <td class="ht-asp">${asp}</td>
+      <td class="ht-pred">${chip(r.verdict, r.tone)}<p>${esc(housePrediction(r))}</p>${timing.length ? `<p class="muted"><b>When:</b> ${timing.map(esc).join('; ')}.</p>` : ''}</td>
+      <td class="ht-rem"><ul>${houseRemedies(r)}</ul></td>
+    </tr>`;
+  }).join('');
+  return `<p class="lead">Your chart, house by house. Each row gives what the house rules (ch.7), its lord and what the lord’s placement does, the planets sitting in it and what they do, the planets aspecting it, and a verdict with the periods when that house comes alive (the lord’s and the occupants’ dasas). Houses are whole signs from your ${J.SIGNS[C.lagna]} ascendant. For the 6th, 8th and 12th houses the verdict is about how much trouble to expect, because those houses signify difficulties.</p>
+  <div class="tablewrap ht-wrap"><table class="ht"><thead><tr>
+    <th>House</th><th>Signifies</th><th>Lord</th><th>Lord’s effects</th><th>In this house</th><th>Their effects</th><th>Aspected by</th><th>Prediction</th><th>Remedies</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="note">"Natural" benefic/malefic is the planet’s own nature (ch.3); "good/bad for you" is its functional role for your ascendant (Table 30). A natural malefic can still be good for you, and a natural benefic can be bad for you. Timing: a house gives its results mainly in the main periods and sub-periods of its lord and of the planets in it. Remedies follow chapter 34: common sense first, then good deeds, mantras and deities; gems only for planets that are good for you, with budget substitutes from general tradition. Scroll sideways on a small screen.</p>`;
+}
+
 function tOverview() {
   const items = J.overview(C);
   const top = C.yogas.filter(y => y.strength === 'present' && !/Nabhasa/.test(y.cat)).slice(0, 4);
   const hard = C.yogas.filter(y => y.strength === 'challenging');
   const strongP = J.PL.filter(b => J.verdict(C, b)[1] === 'good'), weakP = J.PL.filter(b => J.verdict(C, b)[1] === 'bad');
-  return `<p class="lead">A first reading of the three references the book calls the “tripod of life”: lagna (body and true self), Moon (mind) and Sun (soul). Then the atma karaka and how the world perceives you.</p>
+  return challengesSection() + `<p class="lead">A first reading of the three references the book calls the “tripod of life”: lagna (body and true self), Moon (mind) and Sun (soul). Then the atma karaka and how the world perceives you.</p>
   <div class="ov">${items.map(i => `<article><h3>${esc(i.h)}</h3><p>${esc(i.t)}</p></article>`).join('')}
   <article><h3>At a glance</h3><p>${strongP.length ? `<b>Strongest planets:</b> ${strongP.join(', ')}. ` : ''}${weakP.length ? `<b>Needing support:</b> ${weakP.join(', ')}. ` : ''}${top.length ? `<b>Notable yogas:</b> ${top.map(y => y.name).join(', ')}. ` : ''}${hard.length ? `<b>Watch:</b> ${hard.map(y => y.name).join(', ')}.` : ''}</p>
   <p class="note"><a href="#" data-goto="planets">Read each planet’s effects</a> · <a href="#" data-goto="remedies">See remedies</a></p></article></div>`;
@@ -2401,9 +2722,150 @@ function tTransits() {
   <div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Planet</th><th>Transiting</th><th>Nakshatra</th><th>From Moon</th><th>From lagna</th><th></th><th>Typical results (from Moon)</th></tr></thead><tbody id="ttable"></tbody></table></div>
   <p class="note">Rahu is read like Saturn and Ketu like Mars, as the book directs. The Moon changes sign every 2\u20133 days, so its result is a short-term mood indicator.</p>`;
 }
+// budget substitutes (uparatnas) — general tradition, not in the book, which lists only the main gems (Table 77)
+const BUDGET_GEM = {Sun:['red garnet or sunstone','copper or silver'], Moon:['moonstone','silver'], Mars:['carnelian','copper or silver'],
+  Mercury:['green onyx or peridot','silver'], Jupiter:['citrine or yellow topaz','silver or panchdhatu'], Venus:['white topaz or zircon','silver'],
+  Saturn:['amethyst or blue topaz','silver or iron'], Rahu:['hessonite (already inexpensive) or smoky quartz','silver'], Ketu:['tiger’s eye','silver']};
+const LK_EXTRA = {'Moon|12':'Drop a coin into running water now and then (Lal Kitab, Moon in the 12th).', 'Ketu|4':'Feed stray dogs (tradition for Ketu).',
+  'Mars|1':'Tend a pomegranate plant; a spoon of honey in the morning (Lal Kitab, Mars in the 1st).', 'Venus|4':'Keep the home clean, bright and fragrant (Venus in the 4th).',
+  'Saturn|9':'Help others without expecting credit; never take revenge (Lal Kitab, Saturn in the 9th).', 'Rahu|10':'Keep your head covered outdoors; never give false testimony (Lal Kitab, Rahu in the 10th).'};
+function planCard(b, roles) {
+  const d = J.PD[b], p = C.P[b], f = C.func[b], lagLord = J.SIGN_LORD[C.lagna] === b;
+  const safeGem = f === 'benefic' || f === 'yogakaraka' || lagLord;
+  const bg = BUDGET_GEM[b], lk = LK_EXTRA[`${b}|${p.house}`];
+  const gemLine = safeGem
+    ? `<dt>Gem (optional)</dt><dd>${esc(d.gem)} in ${esc(d.metal.toLowerCase())}. <b>Budget option:</b> ${esc(bg[0])} in ${esc(bg[1])}.</dd>`
+    : f === 'neutral'
+      ? `<dt>Gem</dt><dd>${b} is neutral for you, so the book doesn’t prescribe its main gem (${esc(d.gem.toLowerCase())}). A mild substitute, ${esc(bg[0])} in ${esc(bg[1])}, is fine if it helps you.</dd>`
+      : `<dt>Gem</dt><dd class="neg">None: ${b} is ${f === 'node' ? 'a node' : 'a functional malefic for you'}, so the book advises against its gem. Use the free remedy.</dd>`;
+  return `<div class="rcard"><div class="rh"><span class="rn">${pdot(b)}${b}</span>${chip(safeGem ? 'Strengthen' : f === 'neutral' ? 'Support' : 'Support, no gem', safeGem ? 'good' : 'mixed')}</div>
+    <p style="font-size:13.5px">${roles.map(esc).join('<br>')}</p>
+    <dl><dt>Free remedy</dt><dd>${esc(d.deed[0].toUpperCase() + d.deed.slice(1))}${d.grain ? `; donate ${esc(d.grain)} on ${d.day} mornings` : ''}.</dd>
+    <dt>Worship</dt><dd>${esc(d.deity.split(',').slice(0, 2).join(','))} on ${d.day}s${b === 'Mars' ? ' (Hanuman Chalisa)' : ''}.</dd>
+    ${lk ? `<dt>Also</dt><dd>${esc(lk)}</dd>` : ''}
+    ${gemLine}</dl></div>`;
+}
+function savingsHousePlan() {
+  const DP = {exalted:'exalted', moolatrikona:'in its moolatrikona', own:'in its own sign', 'great friend’s sign':'in a great friend’s sign', friendly:'in a friendly sign', neutral:'in a neutral sign', inimical:'in an enemy’s sign', 'bitter enemy’s sign':'in a bitter enemy’s sign', debilitated:'debilitated'};
+  const P = C.P, lag = C.lagna, L = h => J.SIGN_LORD[(lag + h - 1) % 12], lord8 = L(8);
+  const dig = b => ({exalted:3, moolatrikona:2.5, own:2, inimical:-1, 'bitter enemy’s sign':-1.5, debilitated:-3})[P[b].dignity] || 0;
+  const add = (m, b, r) => { (m[b] = m[b] || []).push(r); };
+  const sav = {}, home = {};
+  const w = L(2);
+  add(sav, w, `Your 2nd lord (wealth, savings), ${DP[P[w].dignity]} in your ${J.ORD(P[w].house)} house${J.PL.some(x => ['Rahu','Ketu'].includes(x) && P[x].sign === P[w].sign) ? ', joined by a node' : ''}.`);
+  const dw = J.SIGN_LORD[P[w].sign];
+  if (dw !== w && [6,8,12].includes(P[dw].house)) add(sav, dw, `Sign lord of your wealth lord, sitting in your ${J.ORD(P[dw].house)}: this is where money drains away.`);
+  if (C.grahaAspects[P[w].sign].includes(lord8) || P[lord8].sign === P[w].sign) add(sav, lord8, `Your 8th lord (sudden costs, debts), influencing your wealth lord. ${lord8 === J.SIGN_LORD[lag] ? 'It is also your ascendant lord, so channel it rather than pacify it.' : ''}`);
+  const inc = L(11); if (dig(inc) < 0) add(sav, inc, `Your 11th lord (income), ${DP[P[inc].dignity]}: income comes slowly.`);
+  add(sav, 'Jupiter', `Natural significator of wealth${dig('Jupiter') >= 2 ? `, ${P.Jupiter.dignity} in your chart: your strongest money support` : ''}.`);
+  const hl = L(4);
+  add(home, hl, `Your 4th lord (home, property), ${DP[P[hl].dignity]} in your ${J.ORD(P[hl].house)} house.`);
+  for (const x of J.PL.filter(x => P[x].house === 4 && ['Saturn','Rahu','Ketu'].includes(x))) add(home, x, `Sits in your 4th house: ${x === 'Ketu' ? 'detachment and disruption in home matters' : 'delays in home matters'}.`);
+  add(home, 'Mars', `Natural significator of land and property${dig('Mars') >= 2 ? `, ${DP[P.Mars.dignity]}: the planet that will help you buy` : ''}.`);
+  if (P.Jupiter.house === 4 || C.grahaAspects[(lag + 3) % 12].includes('Jupiter')) add(home, 'Jupiter', `${P.Jupiter.house === 4 ? `Sits in your 4th house${P.Jupiter.dignity === 'exalted' ? ', exalted' : ''}` : 'Aspects your 4th house'}: the promise of a house.`);
+  if (dig('Venus') < 0) add(home, 'Venus', `Natural significator of vehicles and comforts, ${DP[P.Venus.dignity]}: vehicles come late.`);
+  // timing
+  const now = new Date(), mc = [];
+  for (const r of J.moneyCalendar(C, now, 36).filter(r => r.rating === 'favourable')) { const last = mc[mc.length - 1]; if (last && Math.abs(r.start - last.end) < 2*864e5) last.end = r.end; else mc.push({start: r.start, end: r.end}); }
+  mc.splice(3);
+  const jup4 = []; let inside = false, st = null;
+  for (let t = now.getTime(); t < now.getTime() + 8*365.25*864e5; t += 7*864e5) {
+    const on = Math.floor(J.sidLon('Jupiter', new Date(t))/30) === (lag + 3) % 12;
+    if (on && !inside) { inside = true; st = t; } else if (!on && inside) { inside = false; jup4.push([new Date(st), new Date(t)]); }
+  }
+  if (inside) jup4.push([new Date(st), null]);
+  const X = J.chartChallenges(C), nextGood = X.dasas.find(d => !d.hard && d.start > now);
+  const cards = m => Object.keys(m).map(b => planCard(b, m[b])).join('');
+  return `<div class="section"><h3>Savings &amp; buying a house</h3>
+    <p class="lead">Worked out from your chart: the planets that block savings and a home, and how to support each one. Every planet has a free remedy (the book counts good deeds, mantras and worship as fully valid). Gems are optional, only for planets that are good for you, and each has a budget substitute.</p>
+    <h4 class="plan-h">For savings</h4><div class="rgrid">${cards(sav)}</div>
+    <h4 class="plan-h">For a house${dig('Venus') < 0 ? ' and vehicle' : ''}</h4><div class="rgrid">${cards(home)}</div>
+    <div class="plan-steps"><h4 class="plan-h" style="margin-top:0">Practical steps that work with these remedies</h4><ul>
+      <li><b>Pay yourself first:</b> on salary day, move a fixed amount into a separate account named for the house before you spend anything. This works directly against the 12th-house drain.</li>
+      <li><b>Keep trading money separate</b> from the house fund, and never top it up from savings.</li>
+      <li><b>Prepare before your windows:</b> check loan eligibility and build the down payment now, so you can act when a window opens.</li>
+      <li>Start each planet’s remedy on its weekday, and keep it up for at least 40 days before judging.</li></ul>
+      <p style="margin-top:8px"><b>Your windows:</b> ${mc.length ? `money decisions ${mc.map(r => `${J.fmt(r.start)} → ${J.fmt(r.end)}`).join(', ')}` : ''}${jup4.length ? `; Jupiter over your 4th house (home) ${jup4.map(x => `${x[0] - now < 8*864e5 ? 'now' : J.fmt(x[0])} → ${x[1] ? J.fmt(x[1]) : 'later'}`).join(', ')}` : ''}${nextGood ? `; and the ${nextGood.lord} main period from ${J.fmt(nextGood.start)}, the first period clearly on your side` : ''}.</p>
+      <p class="muted" style="font-size:12.5px;margin-top:6px">Budget substitutes (uparatnas) come from general tradition, not the book. Remedies support your effort and planning; they are not financial advice.</p></div>
+  </div>`;
+}
+
+// ---------- trading remedies + loans & documents (ch.7 houses, Table 16 karakas, ch.34 remedies, Table 79 muhurta) ----------
+const MUH_TITHI = [2,3,5,7,10,11,13], MUH_DAYS = [1,3,4,5]; // Table 79: tithis and weekdays common to every task listed (Mon, Wed, Thu, Fri)
+const GOOD_TARA = [2,4,6,8,9], MOON_T_GOOD = [1,3,6,7,10,11];
+function signingDays(days) {
+  const P = C.P, out = [], now = new Date();
+  const base = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 4, 30); // 10:00 IST
+  for (let k = 1; k <= days; k++) {
+    const ms = base + k*864e5, T = J.transitPositions(new Date(ms));
+    const diff = ((T.Moon.lon - T.Sun.lon) % 360 + 360) % 360, ti = Math.floor(diff/12), tIn = (ti % 15) + 1;
+    const wd = new Date(ms + 5.5*3600e3).getUTCDay();
+    const tara = (((T.Moon.nak - P.Moon.nak + 27) % 27) % 9) + 1;
+    const mt = J.hFrom(P.Moon.sign, T.Moon.sign);
+    const ok = MUH_TITHI.includes(tIn) && ti !== 14 && ti !== 29 && MUH_DAYS.includes(wd) && GOOD_TARA.includes(tara) && MOON_T_GOOD.includes(mt) && !T.Mercury.retro;
+    if (ok) out.push({d: new Date(ms), wd, tithi: (ti < 15 ? 'Sukla ' : 'Krishna ') + ['Pratipat','Dwitiya','Tritiya','Chaturthi','Panchami','Shashti','Saptami','Ashtami','Navami','Dasami','Ekadasi','Dwadasi','Trayodasi','Chaturdasi'][ti % 15],
+      nak: J.NAKS[T.Moon.nak][0], nodeOnMerc: ['Rahu','Ketu','Saturn'].filter(b => T[b].sign === P.Mercury.sign)});
+  }
+  return out;
+}
+function tradingAndLoans() {
+  const P = C.P, lag = C.lagna, L = h => J.SIGN_LORD[(lag + h - 1) % 12];
+  const DP = {exalted:'exalted', moolatrikona:'in its moolatrikona', own:'in its own sign', 'great friend’s sign':'in a great friend’s sign', friendly:'in a friendly sign', neutral:'in a neutral sign', inimical:'in an enemy’s sign', 'bitter enemy’s sign':'in a bitter enemy’s sign', debilitated:'debilitated'};
+  // --- trading: the 5th house (speculation), its lord and occupants, Mars (speculation karaka, Table 16), Rahu, Jupiter
+  const tr = {}, add = (m, b, r) => { (m[b] = m[b] || []).push(r); };
+  const l5 = L(5);
+  add(tr, l5, `Your 5th lord (speculation, judgement), ${DP[P[l5].dignity]} in your ${J.ORD(P[l5].house)} house${J.PL.some(x => ['Rahu','Ketu'].includes(x) && P[x].sign === P[l5].sign) ? ', joined by a node: judgement can get clouded' : ''}.`);
+  for (const x of J.PL.filter(x => P[x].house === 5)) add(tr, x, `Sits in your 5th house of speculation${x === 'Mercury' ? ': an analytical, numbers-minded approach' : ''}${C.func[x] === 'malefic' ? '; a functional malefic for you, so keep it disciplined' : ''}.`);
+  add(tr, 'Mars', `Natural significator of speculation (book Table 16)${P.Mars.lordOf.includes(8) ? ' and your 8th lord (sudden losses): channel its aggression into rules, never into revenge trades' : ''}.`);
+  if (P.Rahu.house === 10 || P.Rahu.house === 5 || P.Rahu.house === 11) add(tr, 'Rahu', `In your ${J.ORD(P.Rahu.house)} house: attraction to unconventional income, but also greed and chasing tips.`);
+  add(tr, 'Jupiter', `Wisdom and protection${P.Jupiter.dignity === 'exalted' ? ' (exalted in your chart)' : ''}: patience and sticking to your plan.`);
+  // speculation windows from the money calendar
+  const now = new Date(), win = [];
+  for (const r of J.moneyCalendar(C, now, 36).filter(r => r.spec === 'ok')) { const last = win[win.length - 1]; if (last && Math.abs(r.start - last.end) < 2*864e5) last.end = r.end; else win.push({start: r.start, end: r.end}); }
+  const av = [];
+  for (const r of J.moneyCalendar(C, now, 36).filter(r => r.spec === 'avoid')) { const last = av[av.length - 1]; if (last && Math.abs(r.start - last.end) < 2*864e5) last.end = r.end; else av.push({start: r.start, end: r.end}); }
+  const avoid = av.map(r => `${J.fmt(r.start)} → ${J.fmt(r.end)}`);
+  // --- loans & documents: 6th lord (loans), 8th lord (debts), 3rd lord + Mercury (documents)
+  const l6 = L(6), l8 = L(8), l3 = L(3), l2 = L(2), read = [];
+  if (P[l6].house === 5) read.push(`<b>Your loans lord (6th) ${l6} sits in your 5th house of speculation.</b> Borrowed money and speculation are linked in your chart: <b>never borrow to trade</b>, and don’t use credit cards or personal loans for trading.`);
+  else read.push(`Your loans lord (6th) ${l6} is ${DP[P[l6].dignity]} in your ${J.ORD(P[l6].house)} house.`);
+  const strong8 = ['exalted','moolatrikona','own'].includes(P[l8].dignity);
+  const l8on2 = C.grahaAspects[P[l2].sign].includes(l8) || P[l8].sign === P[l2].sign;
+  read.push(`Your debts lord (8th) ${l8} is ${DP[P[l8].dignity]}${strong8 ? ', and the book warns that a strong lord of a difficult house can show real obstacles in its matters: <b>debt is a genuinely sensitive area for you</b>' : ''}.${l8on2 ? ` It also ${P[l8].sign === P[l2].sign ? 'sits with' : 'aspects'} your wealth lord ${l2}, so repayments can eat into savings.` : ''}`);
+  const mercOk = ['exalted','moolatrikona','own','great friend’s sign','friendly'].includes(P.Mercury.dignity) && !P.Mercury.combust;
+  read.push(`Contracts and paperwork are read from your 3rd lord${l3 === 'Mercury' ? ', Mercury, which is also the natural significator of contracts' : ` ${l3} and Mercury`}. Mercury is ${DP[P.Mercury.dignity]}${P.Mercury.combust ? ', combust' : ''} in your ${J.ORD(P.Mercury.house)} house${mercOk ? ': <b>signing documents is not cursed in your chart</b>; choose the day well and read every line' : ''}.`);
+  if (C.grahaAspects[(lag + 2) % 12].includes('Saturn')) read.push('Saturn aspects your 3rd house: expect delays and red tape in paperwork, so start early and keep copies.');
+  const Tn = J.transitPositions(now), onMerc = ['Rahu','Ketu','Saturn'].filter(b => Tn[b].sign === P.Mercury.sign);
+  if (onMerc.length) read.push(`<b>Right now</b> transit ${J.list(onMerc)} ${onMerc.length > 1 ? 'are' : 'is'} in ${J.SIGNS[P.Mercury.sign]} with your natal Mercury: be extra careful with contracts and fine print until ${onMerc.map(b => { let t = now.getTime(); const s0 = Tn[b].sign; while (Math.floor(J.sidLon(b, new Date(t))/30) === s0 && t < now.getTime() + 900*864e5) t += 864e5; return `${b} moves on around ${J.fmt(new Date(t))}`; }).join(', ')}.`);
+  const sd = signingDays(120).slice(0, 12);
+  const wdN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const loanCards = [planCard(l6, [`Your loans lord (6th)${l6 === l3 ? ' and documents lord (3rd)' : ''}.`]), planCard(l8, [`Your debts lord (8th)${l8 === J.SIGN_LORD[lag] ? ', also your ascendant lord: channel, don’t pacify' : ''}.`])].join('');
+  return `<div class="section"><h3>Trading</h3>
+    <p class="lead">Speculation is read from your 5th house, its lord and occupants, and Mars, the book’s significator of speculation (Table 16). These remedies support focus and discipline. They don’t make trades win, and nothing here is a signal to buy or sell.</p>
+    <div class="rgrid">${Object.keys(tr).map(b => planCard(b, tr[b])).join('')}</div>
+    <div class="plan-steps"><h4 class="plan-h" style="margin-top:0">Trading discipline that fits your chart</h4><ul>
+      <li><b>Only money you can afford to lose</b>, kept apart from the house fund and savings. <b>Never borrowed money.</b></li>
+      <li>Fixed small risk per trade and a stop on every position; no averaging down, no leverage.</li>
+      <li>Only setups from your system (The 10% Ledger); no tips, no revenge trades after a loss (Mars and Rahu).</li>
+      <li>Meditate 5–10 minutes before your trading session (Ketu and the Moon); stop for the day after two losses.</li>
+      <li>Log every trade; the ledger’s Execution Scorecard and Astro test will show whether you have a real edge.</li></ul>
+      <p style="margin-top:8px"><b>Speculation not flagged in your chart:</b> ${win.length ? win.slice(0, 4).map(r => `${J.fmt(r.start)} → ${J.fmt(r.end)}`).join(', ') : 'no clear window in the next 3 years'}.${avoid.length ? ` <b>Most careful:</b> ${avoid.slice(0, 4).join(', ')}.` : ''} (From the Money calendar.)</p></div>
+  </div>
+  <div class="section"><h3>Loans &amp; documents</h3>
+    <p class="lead">What your chart actually says, using the book’s houses: loans are the 6th house, debts the 8th, contracts and paperwork the 3rd house and Mercury.</p>
+    <div class="plan-steps" style="border-left-color:var(--accent)"><ul>${read.map(x => `<li>${x}</li>`).join('')}</ul>
+      <p style="margin-top:8px"><b>In short:</b> your chart asks for rules around debt, not a ban on ever signing. A home loan with a modest EMI, taken in a good window and signed on a good day, fits it. Borrowing to trade, lending money to others, personal loans and credit-card debt do not.</p></div>
+    <h4 class="plan-h">Remedies</h4><div class="rgrid">${loanCards}</div>
+    <h4 class="plan-h">Good days to sign (next 120 days)</h4>
+    <p class="lead" style="margin-bottom:8px">Days that meet all of the book’s common muhurta rules (Table 79): a favoured tithi (2, 3, 5, 7, 10, 11, 13) and weekday (Mon, Wed, Thu, Fri); a good tara from your birth star (ch.36); the Moon in a good house from your natal Moon (Table 54); and Mercury, the planet of contracts, not retrograde. Checked at 10:00 IST.</p>
+    ${sd.length ? `<div class="tablewrap"><table class="asptable"><thead><tr><th>Date</th><th>Tithi</th><th>Moon star</th><th>Note</th></tr></thead><tbody>${sd.map(x => `<tr><td class="mono">${wdN[x.wd]} ${J.fmt(x.d)}</td><td>${x.tithi}</td><td>${x.nak}</td><td class="aspeff">${x.nodeOnMerc.length ? `${J.list(x.nodeOnMerc)} still with your natal Mercury: read the fine print twice` : '–'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No day in the next 120 meets every rule; relax the weekday rule or ask an astrologer for a muhurta.</p>'}
+    <p class="note">For a big signing such as a home-loan agreement or a property registration, the book adds that the hour (hora) lord should be good for your 4th house, and that planetary strength matters more than the thumb rules. A local astrologer can fix the exact time on one of these days.</p>
+  </div>`;
+}
+
 function remCard(b, extra, badge) {
   const d = J.PD[b];
-  return `<div class="rcard"><div class="rh"><span class="rn">${b}</span>${badge || ''}</div>${extra ? `<p style="font-size:13.5px">${extra}</p>` : ''}<dl>${d.gem ? `<dt>Gemstone</dt><dd>${esc(d.gem)} set in ${esc(d.metal.toLowerCase())}</dd>` : ''}<dt>First wear</dt><dd>${d.day}${b === 'Rahu' || b === 'Ketu' ? ' (traditional)' : ''}, when ${b} is strong</dd></dl></div>`;
+  return `<div class="rcard"><div class="rh"><span class="rn">${b}</span>${badge || ''}</div>${extra ? `<p style="font-size:13.5px">${extra}</p>` : ''}<dl>${d.gem ? `<dt>Gemstone</dt><dd>${esc(d.gem)} set in ${esc(d.metal.toLowerCase())}</dd>` : ''}${BUDGET_GEM[b] ? `<dt>Budget option</dt><dd>${esc(BUDGET_GEM[b][0])} in ${esc(BUDGET_GEM[b][1])}</dd>` : ''}<dt>Free option</dt><dd>${esc(d.deed)}</dd><dt>First wear</dt><dd>${d.day}${b === 'Rahu' || b === 'Ketu' ? ' (traditional)' : ''}, when ${b} is strong</dd></dl></div>`;
 }
 function pacifyCard(b, why) {
   const d = J.PD[b];
@@ -2419,6 +2881,8 @@ function tRemedies() {
   const fingers = 'Traditionally Jupiter’s gem goes on the index finger, Saturn’s on the middle, the Sun’s on the ring and Mercury’s and Venus’s on the little finger.';
   const mk = R.moksha;
   return `<p class="lead">Chapter 34: the birth chart fixes the basic pattern of life, but free will can change the details. There are four ways to please planets: wearing gemstones, good deeds, reciting mantras, and worshipping their deities. The book puts common-sense precautions first, such as driving carefully in a period that shows accidents.</p>
+  ${savingsHousePlan()}
+  ${tradingAndLoans()}
   <div class="section"><h3>Gemstones that suit you</h3><p class="lead">Wear gems only for planets that are favourable in your chart (functional benefics and yogakarakas). A gem speeds up the good results a planet promises, and it can help a benefic that is badly placed to deliver.</p>
    <div class="rgrid">${R.gems.map(g => remCard(g.planet, esc(g.why.join('; ')) + (g.risky ? '. <b>Caution:</b> it is also a maraka (2nd/7th lord) running its period now, so the book advises avoiding its gem for now.' : '.'), chip(g.priority >= 3 ? 'Recommended' : 'Suitable', g.priority >= 3 ? 'good' : 'ok'))).join('')}</div>
    ${R.combo.length ? `<p class="note"><b>Combined ring:</b> ${R.combo.map(c => `${J.PD[c[0]].gem} with ${J.PD[c[1]].gem.toLowerCase()} (${c[0]} and ${c[1]} are friendly functional benefics forming a ${c[2]})`).join('; ')}.</p>` : ''}
