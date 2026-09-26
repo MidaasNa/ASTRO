@@ -874,7 +874,9 @@ const AREAS = {
   health:{label:'Health',good:'recovery and good vitality',bad:'health issues, fatigue or minor injuries — take care'},
   obstacles:{label:'Obstacles & setbacks',good:'overcoming rivals and obstacles',bad:'unexpected troubles, frustration or loss of standing'},
   mind:{label:'Mind, memory & nerves',good:'mental clarity, focus and confidence',bad:'anxiety, stress, poor memory or nervous complaints'},
-  spiritual:{label:'Spiritual growth',good:'spiritual interest, pilgrimage or inner growth',bad:'detachment, confusion or feeling lost'}
+  spiritual:{label:'Spiritual growth',good:'spiritual interest, pilgrimage or inner growth',bad:'detachment, confusion or feeling lost'},
+  job:{label:'Job changes & bosses',good:'a new job, a better position or good relations with bosses',bad:'friction with bosses, a forced job change or an employer in trouble — keep savings and records ready'},
+  father:{label:'Father & elders',good:'support from your father or elders, and their well-being',bad:'a hard time for your father or his health; spend time with him and look after his care'}
 };
 function roles(C, b) {
   const P = C.P, p = P[b];
@@ -948,6 +950,24 @@ function roles(C, b) {
   if (p.house === 5) add('mind', 0.5, 'sits in your 5th house');
   if (SIGN_LORD[P.Moon.sign] === b && b !== 'Moon') add('mind', 0.75, 'rules the sign holding your Moon');
   if (['Rahu','Ketu','Saturn'].includes(b) && ['Moon','Mercury'].some(x => P[x].sign === p.sign)) add('mind', 1, `sits with your ${['Moon','Mercury'].filter(x => P[x].sign === p.sign).join(' and ')}`);
+  // job changes and bosses (6th: service and employers' displeasure; 8th: breaks; 12th: loss; Sun: authority; nodes: sudden change)
+  if (lordD1(6)) add('job', 1.5, 'rules your 6th house (service, competition, displeasure of superiors)');
+  if (lordD1(10)) add('job', 1, 'rules your 10th house (career)');
+  if (lordD1(8)) add('job', 1, 'rules your 8th house (sudden breaks)');
+  if (lordD1(12)) add('job', 1, 'rules your 12th house (losses)');
+  if (b === 'Sun') add('job', 1, 'is the natural significator of bosses and authority');
+  if (b === 'Saturn') add('job', 0.5, 'signifies employment and employers');
+  if (b === 'Rahu' || b === 'Ketu') add('job', 1, 'brings sudden changes');
+  if ([6,10].includes(p.house)) add('job', 1, `sits in your ${ORD(p.house)} house`);
+  if (b === 'Sun' && ['Rahu','Ketu'].some(x => P[x].sign === p.sign)) add('job', 0.5, `sits with ${['Rahu','Ketu'].find(x => P[x].sign === p.sign)}, which brings friction with authority`);
+  // father (9th house, Sun; 8th from the 9th = 4th for his longevity; 2nd and 7th from the 9th = 10th and 3rd are his marakas)
+  if (lordD1(9)) add('father', 2, 'rules your 9th house (father)');
+  if (b === 'Sun') add('father', 1.5, 'is the natural significator of father');
+  if (p.house === 9) add('father', 1, 'sits in your 9th house (father)');
+  if (lordD1(4)) add('father', 1, 'rules the 8th house from your 9th (your father’s longevity)');
+  if (p.house === 4) add('father', 1, 'sits in the 8th house from your 9th (your father’s longevity)');
+  if (lordD1(10) || lordD1(3)) add('father', 1, 'rules a maraka house for your father (2nd or 7th from the 9th)');
+  if ([3,10].includes(p.house)) add('father', 0.5, 'sits in a maraka house for your father');
   // spiritual
   if (b === 'Ketu') add('spiritual', 1.5, 'signifies moksha and detachment');
   if (lordD1(12)) add('spiritual', 1, 'rules your 12th house (moksha)');
@@ -955,7 +975,9 @@ function roles(C, b) {
   if (p.d9 === (P[C.AK].d9 + 11) % 12) add('spiritual', 1.5, 'sits in the 12th from your karakamsa in navamsa — thoughts of liberation');
   return A;
 }
-function lifeEvents(C) {
+function lifeEvents(C, opts = {}) {
+  const married = opts.married ? new Date(opts.married).getTime() : null;
+  const fatherGone = opts.fatherDied ? new Date(opts.fatherDied).getTime() : null;
   const P = C.P, out = [];
   const birth = C.date.getTime(), yr = 365.2425*86400e3;
   const Rc = {}; for (const b of PL) Rc[b] = roles(C, b);
@@ -1004,16 +1026,36 @@ function lifeEvents(C) {
       if (k === 'education' && age1 < 5) continue;
       if (k === 'marriage' && (age0 < 19 || age0 > 50)) continue;
       if (k === 'children' && (age0 < 20 || age0 > 48)) continue;
+      // no children themes before marriage when the marriage date is known
+      if (k === 'children' && married && e < married + 0.2*yr) continue;
+      if ((k === 'job' || k === 'father') && age0 < 16) continue;
+      if (k === 'father' && fatherGone && s > fatherGone) continue;
       if (k === 'education' && age0 > 30) continue;
       if ((k === 'career' || k === 'wealth') && age0 < 17) continue;
       if (k === 'property' && age1 < 18) w *= 0.5;
-      if (w < (k === 'mind' ? 2 : 2.5)) continue;
+      if (w < (k === 'mind' || k === 'marriage' || k === 'children' ? 2 : 2.5)) continue;
       let t = (0.6*tMD*Rm[k].w + tAD*Ra[k].w)/(0.6*Rm[k].w + Ra[k].w);
       if (k === 'mind') {
         const m = x => score(C, x)/2 - 1.2*afflict(x) - (DUSTHANA.includes(P[x].house) ? 0.6 : 0) - (P[x].lordOf.some(h => [6,8,12].includes(h)) ? 0.8 : 0);
         const base = (m('Moon') + m('Mercury'))/2;
         const lordsT = [md.lord, ad.lord].map(b => m(b)).reduce((a, b) => a + b, 0)/2;
         t = 0.5*base + 0.5*lordsT;
+      }
+      if (k === 'job') {
+        t = 0.3;
+        for (const b of [md.lord, ad.lord]) {
+          if (P[b].lordOf.some(h => [6,8,12].includes(h))) t -= 0.6;
+          if (b === 'Rahu' || b === 'Ketu') t -= 0.5;
+          if (b === 'Sun' && afflict('Sun') > 0) t -= 0.4;
+          if (P[b].lordOf.some(h => [10,11].includes(h)) && score(C, b) > 0) t += 0.5;
+        }
+      }
+      if (k === 'father') {
+        t = 0.4;
+        for (const b of [md.lord, ad.lord]) {
+          if (P[b].lordOf.some(h => [3,4,10].includes(h)) || [3,4,10].includes(P[b].house)) t -= 0.6;
+          if (b === 'Sun' && afflict('Sun') > 0) t -= 0.3;
+        }
       }
       if (k === 'obstacles' || k === 'health') {
         // ch.7.4.4: strong dusthana lords give more trouble, debilitated ones easy sailing
@@ -1025,22 +1067,34 @@ function lifeEvents(C) {
       const sup = [];
       for (const T of samples) {
         const jl = hFrom(C.lagna, T.Jupiter), jm = hFrom(P.Moon.sign, T.Jupiter), sm = hFrom(P.Moon.sign, T.Saturn), sl = hFrom(C.lagna, T.Saturn);
-        if (k === 'marriage' && (jl === 7 || jm === 7)) sup.push('transit Jupiter in your 7th house');
-        if (k === 'children' && ([5,9].includes(jm) || jl === 5)) sup.push('transit Jupiter in the 5th or 9th');
+        const jAsp = h => [h, (h + 7) % 12 + 1, (h + 5) % 12 + 1, (h + 3) % 12 + 1]; // Jupiter in these houses occupies or aspects house h (from itself: 1st, 7th, 5th, 9th)
+        if (k === 'marriage' && (jAsp(7).includes(jl) || jAsp(7).includes(jm))) sup.push('transit Jupiter on or aspecting your 7th house');
+        if (k === 'children' && ([5,9].includes(jm) || jAsp(5).includes(jl))) sup.push('transit Jupiter on or aspecting your 5th house');
         if (k === 'career') { if (jl === 10) sup.push('transit Jupiter in your 10th'); else if (sl === 10) sup.push('transit Saturn in your 10th'); else if ([3,6,11].includes(sm)) sup.push('transit Saturn in a good house from Moon'); }
         if (k === 'wealth' && ([2,11].includes(jm) || sm === 11)) sup.push('transit Jupiter or Saturn in the 2nd/11th from Moon');
         if (k === 'property' && (jl === 4 || jm === 4)) sup.push('transit Jupiter in the 4th');
-        if ((k === 'health' || k === 'obstacles') && ([1,8,12].includes(sm) || [8,12].includes(sl))) sup.push('transit Saturn in the 1st, 8th or 12th');
+        if ((k === 'health' || k === 'obstacles') && ([1,4,8,12].includes(sm) || [8,12].includes(sl))) sup.push('transit Saturn in the 1st, 4th, 8th or 12th from your Moon');
+        if (k === 'job' && ([1,4,8,12].includes(sm) || sl === 10 || [10,12].includes(sm))) sup.push('transit Saturn pressing on your career or Moon');
+        if (k === 'father') { const sunS = P.Sun.sign, ninth = (C.lagna + 8) % 12; if (T.Saturn === ninth || T.Saturn === sunS || hFrom(T.Saturn, sunS) === 7) sup.push('transit Saturn on your 9th house or on / opposite your natal Sun'); }
         if (k === 'travel' && ([9,12].includes(jl) || [9,12].includes(sl))) sup.push('transit Jupiter or Saturn in the 9th/12th');
       }
       const support = [...new Set(sup)];
+      if (k === 'father' && !support.length) continue; // father themes only when Saturn's transit confirms them
+      if ((k === 'marriage' || k === 'children') && w < 2.5 && !support.length) continue; // weaker promises need a transit to confirm them
       const conf = w + support.length*1.2;
-      themes.push({area:k, good: t >= 0, weight:w, conf, level: conf >= 6 ? 'High' : conf >= 4 ? 'Medium' : 'Low',
+      // a promised marriage or child that Jupiter's transit confirms is an event, even if the period itself is hard
+      const eventOn = (k === 'marriage' || k === 'children') && support.some(x => x.includes('Jupiter'));
+      themes.push({area:k, good: t >= 0 || eventOn, strained: eventOn && t < 0, weight:w, conf, level: conf >= 6 ? 'High' : conf >= 4 ? 'Medium' : 'Low',
         why:[...new Set([...Ra[k].why.map(x => `${ad.lord} ${x}`), ...Rm[k].why.map(x => `${md.lord} (period lord) ${x}`)])].slice(0,4), support});
     }
     themes.sort((a,b) => b.conf - a.conf);
-    const top = themes.slice(0, 4);
-    const overall = tMD*0.4 + tAD*0.6;
+    const top = themes.slice(0, 5);
+    let overall = tMD*0.4 + tAD*0.6;
+    const dus = b => P[b].lordOf.some(h => [6,8,12].includes(h)) ? 1 : 0;
+    overall -= 0.35*dus(md.lord) + 0.5*dus(ad.lord);
+    const badW = top.filter(t => !t.good).reduce((a, t) => a + t.conf, 0), goodW = top.filter(t => t.good).reduce((a, t) => a + t.conf, 0);
+    if (badW > goodW) overall = Math.min(overall, 0.3);
+    if (top.filter(t => !t.good && t.level !== 'Low').length >= 2) overall = Math.min(overall, -0.4);
     out.push({md: md.lord, ad: ad.lord, start: new Date(s), end: ad.end, age0, age1, themes: top,
       mood: overall > 0.6 ? 'favourable' : overall < -0.3 ? 'difficult' : 'mixed', adFromMoon,
       remedy: periodRemedy(C, md.lord, ad.lord, top)});

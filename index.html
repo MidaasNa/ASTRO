@@ -275,6 +275,32 @@ tr.now td{background:var(--accent-soft)}
 .ln-search{width:100%;max-width:360px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font-size:14px;margin-bottom:8px}
 @media (max-width:860px){.ln-wrap{grid-template-columns:1fr}.ln-side{position:static;max-height:none}.ln-two{grid-template-columns:1fr}.ln-main{padding:16px}}
 
+.ln-acc{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--panel)}
+.ln-acc summary{cursor:pointer;padding:9px 14px;font-weight:600}
+.ln-acc .tablewrap{padding:0 10px}
+
+.ln-bars{display:grid;gap:4px;max-width:560px;margin:8px 0 12px}
+.ln-barrow{display:grid;grid-template-columns:130px 1fr 56px;gap:10px;align-items:center;font-size:13.5px}
+.ln-barrow.me{font-weight:700}
+.ln-bartrack{position:relative;height:12px;background:var(--panel-2);border-radius:3px}
+.ln-bartrack::after{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px solid var(--muted)}
+.ln-bartrack i{position:absolute;top:0;bottom:0;border-radius:3px}
+.ln-barrow b{text-align:right}
+
+/* your real events */
+.myev{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:0 0 16px}
+.myev summary{cursor:pointer;font-size:15px}
+.myevt{width:100%;border-collapse:collapse;font-size:14px}
+.myevt th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+.myevt td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.myevform{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:12px}
+.myevform label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.myevform label.wide{flex:1 1 240px}
+.myevform input,.myevform select{padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);font-size:14px}
+.linkbtn{background:none;border:0;color:var(--bad);cursor:pointer;font-size:13px;padding:0}
+.ev-real{background:var(--panel-2);border-radius:8px;padding:8px 12px;font-size:14px;margin:4px 0 8px}
+.ev-real ul{margin:4px 0 0;padding-left:18px;display:grid;gap:4px}
+
 /* table toolbar */
 .tbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 8px;font-size:12.5px}
 .tbar-k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:2px}
@@ -1341,7 +1367,9 @@ const AREAS = {
   health:{label:'Health',good:'recovery and good vitality',bad:'health issues, fatigue or minor injuries — take care'},
   obstacles:{label:'Obstacles & setbacks',good:'overcoming rivals and obstacles',bad:'unexpected troubles, frustration or loss of standing'},
   mind:{label:'Mind, memory & nerves',good:'mental clarity, focus and confidence',bad:'anxiety, stress, poor memory or nervous complaints'},
-  spiritual:{label:'Spiritual growth',good:'spiritual interest, pilgrimage or inner growth',bad:'detachment, confusion or feeling lost'}
+  spiritual:{label:'Spiritual growth',good:'spiritual interest, pilgrimage or inner growth',bad:'detachment, confusion or feeling lost'},
+  job:{label:'Job changes & bosses',good:'a new job, a better position or good relations with bosses',bad:'friction with bosses, a forced job change or an employer in trouble — keep savings and records ready'},
+  father:{label:'Father & elders',good:'support from your father or elders, and their well-being',bad:'a hard time for your father or his health; spend time with him and look after his care'}
 };
 function roles(C, b) {
   const P = C.P, p = P[b];
@@ -1415,6 +1443,24 @@ function roles(C, b) {
   if (p.house === 5) add('mind', 0.5, 'sits in your 5th house');
   if (SIGN_LORD[P.Moon.sign] === b && b !== 'Moon') add('mind', 0.75, 'rules the sign holding your Moon');
   if (['Rahu','Ketu','Saturn'].includes(b) && ['Moon','Mercury'].some(x => P[x].sign === p.sign)) add('mind', 1, `sits with your ${['Moon','Mercury'].filter(x => P[x].sign === p.sign).join(' and ')}`);
+  // job changes and bosses (6th: service and employers' displeasure; 8th: breaks; 12th: loss; Sun: authority; nodes: sudden change)
+  if (lordD1(6)) add('job', 1.5, 'rules your 6th house (service, competition, displeasure of superiors)');
+  if (lordD1(10)) add('job', 1, 'rules your 10th house (career)');
+  if (lordD1(8)) add('job', 1, 'rules your 8th house (sudden breaks)');
+  if (lordD1(12)) add('job', 1, 'rules your 12th house (losses)');
+  if (b === 'Sun') add('job', 1, 'is the natural significator of bosses and authority');
+  if (b === 'Saturn') add('job', 0.5, 'signifies employment and employers');
+  if (b === 'Rahu' || b === 'Ketu') add('job', 1, 'brings sudden changes');
+  if ([6,10].includes(p.house)) add('job', 1, `sits in your ${ORD(p.house)} house`);
+  if (b === 'Sun' && ['Rahu','Ketu'].some(x => P[x].sign === p.sign)) add('job', 0.5, `sits with ${['Rahu','Ketu'].find(x => P[x].sign === p.sign)}, which brings friction with authority`);
+  // father (9th house, Sun; 8th from the 9th = 4th for his longevity; 2nd and 7th from the 9th = 10th and 3rd are his marakas)
+  if (lordD1(9)) add('father', 2, 'rules your 9th house (father)');
+  if (b === 'Sun') add('father', 1.5, 'is the natural significator of father');
+  if (p.house === 9) add('father', 1, 'sits in your 9th house (father)');
+  if (lordD1(4)) add('father', 1, 'rules the 8th house from your 9th (your father’s longevity)');
+  if (p.house === 4) add('father', 1, 'sits in the 8th house from your 9th (your father’s longevity)');
+  if (lordD1(10) || lordD1(3)) add('father', 1, 'rules a maraka house for your father (2nd or 7th from the 9th)');
+  if ([3,10].includes(p.house)) add('father', 0.5, 'sits in a maraka house for your father');
   // spiritual
   if (b === 'Ketu') add('spiritual', 1.5, 'signifies moksha and detachment');
   if (lordD1(12)) add('spiritual', 1, 'rules your 12th house (moksha)');
@@ -1422,7 +1468,9 @@ function roles(C, b) {
   if (p.d9 === (P[C.AK].d9 + 11) % 12) add('spiritual', 1.5, 'sits in the 12th from your karakamsa in navamsa — thoughts of liberation');
   return A;
 }
-function lifeEvents(C) {
+function lifeEvents(C, opts = {}) {
+  const married = opts.married ? new Date(opts.married).getTime() : null;
+  const fatherGone = opts.fatherDied ? new Date(opts.fatherDied).getTime() : null;
   const P = C.P, out = [];
   const birth = C.date.getTime(), yr = 365.2425*86400e3;
   const Rc = {}; for (const b of PL) Rc[b] = roles(C, b);
@@ -1471,16 +1519,36 @@ function lifeEvents(C) {
       if (k === 'education' && age1 < 5) continue;
       if (k === 'marriage' && (age0 < 19 || age0 > 50)) continue;
       if (k === 'children' && (age0 < 20 || age0 > 48)) continue;
+      // no children themes before marriage when the marriage date is known
+      if (k === 'children' && married && e < married + 0.2*yr) continue;
+      if ((k === 'job' || k === 'father') && age0 < 16) continue;
+      if (k === 'father' && fatherGone && s > fatherGone) continue;
       if (k === 'education' && age0 > 30) continue;
       if ((k === 'career' || k === 'wealth') && age0 < 17) continue;
       if (k === 'property' && age1 < 18) w *= 0.5;
-      if (w < (k === 'mind' ? 2 : 2.5)) continue;
+      if (w < (k === 'mind' || k === 'marriage' || k === 'children' ? 2 : 2.5)) continue;
       let t = (0.6*tMD*Rm[k].w + tAD*Ra[k].w)/(0.6*Rm[k].w + Ra[k].w);
       if (k === 'mind') {
         const m = x => score(C, x)/2 - 1.2*afflict(x) - (DUSTHANA.includes(P[x].house) ? 0.6 : 0) - (P[x].lordOf.some(h => [6,8,12].includes(h)) ? 0.8 : 0);
         const base = (m('Moon') + m('Mercury'))/2;
         const lordsT = [md.lord, ad.lord].map(b => m(b)).reduce((a, b) => a + b, 0)/2;
         t = 0.5*base + 0.5*lordsT;
+      }
+      if (k === 'job') {
+        t = 0.3;
+        for (const b of [md.lord, ad.lord]) {
+          if (P[b].lordOf.some(h => [6,8,12].includes(h))) t -= 0.6;
+          if (b === 'Rahu' || b === 'Ketu') t -= 0.5;
+          if (b === 'Sun' && afflict('Sun') > 0) t -= 0.4;
+          if (P[b].lordOf.some(h => [10,11].includes(h)) && score(C, b) > 0) t += 0.5;
+        }
+      }
+      if (k === 'father') {
+        t = 0.4;
+        for (const b of [md.lord, ad.lord]) {
+          if (P[b].lordOf.some(h => [3,4,10].includes(h)) || [3,4,10].includes(P[b].house)) t -= 0.6;
+          if (b === 'Sun' && afflict('Sun') > 0) t -= 0.3;
+        }
       }
       if (k === 'obstacles' || k === 'health') {
         // ch.7.4.4: strong dusthana lords give more trouble, debilitated ones easy sailing
@@ -1492,22 +1560,34 @@ function lifeEvents(C) {
       const sup = [];
       for (const T of samples) {
         const jl = hFrom(C.lagna, T.Jupiter), jm = hFrom(P.Moon.sign, T.Jupiter), sm = hFrom(P.Moon.sign, T.Saturn), sl = hFrom(C.lagna, T.Saturn);
-        if (k === 'marriage' && (jl === 7 || jm === 7)) sup.push('transit Jupiter in your 7th house');
-        if (k === 'children' && ([5,9].includes(jm) || jl === 5)) sup.push('transit Jupiter in the 5th or 9th');
+        const jAsp = h => [h, (h + 7) % 12 + 1, (h + 5) % 12 + 1, (h + 3) % 12 + 1]; // Jupiter in these houses occupies or aspects house h (from itself: 1st, 7th, 5th, 9th)
+        if (k === 'marriage' && (jAsp(7).includes(jl) || jAsp(7).includes(jm))) sup.push('transit Jupiter on or aspecting your 7th house');
+        if (k === 'children' && ([5,9].includes(jm) || jAsp(5).includes(jl))) sup.push('transit Jupiter on or aspecting your 5th house');
         if (k === 'career') { if (jl === 10) sup.push('transit Jupiter in your 10th'); else if (sl === 10) sup.push('transit Saturn in your 10th'); else if ([3,6,11].includes(sm)) sup.push('transit Saturn in a good house from Moon'); }
         if (k === 'wealth' && ([2,11].includes(jm) || sm === 11)) sup.push('transit Jupiter or Saturn in the 2nd/11th from Moon');
         if (k === 'property' && (jl === 4 || jm === 4)) sup.push('transit Jupiter in the 4th');
-        if ((k === 'health' || k === 'obstacles') && ([1,8,12].includes(sm) || [8,12].includes(sl))) sup.push('transit Saturn in the 1st, 8th or 12th');
+        if ((k === 'health' || k === 'obstacles') && ([1,4,8,12].includes(sm) || [8,12].includes(sl))) sup.push('transit Saturn in the 1st, 4th, 8th or 12th from your Moon');
+        if (k === 'job' && ([1,4,8,12].includes(sm) || sl === 10 || [10,12].includes(sm))) sup.push('transit Saturn pressing on your career or Moon');
+        if (k === 'father') { const sunS = P.Sun.sign, ninth = (C.lagna + 8) % 12; if (T.Saturn === ninth || T.Saturn === sunS || hFrom(T.Saturn, sunS) === 7) sup.push('transit Saturn on your 9th house or on / opposite your natal Sun'); }
         if (k === 'travel' && ([9,12].includes(jl) || [9,12].includes(sl))) sup.push('transit Jupiter or Saturn in the 9th/12th');
       }
       const support = [...new Set(sup)];
+      if (k === 'father' && !support.length) continue; // father themes only when Saturn's transit confirms them
+      if ((k === 'marriage' || k === 'children') && w < 2.5 && !support.length) continue; // weaker promises need a transit to confirm them
       const conf = w + support.length*1.2;
-      themes.push({area:k, good: t >= 0, weight:w, conf, level: conf >= 6 ? 'High' : conf >= 4 ? 'Medium' : 'Low',
+      // a promised marriage or child that Jupiter's transit confirms is an event, even if the period itself is hard
+      const eventOn = (k === 'marriage' || k === 'children') && support.some(x => x.includes('Jupiter'));
+      themes.push({area:k, good: t >= 0 || eventOn, strained: eventOn && t < 0, weight:w, conf, level: conf >= 6 ? 'High' : conf >= 4 ? 'Medium' : 'Low',
         why:[...new Set([...Ra[k].why.map(x => `${ad.lord} ${x}`), ...Rm[k].why.map(x => `${md.lord} (period lord) ${x}`)])].slice(0,4), support});
     }
     themes.sort((a,b) => b.conf - a.conf);
-    const top = themes.slice(0, 4);
-    const overall = tMD*0.4 + tAD*0.6;
+    const top = themes.slice(0, 5);
+    let overall = tMD*0.4 + tAD*0.6;
+    const dus = b => P[b].lordOf.some(h => [6,8,12].includes(h)) ? 1 : 0;
+    overall -= 0.35*dus(md.lord) + 0.5*dus(ad.lord);
+    const badW = top.filter(t => !t.good).reduce((a, t) => a + t.conf, 0), goodW = top.filter(t => t.good).reduce((a, t) => a + t.conf, 0);
+    if (badW > goodW) overall = Math.min(overall, 0.3);
+    if (top.filter(t => !t.good && t.level !== 'Low').length >= 2) overall = Math.min(overall, -0.4);
     out.push({md: md.lord, ad: ad.lord, start: new Date(s), end: ad.end, age0, age1, themes: top,
       mood: overall > 0.6 ? 'favourable' : overall < -0.3 ? 'difficult' : 'mixed', adFromMoon,
       remedy: periodRemedy(C, md.lord, ad.lord, top)});
@@ -1857,7 +1937,7 @@ function cast(isExample) {
   if (!window.Astronomy) { $('#err').textContent = 'The astronomy library did not load. Check your connection and reload the page.'; $('#err').hidden = false; return; }
   C = J.computeChart(inp); C.inp = inp;
   C.cur = J.currentDasa(C, new Date());
-  C.events = J.lifeEvents(C);
+  C.events = J.lifeEvents(C, myevOpts());
   $('#examplebar').hidden = !isExample;
   if (!isExample) store.set('jk-birth', {nm: inp.name, dt: inp.dv, tm: inp.tv, city: inp.city, lat: inp.lat, lon: inp.lon, tz: inp.tz, tzname: $('#tzname').value, yr: $('#yr').value});
   renderTop(); renderChart(); renderNow(); renderTab();
@@ -2352,7 +2432,7 @@ document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click
 }));
 // ---------- table toolbar: hide/show columns and resize text (saved per table in this browser) ----------
 function enhanceTables() {
-  const tables = [...document.querySelectorAll('#pane table')].filter(t => !t.classList.contains('ln-t') && t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells.length >= 4);
+  const tables = [...document.querySelectorAll('#pane table')].filter(t => !t.classList.contains('ln-t') && !t.classList.contains('myevt') && t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells.length >= 4);
   tables.forEach((t, i) => {
     const key = `jk-tbl-${tab}-${i}`;
     const st = Object.assign({h: [], fs: 1}, store.get(key) || {});
@@ -2392,7 +2472,36 @@ function lnTry(t, label) { return `<p class="ln-try"><a href="#" data-goto="${t}
 function lnSimple(html) { return `<div class="ln-simple"><b>Remember it like this:</b> ${html}</div>`; }
 function lnTable(head, rows) { return `<div class="tablewrap"><table class="ln-t"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; }
 const lnS = s => `${J.SIGNS[s]} (${J.SANSK[s]})`;
-const lnPl = b => `${pdot(b)}<b>${b}</b>`;
+const lnPl = b => `${pdot(b) || '<i class="tipdot" style="background:var(--muted)"></i>'}<b>${b}</b>`;
+// Typical effect when the Moon (or lagna) is in the nakshatra: general tradition, in plain words
+const NAK_EFFECT = [
+  'Quick, energetic and helpful; a natural healer or starter, but can be impatient.',
+  'Strong-willed and responsible; carries heavy burdens, experiences big life changes.',
+  'Sharp, honest and ambitious; protective, but can be critical or short-tempered.',
+  'Attractive, artistic and fond of comfort; good with money and growing things, can be possessive.',
+  'Curious and searching; gentle, restless, loves travel, study and new experiences.',
+  'Intelligent and intense; goes through storms and emotional upheaval that lead to renewal.',
+  'Kind, forgiving and optimistic; bounces back after loss, loves home and simple living.',
+  'Caring, dutiful and respected; one of the most auspicious stars, good at nurturing others.',
+  'Clever, perceptive and persuasive; strong intuition, but can be secretive or anxious.',
+  'Proud, dignified and loyal to family and tradition; wants respect and leadership.',
+  'Warm, sociable and creative; enjoys pleasure, rest, romance and celebrations.',
+  'Generous, reliable and helpful; good in partnerships, service and steady careers.',
+  'Skilful with the hands, witty and hard-working; clever at crafts, healing and business.',
+  'Stylish, creative and charismatic; a builder or designer who likes beautiful things.',
+  'Independent, flexible and business-minded; needs freedom, can be restless.',
+  'Determined and goal-focused; achieves a lot through persistence, can be competitive.',
+  'Friendly, devoted and loyal; succeeds through teamwork, often abroad or far from home.',
+  'Protective, responsible and senior-minded; takes charge, but can feel isolated or proud.',
+  'Seeks the root of things; research-minded and spiritual, life can bring sudden losses and fresh starts.',
+  'Confident and persuasive; hard to defeat, loves water, travel and philosophy.',
+  'Principled, patient and fair; slow but lasting success, earns respect late.',
+  'Good listener and learner; gains knowledge and fame through study, travel and connections.',
+  'Musical, generous and wealthy-minded; ambitious, does well in groups.',
+  'Independent healer and thinker; secretive, drawn to medicine, science and mysteries.',
+  'Serious, idealistic and intense; capable of sacrifice, can swing between extremes.',
+  'Wise, calm and self-controlled; deep thinker, generous, spiritual later in life.',
+  'Gentle, kind and caring; protects the weak, loves animals and travel, spiritual and prosperous.'];
 const lnDate = d => d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
 const PL_EASY = {
   Sun: ['Soul, ego, father, boss, government, health', 'The king', 'Orange / copper', 'Malefic (mild)'],
@@ -2559,7 +2668,10 @@ const LESSONS = [
   <p>The zodiac is also split into <b>27 nakshatras</b> (stars) of 13°20′ each, and each nakshatra into <b>4 padas</b> (quarters) of 3°20′. They are a finer layer on top of the signs.</p>
   <p>The nakshatra your Moon occupies is your <b>janma nakshatra</b> (birth star). It shapes your emotional nature, is used to match horoscopes, and <b>decides where your dasa sequence starts</b>.</p>
   <p>Each nakshatra has a ruling planet and a deity. The rulers repeat in a fixed order: Ketu, Venus, Sun, Moon, Mars, Rahu, Jupiter, Saturn, Mercury.</p>
-  ${lnTable(['#', 'Nakshatra', 'Ruler', 'Deity'], J.NAKS.map((n, i) => [i + 1, `<b>${n[0]}</b>`, lnPl(n[1]), n[2]]))}
+  <p>Read the table like this: <b>Represents</b> is the star’s theme (what it gives to any planet placed there), and <b>Effect on a person</b> describes someone whose Moon is in that star. A planet in a nakshatra takes on its theme, and also gives results through the nakshatra’s ruler.</p>
+  ${lnTable(['#', 'Nakshatra', 'Ruler', 'Deity', 'Symbol', 'Represents', 'Effect on a person', C ? 'Your planets' : ''].filter(Boolean), J.NAKS.map((n, i) => { const a = i * 40 / 3, b = a + 40 / 3, s1 = Math.floor(a / 30), s2 = Math.floor((b - 0.001) / 30), mine = C ? J.PL.filter(x => C.P[x].nak === i) : [];
+    return [i + 1, `<b>${n[0]}</b><br><span class="muted">${J.SAB[s1]}${s2 !== s1 ? '–' + J.SAB[s2] : ''}</span>`, lnPl(n[1]), n[2], NAK_THEME[i][0], NAK_THEME[i][1], NAK_EFFECT[i], ...(C ? [mine.length ? mine.map(lnPl).join('<br>') + (mine.includes('Moon') ? '<br><span class="chip good">your birth star</span>' : '') : ''] : [])]; }))}
+  <p class="muted" style="font-size:13px">The themes follow the nakshatra symbols and deities; the personality lines are general tradition. The whole chart, not one star, decides actual results.</p>
   ${lnMine(`<p>Your Moon is in <b>${J.NAKS[C.P.Moon.nak][0]}</b> pada ${C.P.Moon.pada}, ruled by ${lnPl(J.NAKS[C.P.Moon.nak][1])}. So your life began in the ${J.NAKS[C.P.Moon.nak][1]} period.</p>`)}
   ${lnTry('details', 'Open your nakshatra tables')}`,
   quiz: [['How many nakshatras are there?', ['12', '27', '9'], 1],
@@ -2663,6 +2775,207 @@ const LESSONS = [
 
 const GLOSSARY = [['Lagna', 'Ascendant; the sign rising at birth, your 1st house'], ['Rasi', 'Sign; also used for the Moon sign'], ['Graha', 'Planet'], ['Bhava', 'House'], ['Nakshatra', 'One of 27 lunar mansions'], ['Pada', 'Quarter of a nakshatra'], ['Drishti', 'Aspect'], ['Dasa / Mahadasa', 'Main planetary period'], ['Antardasa / Bhukti', 'Sub-period'], ['Gochara', 'Transit'], ['Karaka', 'Natural significator'], ['Kendra', 'Angular house: 1, 4, 7, 10'], ['Trikona', 'Trine: 1, 5, 9'], ['Dusthana', 'Difficult house: 6, 8, 12'], ['Upachaya', 'Growth house: 3, 6, 10, 11'], ['Uchcha', 'Exalted'], ['Neecha', 'Debilitated'], ['Neecha bhanga', 'Cancellation of debilitation'], ['Swakshetra', 'Own sign'], ['Vakri', 'Retrograde'], ['Asta', 'Combust'], ['Yogakaraka', 'Planet owning a kendra and a trine; the best planet for a lagna'], ['Vargottama', 'Same sign in D1 and D9'], ['Navamsa', 'D9 divisional chart'], ['Sade Sati', 'Saturn over the 12th, 1st and 2nd from the Moon'], ['Ayanamsa', 'Gap between the tropical and sidereal zodiacs'], ['Upaya', 'Remedy'], ['Muhurta', 'Choosing an auspicious time'], ['Tithi', 'Lunar day'], ['Arudha', 'The “image” of a house; how the world sees it']];
 
+// ---------- Financial astrology lessons: Shinker's textbook, with each market claim tested on US and Indian data ----------
+// Results computed 26 Sep 2026 from Yahoo Finance daily closes (S&P 500 1950-, Dow 1992-, Sensex 1997-, Nifty & Bank Nifty 2007-, gold in INR 2003-)
+// and astronomy-engine positions. p = share of 2,000 random time-shifts of the same periods that gave a gap at least this large.
+const FIN_MK = ['S&P 500', 'Dow', 'Nifty 50', 'Sensex', 'Bank Nifty', 'Gold (INR)'];
+const FIN_RETRO = {
+  Mercury: [[5.6, 8.6, .62], [-5.9, 11.3, .056], [8.5, 8.9, .98], [8.4, 10.3, .89], [14.9, 10.3, .88], [24.9, 13.4, .22]],
+  Venus:   [[6.3, 8.2, .77], [6.8, 8.1, .91], [26.3, 7.6, .37], [15.0, 9.5, .73], [39.9, 9.2, .24], [28.1, 14.6, .35]],
+  Mars:    [[7.9, 8.0, .99], [9.1, 7.9, .88], [11.2, 8.6, .87], [17.5, 9.2, .59], [41.1, 8.0, .16], [29.3, 14.2, .14]],
+  Jupiter: [[6.3, 8.7, .78], [10.4, 7.0, .32], [14.2, 6.6, .43], [10.9, 9.5, .83], [18.4, 8.2, .46], [17.5, 14.7, .54]],
+  Saturn:  [[8.8, 7.6, .69], [8.3, 7.9, .95], [11.5, 7.3, .69], [15.1, 6.9, .29], [12.3, 10.5, .87], [14.3, 16.3, .59]]
+};
+const FIN_MOON = {
+  'New-Moon half vs Full-Moon half': [[8.5, 7.5, .82], [8.0, 8.1, .98], [8.0, 9.7, .85], [14.7, 5.1, .33], [7.2, 15.4, .50], [17.0, 14.1, .75]],
+  'Waxing Moon vs waning Moon': [[7.6, 8.5, .82], [6.2, 9.9, .56], [2.8, 14.7, .14], [6.5, 13.3, .51], [7.3, 15.1, .53], null]
+};
+// solar eclipses: [events, % up 20 trading days later, % up for any 20-day window, avg 20-day return, avg any window]
+const FIN_ECL = [[169, 63, 62, 0.91, 0.73], [77, 62, 64, 0.92, 0.73], [42, 52, 60, 0.18, 0.84], [65, 57, 60, 1.5, 1.02], [42, 48, 58, 0.21, 1.19], [50, 60, 59, 1.93, 1.38]];
+const FIN_CLAIMS = [
+  // [claim, where tested, verdict, why]
+  ['Mercury retrograde is bad for markets and business', 'All 6 markets', 'no', 'Returns during Mercury retrograde were not reliably different anywhere; Indian markets were almost identical in and out of it.'],
+  ['The Oct 1929 and Oct 1987 crashes happened in Mercury retrograde', 'Ephemeris', 'mixed', 'True for Oct 1987; false for Oct 1929 (Mercury was direct on 24 and 29 Oct 1929).'],
+  ['Venus retrograde: spending and buying go wrong', 'All 6 markets', 'no', 'No reliable effect. Indian markets actually did a little better in Venus retrograde (not significant).'],
+  ['Mars retrograde: whoever starts a war loses', 'History', 'wrong', 'Two of the book’s own examples fail: Hitler invaded the USSR on 22 Jun 1941 and the Six-Day War began on 5 Jun 1967; Mars was direct both times.'],
+  ['Mars retrograde: avoid business, markets struggle', 'All 6 markets', 'no', 'No difference in returns.'],
+  ['Jupiter retrograde: market trends down, lowest price near its end', 'All 6 markets', 'no', 'S&P slightly lower, Nifty/Sensex/Bank Nifty slightly higher; none significant. The book’s proof is 3 hand-picked Dow examples.'],
+  ['Saturn retrograde: markets tend to move up', 'All 6 markets', 'weak', 'Direction matched in all five indices but no result was close to significant; too small to use.'],
+  ['Buy at New Moon, sell at Full Moon (lunar cycle study)', 'All 6 markets', 'no', 'The published study (Yuan, Zheng & Zhu, 2006) is real, but the effect did not show up in newer data or in Indian markets. The book also admits a new-moon buying strategy earned 4.2% a year vs 10.4% for simply holding.'],
+  ['Market is highest when the Moon is waxing (Meridian)', 'US + India', 'no', 'The opposite in every index tested (waning was better), though not significant.'],
+  ['Solar eclipses: the Dow almost always falls (only 4 rises in 100 years)', 'All 6 markets', 'wrong', 'After 169 eclipses since 1950 the S&P was higher 20 days later 63% of the time, the same as any random day (62%). No Indian index showed a real effect.'],
+  ['Cardinal, fixed and mutable eclipses move markets differently', 'S&P + Sensex', 'no', 'No pattern that repeats across markets.'],
+  ['Jupiter conjunct Uranus: markets go up quickly', 'S&P + Sensex', 'weak', 'S&P averaged +4.1% over 60 days vs +2.2% normally, but only 6 separate episodes since 1950; not significant.'],
+  ['Jupiter–Saturn conjunction or opposition causes recession', 'US recessions', 'weak', '6 of 8 cycles fell within about a year of a US recession, but recessions are common and 8 cases is too few; 2010–11 had none. Not usable for timing.'],
+  ['Saturn in Taurus depresses the market (up to 36%)', 'S&P', 'weak', 'Returns were lower in those years (+0.6% vs +8.5% a year) but that is only two passes (1969–72, 1998–2001); not significant.'],
+  ['Many sunspots = Dow down; solar maximum predicts recession', 'S&P, Sensex', 'no', 'In solar-maximum years the S&P rose 6 times out of 8. The Sensex was mixed (fell in 2000–01, rose in 2014 and 2024).'],
+  ['Jupiter’s sign makes that sign’s goods cheap (e.g. Jupiter in Leo → gold)', 'Gold USD + INR', 'weak', 'Gold was weaker while Jupiter was in Leo, but that is only two short periods; not significant.'],
+  ['Jupiter–Saturn conjunctions cause solar flares; Jupiter has 13 moons', 'Science', 'wrong', 'Planets’ pull on the Sun is far too weak to drive the sunspot cycle; Jupiter has 95 known moons.'],
+  ['Retrograde lengths: Mercury ~3 weeks, Venus ~40 days, Mars ~80 days, Jupiter 4–5 months', 'Ephemeris', 'yes', 'Correct astronomy.'],
+  ['Jupiter–Saturn cycle ~20 years; eclipses repeat after ~18.5 years; at least 2 solar eclipses a year', 'Ephemeris', 'yes', 'Correct astronomy.'],
+  ['Never start a business on a void-of-course Moon; things started then fail', 'Not testable here', 'untested', 'Needs business start dates and outcomes. The book offers only stories (a shop, a racehorse, a dollhouse).'],
+  ['80% of “lemon” cars were bought in Mercury retrograde', 'Not testable here', 'untested', 'No data given. Mercury is retrograde ~19% of the time, so this would be a big claim that needs real evidence.'],
+  ['Incorporation / first-trade chart houses describe the company', 'Not testable here', 'untested', 'An interpretive framework, not a testable prediction; the author notes company birth times are often uncertain.']
+];
+const FIN_V = {yes: ['Correct', 'good'], no: ['Not supported', 'bad'], wrong: ['Contradicted by facts', 'bad'], weak: ['Weak / too few cases', 'mixed'], mixed: ['Half true', 'mixed'], untested: ['Not testable (anecdotal)', '']};
+function finRetroTable(b) {
+  return lnTable(['Market', `During ${b} Rx`, 'Rest of the time', 'Difference', 'Chance (p)'], FIN_MK.map((m, i) => { const r = FIN_RETRO[b][i]; const d = +(r[0] - r[1]).toFixed(1);
+    return [`<b>${m}</b>`, `${r[0]}% / yr`, `${r[1]}% / yr`, `${d > 0 ? '+' : ''}${d}`, r[2] < 0.05 ? chip('p ' + r[2], 'good') : `<span class="muted">p ${r[2]}</span>`]; }));
+}
+const FIN_HOWTO = `<p class="muted" style="font-size:13px">How to read <b>p</b>: the share of 2,000 random reshuffles of the same-length periods that produced a gap at least this big. Below 0.05 would be interesting; with ~90 tests, even that would be expected a few times by pure luck.</p>`;
+
+const FIN_LESSONS = [
+{id: 'fin-intro', t: 'What is financial astrology?', lvl: 'Financial astrology', body: () => `
+  <p><b>Financial astrology</b> tries to time money decisions (buying, starting a business, investing) using planetary cycles. These lessons follow Kaye Shinker’s <i>Textbook for Financial Astrology</i> (Parts 1–3), which is popular in Western (tropical) astrology.</p>
+  <p>Its main ideas, from most frequent to rarest:</p>
+  <ul class="ln-list">
+    <li><b>The Moon</b>: void-of-course Moon (every ~2.5 days) and the New/Full Moon cycle.</li>
+    <li><b>Retrogrades</b>: Mercury (3–4 times a year), Venus, Mars, Jupiter and Saturn.</li>
+    <li><b>Eclipses</b>: at least two solar eclipses a year.</li>
+    <li><b>Slow cycles</b>: Jupiter and Saturn (the “business planets”: Jupiter the salesman/CEO, Saturn the accountant), the 20-year Jupiter–Saturn cycle, Uranus for technology.</li>
+    <li><b>Company charts</b>: a chart for the incorporation date or first trade, read like a birth chart.</li>
+  </ul>
+  <p>The author’s own rule: <b>nothing significant happens unless three planetary events coincide</b>. Most of her evidence is stories and a few hand-picked examples.</p>
+  ${lnSimple('a claim like “markets fall during Mercury retrograde” can be <b>tested</b>: compare returns in those periods with all other days over decades. That is what the next lessons do, on the S&P 500, Dow, <b>Nifty 50, Sensex, Bank Nifty and gold in rupees</b>.')}
+  <div class="ln-note">Retrogrades, eclipses and Moon phases happen at the same moment in Vedic and Western astrology; only sign-based claims differ (the book uses Western signs). These lessons explain and test the ideas. They are not trading signals or investment advice.</div>`,
+  quiz: [['The book’s two “business planets” are…', ['Mars and Venus', 'Jupiter and Saturn', 'Sun and Moon'], 1],
+         ['How can a claim like “markets fall in Mercury retrograde” be checked?', ['Ask an astrologer', 'Compare returns in those periods against all other days over many years', 'Look at one famous crash'], 1]]},
+
+{id: 'fin-business', t: 'The business chart: planets and houses', lvl: 'Financial astrology', body: () => `
+  <p>For a company, the book casts a chart for the <b>incorporation</b> moment and for the <b>first trade</b> on the exchange (or, for a small business, the <b>first rupee received</b>). It then reads it like a birth chart:</p>
+  ${lnTable(['Planet', 'In a business chart'], [['Sun', 'the company’s character and product'], ['Moon', 'investors and the public’s reaction'], ['Mercury', 'communications, contracts, vehicles'], ['Venus', 'day-to-day cash in and out, work rules'], ['Mars', 'sales force and workers'], ['Jupiter', 'CEO / management and sales; expansion'], ['Saturn', 'CFO: pricing, costs, profit; restriction'], ['Uranus', 'R&D, engineering, technology'], ['Neptune', 'advertising and marketing'], ['Pluto', 'legal and benefits']].map(r => [`<b>${r[0]}</b>`, r[1]]))}
+  ${lnTable(['House', 'In a company chart'], [[1, 'the people who make it work'], [2, 'liquid assets, sales income'], [3, 'contracts, internal communication, transport'], [4, 'managers, real estate, buildings'], [5, 'speculation, new investments, subsidiaries'], [6, 'workers, unions, service record'], [7, 'mergers, lawsuits, partners, competitors'], [8, 'debt, loans, frozen assets'], [9, 'advertising, foreign trade, consultants'], [10, 'CEO and public standing'], [11, 'stockholders'], [12, 'dividends / book value; hidden competition']].map(r => [`<b>${r[0]}</b>`, r[1]]))}
+  <p>Her rules for choosing a start time: the Moon applying to good aspects (especially to the Sun and Jupiter), no void-of-course Moon, Saturn not on an angle (1, 4, 7, 10), Jupiter and Saturn in different houses, and avoid personal-planet retrogrades.</p>
+  ${lnSimple('this is <b>muhurta</b> (electional astrology) applied to business. Your Vedic book has its own muhurta rules; the Money calendar tab uses those.')}
+  <p><b>Verdict:</b> this is an interpretive framework, not a testable prediction. The book offers stories (Hershey, Coca-Cola, a bookstore) rather than data.</p>
+  ${lnTry('money', 'See your Vedic muhurta-based Money calendar')}`,
+  quiz: [['In a company chart, the book gives stockholders to the…', ['2nd house', '11th house', '6th house'], 1],
+         ['Which planet is the CFO / accountant?', ['Jupiter', 'Saturn', 'Venus'], 1]]},
+
+{id: 'fin-retro', t: 'Retrogrades and the markets: tested', lvl: 'Financial astrology', body: () => `
+  <p><b>What the book says:</b></p>
+  <ul class="ln-list">
+    <li><b>Mercury Rx</b> (~3 weeks, 3–4× a year): don’t sign contracts or buy vehicles; confusion and delays; bad for markets (it cites Oct 1929 and Oct 1987).</li>
+    <li><b>Venus Rx</b> (~40 days): overspending; “there is no such thing as a bargain”.</li>
+    <li><b>Mars Rx</b> (~80 days): whoever starts a fight loses; avoid important business.</li>
+    <li><b>Jupiter Rx</b> (4–5 months): the market rests or trends down, and the year’s low comes near its end.</li>
+    <li><b>Saturn Rx</b>: “the bean counters are out to lunch”, so markets move up.</li>
+  </ul>
+  <h4>The test</h4>
+  <p>For each market: the average yearly return on days during the retrograde compared with all other days.</p>
+  <div class="ln-tabs">${['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'].map(b => `<details class="ln-acc"${b === 'Mercury' ? ' open' : ''}><summary>${b} retrograde</summary>${finRetroTable(b)}</details>`).join('')}</div>
+  ${FIN_HOWTO}
+  <h4>What we found</h4>
+  <ul class="ln-list">
+    <li><b>No retrograde had a reliable effect</b> on any market, US or Indian.</li>
+    <li>The closest case, Mercury Rx on the Dow (p 0.056), did not appear in the longer S&P record from 1950 or in any Indian index.</li>
+    <li>One curiosity: 8 of the S&P’s 18 worst crash months since 1950 began in Mercury Rx (about 3 expected). But the Sensex shows the opposite (1 of 20), Nifty 3 of 15, and one pattern among ~90 tests is what luck alone produces.</li>
+    <li>The book’s examples are hand-picked. <b>Oct 1929 was not a Mercury retrograde</b>, and Hitler’s invasion of the USSR and the Six-Day War happened with Mars <i>direct</i>.</li>
+  </ul>
+  ${lnSimple('slowing down to re-check paperwork during Mercury retrograde is harmless and can prevent mistakes. Using it to time buying and selling is not supported by the data.')}`,
+  quiz: [['Did Mercury retrograde reliably lower Nifty or Sensex returns?', ['Yes, strongly', 'No, returns were about the same', 'Only for gold'], 1],
+         ['Was Mercury retrograde during the Oct 1929 crash, as the book says?', ['Yes', 'No'], 1]]},
+
+{id: 'fin-moon', t: 'The Moon: void-of-course, New and Full Moon', lvl: 'Financial astrology', body: () => `
+  <p><b>Void-of-course (VOC) Moon</b>: the Moon has made its last major aspect before leaving a sign. The book calls it “the most disastrous of all business indicators”: things started then fail or “nothing happens”. Its evidence is stories. It can’t be tested with daily market data because VOC periods last hours, not days.</p>
+  <p><b>New Moon vs Full Moon</b>: the book cites a real study (Yuan, Zheng & Zhu, 2006) that found world stock returns about 3–5% a year higher in the half-month around the New Moon than around the Full Moon (1965–2001). It also cites Bill Meridian: the Dow is highest mid-waxing.</p>
+  <h4>The test (annual return)</h4>
+  ${lnTable(['Market', 'Near New Moon', 'Near Full Moon', 'p', 'Waxing', 'Waning', 'p'], FIN_MK.map((m, i) => { const a = FIN_MOON['New-Moon half vs Full-Moon half'][i], b = FIN_MOON['Waxing Moon vs waning Moon'][i];
+    return [`<b>${m}</b>`, a[0] + '%', a[1] + '%', `<span class="muted">${a[2]}</span>`, b ? b[0] + '%' : '—', b ? b[1] + '%' : '—', b ? `<span class="muted">${b[2]}</span>` : '—']; }))}
+  <ul class="ln-list">
+    <li><b>New vs Full Moon:</b> no consistent edge. The Sensex leaned toward the New Moon, Bank Nifty toward the Full Moon; neither was significant.</li>
+    <li><b>Meridian’s waxing claim:</b> the opposite. In every index the waning half was slightly <i>better</i>.</li>
+    <li>Market patterns that are published often weaken afterwards, as traders act on them. The book itself notes a New-Moon buying strategy earned 4.2% a year against 10.4% for just holding.</li>
+  </ul>
+  ${lnSimple('Moon timing may help you feel calm about a decision, but the data shows no money edge.')}`,
+  quiz: [['In the Indian data, did the waxing Moon beat the waning Moon?', ['Yes, clearly', 'No, waning was slightly better (not significant)'], 1],
+         ['Why can’t the void-of-course Moon be tested on daily prices?', ['It lasts only hours', 'It never happens', 'It only affects gold'], 0]]},
+
+{id: 'fin-eclipse', t: 'Eclipses and markets: tested', lvl: 'Financial astrology', body: () => `
+  <p><b>What the book says:</b> “you can almost count on the market going down” at a solar eclipse. It quotes a friend’s research finding only four rises in 100 years. It also says cardinal-sign eclipses drop and rebound quickly, mutable ones pull the market down for weeks around the date, and fixed ones take up to 90 days to recover.</p>
+  <h4>The test: market 20 trading days after each solar eclipse</h4>
+  ${lnTable(['Market', 'Eclipses', 'Higher after 20 days', 'Any 20-day window', 'Avg return after', 'Avg any window'], FIN_MK.map((m, i) => { const e = FIN_ECL[i]; return [`<b>${m}</b>`, e[0], `${e[1]}%`, `${e[2]}%`, `${e[3]}%`, `${e[4]}%`]; }))}
+  <ul class="ln-list">
+    <li><b>“Only four rises in 100 years” is simply false.</b> The S&P was higher 20 days after about 106 of 169 eclipses since 1950.</li>
+    <li>Nifty and Bank Nifty were a little weaker after eclipses (52% and 48% up vs about 60% normally), but on only 42 eclipses that is well within luck (p ≈ 0.4).</li>
+    <li>Splitting by cardinal, fixed and mutable signs gave no pattern that repeated between the S&P and the Sensex.</li>
+  </ul>
+  ${lnSimple('an eclipse is a dramatic sky event, and it is easy to remember the eclipses that came before a fall. Counting all of them shows no effect.')}`,
+  quiz: [['After solar eclipses since 1950, how often was the S&P higher 20 days later?', ['Almost never', 'About 63%, the same as any day', '100%'], 1]]},
+
+{id: 'fin-cycles', t: 'Slow cycles: Jupiter, Saturn, Uranus, sunspots', lvl: 'Financial astrology', body: () => `
+  <ul class="ln-list">
+    <li><b>Jupiter–Saturn (every ~20 years):</b> the book says a conjunction or opposition brings recession. Conjunctions: 1961, 1981, 2000, 2020. Oppositions: 1951, 1969–71, 1989–91, 2010–11. About 6 of 8 were within a year of a US recession (2010–11 had none). Recessions come every 6–7 years, so a ±1-year window catches many by chance. <b>Too few cases to trust.</b></li>
+    <li><b>Jupiter conjunct Uranus → quick rally</b> (1954–55, 1968–69, 1983, 1997, 2010–11, 2024): S&P averaged +4.1% over the next 60 days vs +2.2% normally. Only 6 episodes, not significant, and 1969 was followed by a bear market.</li>
+    <li><b>Saturn in Taurus depresses stocks:</b> S&P returns were about flat in 1969–72 and 1998–2001 vs +8.5% a year otherwise. Two cases only. Saturn next enters Western Taurus in 2028.</li>
+    <li><b>Sunspots:</b> the book says many sunspots mean the Dow is down. In solar-maximum years (1958, 1968, 1979, 1989, 2000, 2001, 2014, 2024) the S&P rose 6 times in 8. The Sensex fell in 2000–01 but rose 30% in 2014.</li>
+    <li><b>Jupiter’s sign and commodities:</b> the book says Jupiter in a sign makes that sign’s goods plentiful and cheap. Gold was weaker while Jupiter was in Leo (in both USD and INR), but that is only two short periods.</li>
+  </ul>
+  ${lnSimple('slow cycles have very few repetitions in a lifetime of data. A story that fits 3 or 4 of them is not proof. That is why these are rated <b>weak</b>, not “true”.')}`,
+  quiz: [['Why are slow-cycle claims hard to prove?', ['They repeat only a handful of times in the data', 'Computers can’t calculate them', 'They only work in India'], 0]]},
+
+{id: 'fin-verdict', t: 'Scorecard: every claim checked', lvl: 'Financial astrology', body: () => {
+  const cnt = k => FIN_CLAIMS.filter(c => c[2] === k).length;
+  return `<p>Each claim in the book that can be checked, with the evidence. The tests used daily closing prices from Yahoo Finance to 25 Sep 2026 (S&P 500 from 1950, Dow from 1992, Sensex from 1997, Nifty and Bank Nifty from 2007, gold in rupees from 2003). Planet positions come from astronomy-engine.</p>
+  <p>${chip(cnt('yes') + ' correct (astronomy facts)', 'good')} ${chip(cnt('no') + ' not supported', 'bad')} ${chip(cnt('wrong') + ' contradicted', 'bad')} ${chip(cnt('weak') + ' weak / too few cases', 'mixed')} ${chip(cnt('mixed') + ' half true', 'mixed')} ${chip(cnt('untested') + ' anecdotal only', '')}</p>
+  <div class="tablewrap"><table class="ln-t"><thead><tr><th>Claim in the book</th><th>Checked on</th><th>Verdict</th><th>Evidence</th></tr></thead><tbody>
+  ${FIN_CLAIMS.map(c => `<tr><td><b>${c[0]}</b></td><td>${c[1]}</td><td>${chip(FIN_V[c[2]][0], FIN_V[c[2]][1])}</td><td>${c[3]}</td></tr>`).join('')}</tbody></table></div>
+  <h4>Bottom line</h4>
+  <p>The astronomy in the book is correct: retrograde lengths, eclipse counts and cycle lengths all check out. <b>None of its market-timing claims held up</b> on US or Indian markets. The best are “weak” (right direction, too few cases). Several are contradicted by the book’s own examples. Its business-timing rules (void-of-course Moon, start charts) are backed only by stories.</p>
+  ${lnSimple('use financial astrology, if at all, for <b>personal discipline</b>: pausing before signing, avoiding impulse buys, choosing a calm day to review your plan. Not for <b>predicting prices</b>. Real risk control (position size, stop-loss, not borrowing to trade) matters far more.')}`; },
+  quiz: [['Which part of the book held up best?', ['Its market-timing rules', 'Its astronomy facts (retrograde lengths, cycles)', 'The eclipse rule'], 1],
+         ['The most sensible use of financial astrology is…', ['predicting Nifty’s next move', 'personal discipline and calm decision-making, alongside real risk control', 'deciding how much to borrow'], 1]]}
+];
+LESSONS.push(...FIN_LESSONS);
+// Vedic gochara / muhurta rules tested on Indian indices (vedtest.js, 26 Sep 2026). [good-period %/yr, rest %/yr, p] for Nifty, Bank Nifty, Sensex
+const VED_T = [
+  ['Jupiter in a good house from India’s Moon', [[18.5, 2.0, .145], [21.9, 3.7, .246], [11.2, 9.0, .804]], 'Right direction, most in Nifty; Sensex barely differs. Jupiter changes sign only once a year, so there are few independent cases.'],
+  ['Saturn in a good house', [[8.1, 9.1, .893], [14.0, 10.2, .695], [0.4, 13.2, .16]], 'No effect; Sensex even did worse in Saturn’s “good” houses.'],
+  ['Rahu in a good house (read like Saturn)', [[12.2, 7.7, .654], [17.7, 9.1, .463], [11.6, 9.5, .861]], 'Slightly better, not significant.'],
+  ['Ketu in a good house (read like Mars)', [[7.4, 9.3, .862], [2.4, 14.0, .388], [10.6, 9.7, .953]], 'No effect.'],
+  ['Mars in a good house', [[-4.5, 12.9, .149], [-12.2, 18.3, .067], [-0.8, 13.2, .266]], 'The <b>opposite</b>: markets did worse when Mars was in its “good” houses.'],
+  ['Sun in a good house', [[12.9, 6.8, .606], [17.2, 8.2, .599], [8.7, 10.5, .844]], 'Mixed, not significant.'],
+  ['Mercury in a good house', [[7.4, 10.2, .757], [13.0, 9.5, .826], [7.3, 12.5, .521]], 'No effect.'],
+  ['Venus in a good house', [[14.9, -1.3, .124], [21.7, -6.3, .053], [14.8, 2.1, .111]], 'Right direction in all three, closest to significant of all the rules, but still not enough.'],
+  ['Moon’s daily transit (Table 54)', [[9.1, 8.6, .961], [14.3, 8.2, .632], [13.3, 6.6, .431]], 'Tested on thousands of days, which gives the most statistical power; essentially no edge on Nifty.'],
+  ['Combined gochara score above median', [[11.3, 7.0, .641], [13.6, 9.4, .769], [5.1, 13.2, .355]], 'No effect; reversed on Sensex.'],
+  ['Jupiter and Saturn both well placed', [[13.9, 8.1, .626], [25.1, 9.2, .333], [1.0, 11.1, .483]], 'Inconsistent between indices.'],
+  ['India’s Sade Sati (Saturn 12th/1st/2nd from Moon)', [[3.6, 9.4, .566], [6.2, 11.8, .605], [24.8, 5.3, .054]], 'Sensex did much <b>better</b> in India’s last Sade Sati (Jul 2002–Sep 2009, which included the 2003–07 boom).'],
+  ['Good tara bala from India’s birth star (Pushyami)', [[12.4, 4.3, .389], [13.2, 8.7, .727], [12.9, 6.2, .406]], 'Right direction in all three, not significant.'],
+  ['Auspicious tithis (Table 79: 2, 3, 5, 7, 10, 11, 13)', [[3.5, 13.6, .267], [10.3, 12.1, .883], [8.9, 10.8, .808]], 'The <b>opposite</b>: “good” tithis were slightly worse.'],
+  ['Auspicious weekdays (Mon/Wed/Thu/Fri vs Tue)', [[7.6, 13.9, .617], [11.0, 12.0, .94], [9.2, 12.8, .753]], 'No effect; Tuesdays were not worse.'],
+  ['Amavasya day', [[36.6, 7.9, .266], [19.9, 10.9, .81], [28.7, 9.3, .418]], 'Large-looking numbers on only ~3% of days: noise.'],
+  ['Purnima day', [[0.1, 9.1, .753], [31.9, 10.6, .567], [-1.1, 10.3, .665]], 'Inconsistent: noise.']
+];
+const VED_SIGNS = [['Aries', -14.9], ['Taurus', 6.2], ['Gemini', -4.0], ['Cancer', 4.3], ['Leo', -9.6], ['Virgo', 12.3], ['Libra', 3.7], ['Scorpio', -11.8], ['Sagittarius', 2.5], ['Capricorn', 13.1], ['Aquarius', -18.0], ['Pisces', 12.3]];
+LESSONS.splice(LESSONS.findIndex(l => l.id === 'fin-verdict'), 0, {id: 'fin-vedic', t: 'Vedic transit rules on Nifty: tested', lvl: 'Financial astrology', body: () => `
+  <p>The Western rules failed, so do the <b>Vedic</b> rules do better? This lesson applies the same rules the app uses for you (the book’s transit tables 53–59 from the Moon, Rahu read like Saturn and Ketu like Mars, Sade Sati, tara bala, and the muhurta tithis and weekdays of Table 79) to the Indian market.</p>
+  <h4>Whose chart?</h4>
+  <p>Gochara is counted from a birth Moon, and an index has no reliable birth time. The Nifty launch day (22 Apr 1996) is ambiguous: the Moon moved from Taurus to Gemini that day. So the main test uses <b>India’s independence chart</b> (15 Aug 1947, 00:00, Delhi), the standard chart in Vedic mundane astrology: Taurus lagna, Moon in Cancer in Pushyami. The app’s engine reproduces this chart exactly.</p>
+  <h4>Results (average yearly return: rule “good” vs the rest)</h4>
+  <div class="tablewrap"><table class="ln-t"><thead><tr><th>Rule</th><th>Nifty 50<br><span class="muted">2007–2026</span></th><th>Bank Nifty<br><span class="muted">2007–2026</span></th><th>Sensex<br><span class="muted">1997–2026</span></th><th>What it means</th></tr></thead><tbody>
+  ${VED_T.map(([n, r, w]) => `<tr><td><b>${n}</b></td>${r.map(([g, b, p]) => `<td class="mono" style="white-space:nowrap">${g}% vs ${b}%<br>${p < 0.05 ? chip('p ' + p, 'good') : `<span class="muted">p ${p}</span>`}</td>`).join('')}<td>${w}</td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="muted" style="font-size:13px">These were 63 separate tests. Allowing for that many, a real effect would need p below 0.0008; the best result was 0.053. p is the share of 2,000 random time-shifts of the same periods that gave a gap at least this big.</p>
+  <h4>The control: does India’s chart stand out?</h4>
+  <p>If the gochara rules really moved Nifty, India’s Moon sign should beat the other 11. Here is the same combined transit score run from <i>every</i> Moon sign (extra yearly return on “good” days):</p>
+  <div class="ln-bars">${VED_SIGNS.map(([s, v]) => `<div class="ln-barrow${s === 'Cancer' ? ' me' : ''}"><span>${s}${s === 'Cancer' ? ' (India)' : ''}</span><div class="ln-bartrack"><i style="${v >= 0 ? `left:50%;width:${v / 40 * 100}%` : `right:50%;width:${-v / 40 * 100}%`};background:var(${v >= 0 ? '--good' : '--bad'})"></i></div><b class="mono">${v > 0 ? '+' : ''}${v}</b></div>`).join('')}</div>
+  <p>India’s Cancer Moon lands in the middle, and five “wrong” charts look better. This is what chance looks like: pick the best-looking chart afterwards and it will seem to “work”.</p>
+  <h4>What this means</h4>
+  <ul class="ln-list">
+    <li><b>No Vedic transit or muhurta rule reliably predicted Nifty, Bank Nifty or Sensex.</b></li>
+    <li>A few leaned the right way (Jupiter, Venus, tara bala), a few the opposite way (Mars, auspicious tithis, Sade Sati on the Sensex), and most showed nothing.</li>
+    <li>This tests the market as a whole. It does not test your <i>personal</i> transits on your own trades. The Astro test in your 10% Ledger does that, and it needs at least 8 closed trades on each side of a factor (far more to be convincing).</li>
+  </ul>
+  ${lnSimple('Vedic transits describe how a period may <i>feel</i> for a person. They do not forecast an index. For the market, your risk rules matter more than the sky.')}`,
+  quiz: [['Did India’s own Moon sign give the best transit results for Nifty?', ['Yes, clearly', 'No, it came out in the middle of the 12 signs'], 1],
+         ['Which rule came out the opposite way to the book?', ['Mars in good houses (markets did worse)', 'Venus in good houses', 'None'], 0]]});
+FIN_CLAIMS.splice(FIN_CLAIMS.length - 3, 0,
+  ['Vedic gochara (transits from the Moon, Tables 53–59) moves the Indian market', 'Nifty, Bank Nifty, Sensex', 'no', '63 tests from India’s 1947 chart: none significant; India’s Moon sign ranks mid-table among all 12.'],
+  ['Muhurta: auspicious tithis and weekdays (Table 79) are better days', 'Nifty, Bank Nifty, Sensex', 'no', '“Good” tithis were slightly worse; weekdays made no difference.'],
+  ['Sade Sati brings hard times (India’s chart)', 'Sensex 2002–09', 'wrong', 'The Sensex did much better during India’s Sade Sati, which included the 2003–07 boom.']);
+
+
 function tLearn() {
   const done = store.get('jk-learn-done') || {};
   if (!learnId || !LESSONS.some(l => l.id === learnId)) learnId = store.get('jk-learn') || LESSONS[0].id;
@@ -2684,7 +2997,7 @@ function learnShell(done, main) {
   let lvl = '';
   const items = LESSONS.map((l, i) => { const h = l.lvl !== lvl ? `<div class="ln-lvl">${l.lvl}</div>` : ''; lvl = l.lvl;
     return `${h}<button type="button" data-lesson="${l.id}" aria-current="${l.id === learnId}"><span class="ln-n">${done[l.id] ? '✓' : i + 1}</span>${l.t}</button>`; }).join('');
-  return `<p class="lead">A step-by-step course in Vedic astrology for complete beginners. Each lesson takes a few minutes, uses <b>your own chart</b> as the example, and ends with a short quiz.</p>
+  return `<p class="lead">A step-by-step course in Vedic astrology for complete beginners, plus a section on financial astrology with every market claim tested on US and Indian data. Each lesson takes a few minutes, uses <b>your own chart</b> as the example, and ends with a short quiz.</p>
   <div class="ln-wrap"><nav class="ln-side" aria-label="Lessons">
     <div class="ln-prog"><div class="ln-bar"><span style="width:${Math.round(n / LESSONS.length * 100)}%"></span></div><span class="mono">${n} / ${LESSONS.length} done</span></div>
     ${items}<div class="ln-lvl">Reference</div><button type="button" data-lesson="glossary" aria-current="${learnId === 'glossary'}"><span class="ln-n">A–Z</span>Glossary</button>
@@ -2714,6 +3027,7 @@ function renderTab() {
   try { $('#pane').innerHTML = f(); } catch (err) { console.error(err); $('#pane').innerHTML = `<p class="err">This tab hit an error (${esc(err.message)}). The rest of the app still works; please report it.</p>`; return; }
   if (tab === 'transits') initTransit();
   if (tab === 'planets') wirePlanets();
+  if (tab === 'events') wireMyEvents();
   if (tab === 'learn') wireLearn();
   enhanceTables();
   $('#pane').querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => { moneyMonths = +b.dataset.mm; renderTab(); }));
@@ -2728,6 +3042,97 @@ const digCls = d => ({exalted:'good', moolatrikona:'good', own:'good', 'great fr
 const funcCls = f => ({yogakaraka:'acc', benefic:'good', neutral:'', malefic:'bad', node:''}[f]);
 const funcLbl = f => ({yogakaraka:'Yogakaraka', benefic:'Functional benefic', neutral:'Functionally neutral', malefic:'Functional malefic', node:'Shadow planet'}[f]);
 
+// ---------- your real life events: logged by you, placed on the dasa timeline, checked against the predictions ----------
+const MYEV_KINDS = {
+  marriage: ['Marriage', 'marriage', true], child: ['Child born', 'children', true], father: ['Father passed away', 'father', false],
+  fatherill: ['Father’s illness', 'father', false], jobnew: ['New job / promotion', 'job', true], joblost: ['Job loss / trouble with boss', 'job', false],
+  jobless: ['Without a job', 'career', false], health: ['Health problem / accident', 'health', false], mind: ['Stress, anxiety or memory trouble', 'mind', false],
+  edu: ['Studies completed', 'education', true], gain: ['Money gain', 'wealth', true], loss: ['Money loss / debt', 'wealth', false],
+  home: ['Home / vehicle bought', 'property', true], move: ['Travel / moved abroad', 'travel', true], good: ['Other good event', null, true], bad: ['Other hard event', null, false]
+};
+// the events you have told me about, pre-filled for your own birth chart only (edit or delete them freely)
+const MYEV_SEED = [
+  {d: '2003-10', kind: 'health', txt: 'Epilepsy began and left hand fractured in 8th standard; in hospital for months'},
+  {d: '2013-05', kind: 'edu', txt: 'Completed MCA'},
+  {d: '2013-07', e: '2014-07', kind: 'jobless', txt: 'Without a job for about a year'},
+  {d: '2014', kind: 'mind', txt: 'Brain fog began; trouble recognising names and faces'},
+  {d: '2016-05', kind: 'edu', txt: 'Completed MBA'},
+  {d: '2016-06', e: '2017-02', kind: 'joblost', txt: '1st job (₹8,000): boss angry, isolated me, asked me to leave after 8 months'},
+  {d: '2017-03', e: '2017-11', kind: 'joblost', txt: '2nd job: boss angry when I resigned, rusticated after 8 months'},
+  {d: '2017-12', e: '2018-06', kind: 'joblost', txt: '3rd job: company moved away, left after 6 months'},
+  {d: '2018-07', e: '2019-07', kind: 'joblost', txt: '4th job: company went bankrupt, last 3 months unpaid'},
+  {d: '2019-08', kind: 'jobnew', txt: 'Joined current company (still there)'},
+  {d: '2022-06', kind: 'marriage', txt: 'Married'},
+  {d: '2023-01-30', kind: 'father', txt: 'Father passed away'},
+  {d: '2023-08-19', kind: 'child', txt: 'Daughter born'}
+];
+const myevKey = () => C && C.inp ? `jk-myev|${C.inp.dv}|${String(C.inp.tv).slice(0, 5)}|${(+C.inp.lat).toFixed(2)}|${(+C.inp.lon).toFixed(2)}` : null;
+const isMyChart = () => C && C.inp && C.inp.dv === '1990-08-11' && /^23:(3|4)/.test(String(C.inp.tv)) && Math.abs(C.inp.lat - 13.08) < 0.2;
+function myEvents() {
+  const k = myevKey(); if (!k) return [];
+  const saved = store.get(k);
+  if (Array.isArray(saved)) return saved;
+  return isMyChart() ? MYEV_SEED.map(x => ({...x})) : [];
+}
+function setMyEvents(list) { const k = myevKey(); if (k) store.set(k, list); }
+const myevStart = x => new Date(x.d.length === 4 ? x.d + '-07-01' : x.d.length === 7 ? x.d + '-15' : x.d);
+const myevEnd = x => x.e ? new Date(x.e.length === 4 ? x.e + '-07-01' : x.e.length === 7 ? x.e + '-15' : x.e) : myevStart(x);
+// options for the engine that come from your real events (no children themes before marriage; no father themes after his passing)
+function myevOpts() {
+  const L = myEvents(), o = {};
+  const m = L.filter(x => x.kind === 'marriage').map(myevStart).sort((a, b) => a - b)[0]; if (m) o.married = m;
+  const f = L.find(x => x.kind === 'father'); if (f) o.fatherDied = myevStart(f);
+  return o;
+}
+// was the event predicted? a theme of the same area and direction in a period overlapping it
+function myevCheck(x) {
+  const k = MYEV_KINDS[x.kind]; const s = myevStart(x), e = myevEnd(x);
+  const ps = C.events.filter(p => p.start <= e && p.end >= s);
+  if (!k || !k[1]) return {ps, hit: null};
+  const areas = k[1] === 'career' ? ['career', 'job'] : k[1] === 'job' ? ['job', 'career'] : [k[1]];
+  return {ps, hit: ps.some(p => p.themes.some(t => areas.includes(t.area) && t.good === k[2]))};
+}
+function myevSection() {
+  const L = myEvents().slice().sort((a, b) => myevStart(a) - myevStart(b));
+  const checked = L.map(x => ({x, ...myevCheck(x)})), scored = checked.filter(c => c.hit !== null), hits = scored.filter(c => c.hit).length;
+  const open = store.get('jk-myev-open');
+  const rows = checked.map(({x, ps, hit}) => {
+    const i = L.indexOf(x), k = MYEV_KINDS[x.kind] || ['Event', null, true];
+    return `<tr><td class="mono" style="white-space:nowrap">${esc(x.d)}${x.e ? ' → ' + esc(x.e) : ''}</td><td>${chip(k[0], k[2] ? 'good' : 'bad')}</td><td>${esc(x.txt || '')}</td>
+      <td style="white-space:nowrap">${ps.map(p => `${p.md}–${p.ad}`).join(', ')}</td>
+      <td>${hit === null ? '<span class="muted">—</span>' : hit ? chip('✓ Predicted', 'good') : chip('✗ Missed', 'bad')}</td>
+      <td><button type="button" class="linkbtn" data-myevdel="${i}" aria-label="Delete this event">Delete</button></td></tr>`;
+  }).join('');
+  return `<details class="myev"${open === false ? '' : ' open'} id="myevbox"><summary><b>Your real life events</b> ${scored.length ? `<span class="muted">· the rules predicted ${hits} of ${scored.length}</span>` : '<span class="muted">· add what actually happened to check the predictions</span>'}</summary>
+    <p class="note" style="margin:8px 0">Add what really happened. Each event is placed in its dasa period below, and marked <b>✓ Predicted</b> when that period showed the same kind of event, or <b>✗ Missed</b> when it didn’t. Your marriage date stops child themes being shown before it, and a parent’s passing stops later themes about them. Saved only in this browser.</p>
+    ${L.length ? `<div class="tablewrap"><table class="myevt"><thead><tr><th>When</th><th>Type</th><th>What happened</th><th>Dasa period</th><th>Prediction</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}
+    <form class="myevform" id="myevform">
+      <label>From <input name="d" placeholder="2019-08 or 2019-08-15" required pattern="\\d{4}(-\\d{2}(-\\d{2})?)?"></label>
+      <label>To (optional) <input name="e" placeholder="2020-03" pattern="\\d{4}(-\\d{2}(-\\d{2})?)?"></label>
+      <label>Type <select name="kind">${Object.entries(MYEV_KINDS).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join('')}</select></label>
+      <label class="wide">What happened <input name="txt" maxlength="160" placeholder="e.g. Promoted to team lead"></label>
+      <button type="submit" class="btn">Add event</button>
+    </form></details>`;
+}
+function wireMyEvents() {
+  const box = $('#myevbox'); if (!box) return;
+  box.addEventListener('toggle', () => store.set('jk-myev-open', box.open));
+  const refresh = () => { C.events = J.lifeEvents(C, myevOpts()); renderTab(); };
+  box.querySelectorAll('[data-myevdel]').forEach(b => b.addEventListener('click', () => {
+    const L = myEvents().slice().sort((a, b) => myevStart(a) - myevStart(b)); L.splice(+b.dataset.myevdel, 1); setMyEvents(L); refresh();
+  }));
+  const f = $('#myevform'); if (f) f.addEventListener('submit', ev => {
+    ev.preventDefault(); const fd = new FormData(f), x = {d: String(fd.get('d')).trim(), kind: fd.get('kind'), txt: String(fd.get('txt') || '').trim()};
+    const e = String(fd.get('e') || '').trim(); if (e) x.e = e;
+    if (isNaN(myevStart(x))) return;
+    setMyEvents([...myEvents(), x]); refresh();
+  });
+}
+// your events that fall inside one dasa period (shown in its card)
+function myevIn(p) {
+  return myEvents().filter(x => myevStart(x) <= p.end && myevEnd(x) >= p.start).map(x => ({x, ...myevCheck(x)}));
+}
+
 function evRow(e, now) {
   const isNow = now >= e.start && now < e.end, past = e.end < now;
   const themes = e.themes.filter(t => evArea === 'all' || t.area === evArea);
@@ -2735,12 +3140,13 @@ function evRow(e, now) {
   const age = a => a < 1 ? '0' : Math.floor(a);
   const body = themes.length ? themes.map(t => `<div class="ev-theme ${t.good ? 'g' : 'b'}">
       <div class="ev-th"><span class="ev-area">${esc(J.AREAS[t.area].label)}</span>${chip(t.good ? 'Likely positive' : 'Needs care', t.good ? 'good' : 'bad')}${chip(t.level + ' confidence', t.level === 'High' ? 'acc' : '')}</div>
-      <p><b>${t.good ? 'Likely' : 'Watch for'}:</b> ${esc(t.good ? J.AREAS[t.area].good : J.AREAS[t.area].bad)}.</p>
+      <p><b>${t.good ? 'Likely' : 'Watch for'}:</b> ${esc(t.good ? J.AREAS[t.area].good : J.AREAS[t.area].bad)}${t.strained ? ', though the period itself is hard, so expect some strain around it' : ''}.</p>
       <p class="ev-why">Why: ${esc(t.why.join('; '))}.${t.support.length ? ` Confirmed by ${esc(t.support.join(', '))}.` : ''}</p></div>`).join('')
     : `<p class="muted" style="font-size:14px">No strong event signal from the period lords${evArea !== 'all' ? ' in this area' : ''}. Expect a routine phase coloured by ${e.ad}’s nature: ${esc(J.PD[e.ad].gov)}.</p>`;
   return `<article class="ev${isNow ? ' now' : ''}${past ? ' past' : ''}">
     <div class="ev-when"><div class="mono">${J.fmt(e.start)}</div><div class="mono muted">→ ${J.fmt(e.end)}</div><div class="ev-age">age ${age(e.age0)}–${age(e.age1)}</div>${isNow ? chip('Now', 'acc') : past ? chip('Past', '') : ''}</div>
     <div class="ev-main"><div class="ev-head"><span class="ev-title">${e.md} – ${e.ad}</span>${chip(mood[0], mood[1])}</div>
+      ${(() => { const R = myevIn(e); return R.length ? `<div class="ev-real"><b>What happened:</b><ul>${R.map(({x, hit}) => `<li><span class="mono">${esc(x.d)}</span> ${esc(x.txt || MYEV_KINDS[x.kind][0])} ${hit === null ? '' : hit ? chip('✓ Predicted', 'good') : chip('✗ Missed', 'bad')}</li>`).join('')}</ul></div>` : ''; })()}
       ${body}
       ${e.remedy.length ? `<details class="ev-rem"${isNow ? ' open' : ''}><summary>Remedies for this period</summary><ul>${e.remedy.map(r => `<li>${esc(r)}</li>`).join('')}</ul></details>` : ''}
     </div></article>`;
@@ -2773,6 +3179,7 @@ function tEvents() {
     <div class="seg" role="group" aria-label="Time range">${[['upcoming','From now'],['past','Past (check accuracy)'],['all','Whole life']].map(([k, l]) => `<button type="button" data-evscope="${k}" aria-pressed="${evScope === k}">${l}</button>`).join('')}</div>
     <div class="ev-areas">${areas.map(a => `<button type="button" class="fchip" data-evarea="${a}" aria-pressed="${evArea === a}">${a === 'all' ? 'All areas' : esc(J.AREAS[a].label)}</button>`).join('')}</div>
   </div>
+  ${myevSection()}
   ${evScope === 'past' ? '<p class="note" style="margin-bottom:12px">Compare these with what actually happened. If the past periods don’t match, the birth time may be off by a few minutes; this is how astrologers correct it (chapter 32).</p>' : ''}
   <div class="ev-list">${rows || '<p class="muted">No periods match this filter.</p>'}</div>`;
 }
