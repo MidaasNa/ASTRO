@@ -288,6 +288,19 @@ tr.now td{background:var(--accent-soft)}
 .ln-barrow b{text-align:right}
 
 /* your real events */
+.remtab{width:100%;border-collapse:collapse;font-size:14px;min-width:980px}.remtab th,.remtab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.pr-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.pr-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pr-head h3{margin:0;font-size:17px;flex:1}.pr-ico{font-size:20px}
+.pr-notes{margin:6px 0 10px;padding-left:18px;font-size:14px;line-height:1.5}.pr-notes li{margin:3px 0}
+.pr-when{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:14px;border-top:1px solid var(--line);padding-top:8px}
+.pr-when ul{margin:4px 0;padding-left:16px}.pr-when li{margin:2px 0}.pr-when p{margin:4px 0;font-size:13px}
+.pr-good{color:var(--good)}.pr-bad{color:var(--bad)}
+.pr-vs{background:var(--panel-2);border-radius:8px;padding:8px 10px;font-size:14px;margin:0 0 10px}
+.pr-track{font-size:13px;margin:8px 0 0;color:var(--muted)}
+.pr-rem{margin-top:8px;font-size:14px}.pr-rem summary{cursor:pointer;color:var(--accent)}.pr-rem ul{padding-left:18px}
+.pr-phases{margin:0 0 16px}.pr-phases h3{margin:0 0 6px}.pr-phtab{width:100%;border-collapse:collapse;font-size:14px}.pr-phtab td,.pr-phtab th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+@media (max-width:600px){.pr-grid{grid-template-columns:1fr}.pr-when{grid-template-columns:1fr}}
 .myev{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:0 0 16px}
 .myev summary{cursor:pointer;font-size:15px}
 .myevt{width:100%;border-collapse:collapse;font-size:14px}
@@ -470,6 +483,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
   <nav class="tabs" role="tablist" id="tabs">
     <button role="tab" data-t="events" aria-selected="true">Life events</button>
     <button role="tab" data-t="money" aria-selected="false">Money calendar</button>
+    <button role="tab" data-t="predict" aria-selected="false">Predictions</button>
     <button role="tab" data-t="overview" aria-selected="false">Overview</button>
     <button role="tab" data-t="houses" aria-selected="false">Houses</button>
     <button role="tab" data-t="planets" aria-selected="false">Planets &amp; effects</button>
@@ -2432,7 +2446,7 @@ document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click
 }));
 // ---------- table toolbar: hide/show columns and resize text (saved per table in this browser) ----------
 function enhanceTables() {
-  const tables = [...document.querySelectorAll('#pane table')].filter(t => !t.classList.contains('ln-t') && !t.classList.contains('myevt') && t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells.length >= 4);
+  const tables = [...document.querySelectorAll('#pane table')].filter(t => !t.classList.contains('ln-t') && !t.classList.contains('myevt') && !t.classList.contains('pr-phtab') && t.tHead && t.tHead.rows[0] && t.tHead.rows[0].cells.length >= 4);
   tables.forEach((t, i) => {
     const key = `jk-tbl-${tab}-${i}`;
     const st = Object.assign({h: [], fs: 1}, store.get(key) || {});
@@ -3023,7 +3037,7 @@ function wireLearn() {
 }
 
 function renderTab() {
-  const f = {events: tEvents, money: tMoney, overview: tOverview, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn}[tab];
+  const f = {events: tEvents, money: tMoney, overview: tOverview, predict: tPredict, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn}[tab];
   try { $('#pane').innerHTML = f(); } catch (err) { console.error(err); $('#pane').innerHTML = `<p class="err">This tab hit an error (${esc(err.message)}). The rest of the app still works; please report it.</p>`; return; }
   if (tab === 'transits') initTransit();
   if (tab === 'planets') wirePlanets();
@@ -3414,6 +3428,97 @@ function housePrediction(r) {
     bad:`Delays and struggle in ${short}; results come late and through persistence. Remedies for ${r.lord} help.`}[r.tone];
 }
 // per-house remedies (ch.34: common sense first, then good deeds, mantras/deities, and gems only for planets good for you)
+// ---------- Predictions: life-area forecasts from the chart's promise (houses, lords, karakas, yogas) + dasa timing ----------
+const PRED_DIGW = {'exalted':'exalted','moolatrikona':'in its moolatrikona sign (very strong)','own':'in its own sign','great friend’s sign':'in a great friend’s sign','friendly':'in a friendly sign','neutral':'in a neutral sign','inimical':'in an enemy’s sign','bitter enemy’s sign':'in a bitter enemy’s sign','debilitated':'debilitated (weak)'};
+const PRED_DIG = {'exalted':3,'moolatrikona':2.5,'own':2,'great friend’s sign':1.5,'friendly':1,'neutral':0,'inimical':-1,'bitter enemy’s sign':-1.5,'debilitated':-3};
+// houses: [house, weight, invert?]  invert = a strong dusthana means trouble for this area
+const PRED_AREAS = [
+  {k:'career', title:'Career & job', icon:'💼', houses:[[10,2],[6,1,true]], karakas:['Sun','Saturn','Mercury'], yogas:/Raja|Amatya|Ruchaka|Sasa|Bhadra/, ev:['career','job'],
+   good:'career growth, recognition and a steady rise', care:'pressure from bosses, job changes or delays in promotion'},
+  {k:'business', title:'Business & self-employment', icon:'🏪', houses:[[7,2],[3,1],[11,1]], karakas:['Mercury','Mars'], yogas:/Dhana|Lakshmi|Raja/, ev:['wealth'],
+   good:'a good window to start or expand an independent venture', care:'losses through partners, debt or overreach'},
+  {k:'marriage', title:'Marriage & partner', icon:'💍', houses:[[7,2],[2,1]], karakas:['Venus'], yogas:/Malavya|Kalatra/, ev:['marriage'],
+   good:'closeness, harmony and support from your partner', care:'misunderstandings or distance; invest time and patience'},
+  {k:'family', title:'Family life & home peace', icon:'🏠', houses:[[4,2],[2,1]], karakas:['Moon'], yogas:/Sunaphaa|Anaphaa|Durudhara|Gajakesari/, ev:['property','mind'],
+   good:'peace at home and happy family moments', care:'tension at home or worries about family members'},
+  {k:'children', title:'Children', icon:'👶', houses:[[5,2]], karakas:['Jupiter'], yogas:/Lakshmi|Hamsa/, ev:['children'],
+   good:'happiness and progress through your children', care:'worries about a child’s health or studies'},
+  {k:'wealth', title:'Money & savings', icon:'💰', houses:[[2,2],[11,2]], karakas:['Jupiter','Venus'], yogas:/Lakshmi|Dhana|Vasumati|Sunaphaa|Chandra/, ev:['wealth'],
+   good:'income growth, gains and the ability to save', care:'unplanned expenses or pressure on savings'},
+  {k:'property', title:'House, land & vehicles', icon:'🔑', houses:[[4,2]], karakas:['Mars','Venus','Moon'], yogas:/Malavya|Ruchaka/, ev:['property'],
+   good:'buying a home, land or vehicle, or improving your home', care:'property disputes, repairs or a stressful move'},
+  {k:'health', title:'Overall health', icon:'🩺', houses:[[1,1.5],[6,1,true],[8,1.5,true]], karakas:['Sun'], invK:0.8, yCap:0.4, yogas:/Ruchaka|Hamsa|Sasa/, ev:['health'],
+   good:'recovery and good energy', care:'health issues, injuries or fatigue; get check-ups early'},
+  {k:'mind', title:'Mind, sleep & confidence', icon:'🧘', houses:[[4,1],[5,1]], karakas:['Moon','Mercury'], yogas:/Saraswathi|Budha|Gajakesari/, ev:['mind'],
+   good:'mental clarity, calm and confidence', care:'anxiety, poor sleep or overthinking; keep routines steady'},
+  {k:'education', title:'Learning & skills', icon:'📚', houses:[[4,1],[5,2],[9,1]], karakas:['Mercury','Jupiter'], yogas:/Saraswathi|Budha|Hamsa/, ev:['education'],
+   good:'learning a new skill or completing a course', care:'interruptions in study'},
+  {k:'travel', title:'Travel & foreign links', icon:'✈️', houses:[[12,2],[9,1],[3,1]], karakas:['Rahu'], yogas:/./ , ev:['travel'],
+   good:'long journeys, foreign work or connections abroad', care:'unwanted relocation or travel expenses'},
+  {k:'parents', title:'Parents & elders', icon:'👪', houses:[[9,1],[4,1]], karakas:['Sun','Moon'], yogas:/Hamsa|Gajakesari/, ev:['father'],
+   good:'support and blessings from parents and elders', care:'a parent’s health; spend time with them'},
+  {k:'spiritual', title:'Spiritual growth', icon:'🕉️', houses:[[12,2],[9,1]], karakas:['Ketu','Jupiter'], yogas:/Hamsa|Pravrajya|Tapaswi/, ev:['spiritual'],
+   good:'inner growth, pilgrimage or a sense of purpose', care:'restlessness or feeling lost'}
+];
+function predArea(A, H) {
+  const P = C.P, rows = A.houses.map(([h, w, inv]) => ({r: H.find(x => x && x.h === h), w, inv}));
+  let num = 0, den = 0; for (const x of rows) { const s = Math.max(-3, Math.min(3, x.r.score)); num += x.w*(x.inv ? -(A.invK || 0.6)*s : s); den += x.w; }
+  let score = num/den, kNotes = [];
+  for (const b of A.karakas) { const p = P[b]; if (!p) continue; const d = PRED_DIG[p.dignity] || 0, f = C.func[b];
+    score += 0.2*d/A.karakas.length + ((f === 'benefic' || f === 'yogakaraka') ? 0.15 : f === 'malefic' ? -0.15 : 0);
+    kNotes.push(`${b} (significator) is ${PRED_DIGW[p.dignity] || p.dignity} in your ${J.ORD(p.house)} house`); }
+  const ys = (C.yogas || []).filter(y => A.yogas.test(y.name) && A.k !== 'travel'); let yb = 0;
+  for (const y of ys) yb += y.strength === 'present' ? 0.35 : y.strength === 'weakened' ? 0.12 : -0.3;
+  score += Math.max(-0.6, Math.min(A.yCap || 0.7, yb));
+  const rating = score >= 1.2 ? ['Strong', 'good'] : score >= 0.4 ? ['Good, with effort', 'ok'] : score >= -0.4 ? ['Mixed', 'mixed'] : ['Needs effort', 'bad'];
+  // what the chart shows: primary house lord effect, occupants, karaka, yogas
+  const pr = rows[0].r, notes = [];
+  notes.push(`<b>${J.ORD(pr.h)} house (${esc(pr.name)})</b>: ${esc(pr.lordEffect)}`);
+  for (const o of pr.occupants.slice(0, 2)) notes.push(esc(o.text.split('. ')[0]) + '.');
+  for (const x of rows.slice(1)) if (x.r.tone === 'bad' || x.r.tone === 'good') notes.push(`<b>${J.ORD(x.r.h)} house</b> reads “${esc(x.r.verdict)}”${x.inv ? ' (for this area a strong ' + J.ORD(x.r.h) + ' means trouble)' : ''}.`);
+  if (kNotes.length) notes.push(esc(kNotes.join('; ')) + '.');
+  if (ys.length) { const cnt = {}; for (const y of ys) { const k = y.name + (y.strength !== 'present' ? ' (' + y.strength + ')' : ''); cnt[k] = (cnt[k] || 0) + 1; }
+    notes.push('Yogas: ' + Object.entries(cnt).map(([k, n]) => `<b>${esc(k)}</b>${n > 1 ? ' ×' + n : ''}`).join(', ') + '.'); }
+  // timing from the dasa timeline
+  const now = new Date(), horizon = new Date(now.getTime() + 30*365.25*864e5), best = [], careful = [];
+  for (const e of C.events) { if (e.end < now || e.start > horizon) continue;
+    for (const t of e.themes) if (A.ev.includes(t.area) && t.level !== 'Low') (t.good ? best : careful).push({e, t}); }
+  const uniq = arr => { const seen = new Set(); return arr.filter(x => { const k = x.e.md + x.e.ad; if (seen.has(k)) return false; seen.add(k); return true; }); };
+  const fmtP = x => `<li><span class="mono">${J.fmt(x.e.start)} – ${J.fmt(x.e.end)}</span> · ${x.e.md}–${x.e.ad} ${chip(x.t.level, x.t.level === 'High' ? 'acc' : '')}</li>`;
+  // track record from the user's own logged events
+  let track = '';
+  try { const L = myEvents().filter(x => MYEV_KINDS[x.kind] && A.ev.concat(A.k === 'career' ? ['job', 'career'] : []).includes(MYEV_KINDS[x.kind][1])).map(x => myevCheck(x)).filter(c => c.hit !== null);
+    if (L.length) track = `<p class="pr-track">Your track record in this area: the rules predicted <b>${L.filter(c => c.hit).length} of ${L.length}</b> of your logged events.</p>`; } catch (err) {}
+  return {score, rating, notes, best: uniq(best).slice(0, 4), careful: uniq(careful).slice(0, 3), track, fmtP, remedies: houseRemedies(pr)};
+}
+const PRED_HOUSE_WORD = {1:'self and health',2:'money and family',3:'courage and effort',4:'home and peace',5:'children and intellect',6:'work, debts and rivals',7:'marriage and partners',8:'sudden changes',9:'luck and elders',10:'career and status',11:'gains',12:'expenses, travel and letting go'};
+function phaseTheme(b) {
+  const p = C.P[b], f = C.func[b], hs = p.lordOf && p.lordOf.length ? p.lordOf : [];
+  const tone = f === 'benefic' ? 'Mostly supportive' : f === 'malefic' ? 'Mixed; effort and patience needed' : f === 'node' ? 'Unpredictable, with sudden turns' : 'Neutral';
+  return `${tone}. Activates ${PRED_HOUSE_WORD[p.house]} (sits in the ${J.ORD(p.house)})${hs.length ? ' and ' + hs.map(h => PRED_HOUSE_WORD[h]).join(', ') + ' (rules the ' + hs.map(J.ORD).join(' & ') + ')' : ''}.`;
+}
+function tPredict() {
+  const H = J.houseTable(C), cards = [];
+  let jobScore = null, bizScore = null;
+  for (const A of PRED_AREAS) { const R = predArea(A, H); if (A.k === 'career') jobScore = R.score; if (A.k === 'business') bizScore = R.score;
+    cards.push(`<article class="pr-card"><div class="pr-head"><span class="pr-ico">${A.icon}</span><h3>${A.title}</h3>${chip(R.rating[0], R.rating[1])}</div>
+      <ul class="pr-notes">${R.notes.map(n => `<li>${n}</li>`).join('')}</ul>
+      ${A.k === 'business' && jobScore !== null ? `<p class="pr-vs"><b>Job or business?</b> ${R.score > jobScore + 0.3 ? 'Your chart leans towards <b>independent business</b> more than employment.' : R.score < jobScore - 0.3 ? 'Your chart leans towards <b>employment or service</b> more than running your own business. If you start something, keep it small, solo and low on debt, and avoid partnerships.' : 'Job and business are about equally supported; a side business alongside a job is the balanced path.'}</p>` : ''}
+      <div class="pr-when"><div><b class="pr-good">Best periods ahead</b>${R.best.length ? `<ul>${R.best.map(R.fmtP).join('')}</ul><p class="muted">Likely: ${esc(A.good)}.</p>` : '<p class="muted">No strong window in the next 30 years; results come gradually.</p>'}</div>
+        <div><b class="pr-bad">Handle with care</b>${R.careful.length ? `<ul>${R.careful.map(R.fmtP).join('')}</ul><p class="muted">Watch for: ${esc(A.care)}.</p>` : '<p class="muted">No strongly difficult period flagged.</p>'}</div></div>
+      ${R.track}
+      <details class="pr-rem"><summary>Remedies for this area</summary><ul>${R.remedies}</ul></details></article>`); }
+  // life phases: the main periods ahead and how many of their sub-periods read favourable
+  const now = new Date(), phases = C.dasa.MD.filter(m => m.end > now).slice(0, 4).map(m => {
+    const ev = C.events.filter(e => e.md === m.lord && e.end > now), f = ev.filter(e => e.mood === 'favourable').length, d = ev.filter(e => e.mood === 'difficult').length;
+    const age = y => Math.floor((y - C.date)/(365.2425*864e5));
+    return `<tr><td><b>${m.lord}</b> main period</td><td class="mono">${m.start.getFullYear()}–${m.end.getFullYear()}</td><td>age ${Math.max(0, age(m.start))}–${age(m.end)}</td><td>${f} favourable · ${ev.length - f - d} mixed · ${d} difficult</td><td>${esc(phaseTheme(m.lord))}</td></tr>`; }).join('');
+  return `<p class="lead">A forecast for each area of life. <b>What your chart promises</b> comes from the strength of the relevant houses, their lords, the natural significator planets and yogas (the same rules as the Houses and Planets tabs). <b>When</b> comes from your dasa timeline, the method that matched 9 of 13 of your logged life events. These are tendencies to plan with, not certainties; effort, choices and circumstances still decide outcomes.</p>
+  <div class="pr-phases"><h3>Life phases ahead</h3><div class="tablewrap"><table class="pr-phtab"><thead><tr><th>Period</th><th>Years</th><th>Age</th><th>Sub-periods</th><th>Theme</th></tr></thead><tbody>${phases}</tbody></table></div></div>
+  <div class="pr-grid">${cards.join('')}</div>
+  <p class="note" style="margin-top:14px">Ratings combine house strength (the lord’s placement and dignity, occupants and aspects), the significator planets and yogas. “Needs effort” means the area develops with effort or delays, not that it is denied. Timing windows show only Medium or High confidence sub-periods. Remedies follow chapter 34 of the book (Remedies tab has the mantras and details).</p>`;
+}
+
 const HOUSE_PRACTICAL = {
   1:'Guard your health and energy: regular sleep, exercise and check-ups.',
   2:'Pay yourself first: move savings to a separate account on salary day; watch your words at home.',
@@ -3771,12 +3876,43 @@ function pacifyCard(b, why) {
   <dt>Deity</dt><dd>${esc(d.deity)}</dd><dt>Mantra count</dt><dd>${d.count} times, ideally on ${d.day}s</dd></dl>
   <div class="mantra"><div class="deva">${d.sloka}</div><div class="deva" style="font-weight:600">${d.mantra}</div></div></div>`;
 }
+// ---------- Remedy summary table: nature, strength, whether to strengthen, remedy, gemstone and substitutes for every planet ----------
+const GEM_ALT = {Sun:'Red garnet, red spinel, star ruby', Moon:'Moonstone, white coral', Mars:'Carnelian, red jasper', Mercury:'Peridot, green tourmaline, green onyx',
+  Jupiter:'Yellow topaz, citrine', Venus:'White sapphire, white zircon, white topaz, opal', Saturn:'Amethyst, iolite, lapis lazuli', Rahu:'Orange zircon, spessartite garnet', Ketu:'Tiger’s eye, quartz cat’s eye'};
+function remedyTable() {
+  const rows = J.PL.map(b => {
+    const p = C.P[b], d = J.PD[b], f = C.func[b], node = f === 'node', dus = [6, 8, 12].includes(p.house);
+    const s = (PRED_DIG[p.dignity] || 0) - (p.combust ? 1.5 : 0) - (dus ? 1 : 0);
+    const str = s >= 3 ? 'Very strong' : s >= 2 ? 'Strong' : s >= 1 ? 'Good' : s > -1 ? 'Medium' : 'Weak', strong = s >= 2, weak = s <= -1;
+    const why = [PRED_DIGW[p.dignity] || p.dignity, `${J.ORD(p.house)} house`].concat(p.combust ? ['combust (too close to the Sun)'] : [], p.retro && !node ? ['retrograde'] : []).join(', ');
+    const good = f === 'benefic' || f === 'yogakaraka';
+    const nat = node ? 'Shadow planet' : `${f === 'yogakaraka' ? 'Yogakaraka (best benefic)' : f[0].toUpperCase() + f.slice(1)}${p.lordOf && p.lordOf.length ? ` (rules the ${p.lordOf.map(J.ORD).join(' and ')})` : ''}`;
+    const act = node ? ['No, calm it', 'mixed'] : good ? (strong ? ['No, already strong', 'ok'] : [weak ? 'Yes, a priority' : 'Yes, keep supporting', 'good'])
+      : f === 'neutral' ? (weak ? ['Yes, through habits and worship first', 'good'] : ['No need', 'ok']) : (weak ? ['No, calm it instead', 'bad'] : ['No, leave it alone', 'bad']);
+    const lk = LK_EXTRA[`${b}|${p.house}`];
+    const rem = `${d.deed[0].toUpperCase() + d.deed.slice(1)}${d.grain ? `; donate ${d.grain} on a ${d.day}` : ''}; worship ${d.deity}.${lk ? ' ' + lk : ''}`;
+    const wear = node || f === 'malefic' ? 'No' : strong ? 'Not needed' : p.house === 12 ? 'Not at first. If you try a substitute, take it off at night (the 12th house governs sleep)'
+      : good ? 'Optional. Try a substitute first' : 'A mild substitute only, as a trial';
+    return `<tr><td><b>${b}</b></td><td>${esc(nat)}</td><td>${chip(str, strong || str === 'Good' ? 'good' : weak ? 'bad' : 'mixed')}<br><span class="muted" style="font-size:12.5px">${esc(why)}</span></td><td>${chip(act[0], act[1])}</td><td>${esc(rem)}</td><td>${esc(d.gem)}</td><td>${esc(GEM_ALT[b])}</td><td>${esc(wear)}</td></tr>`;
+  }).join('');
+  const m12 = C.P.Moon.house === 12 ? `<details class="pr-rem" style="margin-top:10px"><summary>Stronger plan for a Moon in the 12th house</summary><ul>
+    <li><b>40-day mantra vow:</b> the Moon’s mantra (Remedies cards below; the book gives a count of ${esc(J.PD.Moon.count)}), about 3 rounds of a 108-bead mala each evening at a fixed time. Start on a Monday while the Moon is waxing.</li>
+    <li><b>Mondays:</b> offer water or milk at a Shiva temple; chant the Mahamrityunjaya mantra 108 times; give milk, white rice or sugar to women, the elderly or people in need.</li>
+    <li><b>Jupiter’s help (Lal Kitab):</b> visit a place of worship every Thursday and respect teachers and elders.</li>
+    <li><b>Lal Kitab for this placement:</b> wear gold in the ears; drink only clean water, stored in a silver glass if you have one; drop a coin into running water now and then.</li>
+    <li><b>Daily:</b> fixed sleep and wake times and a bath before work. These matter most, because the 12th house governs sleep.</li>
+    <li>Avoid a pearl at first, and skip fasting if you have any health condition.</li></ul></details>` : '';
+  return `<div class="section"><h3>Remedy table: all nine planets</h3><p class="lead">Strengthen only planets that are good for you and weak. A weak malefic is calmed through conduct and charity, not boosted with a gem, because a gem would strengthen its harmful side too.</p>
+   <div class="tablewrap"><table class="remtab"><thead><tr><th>Planet</th><th>Benefic / malefic for you</th><th>Strength</th><th>Strengthen it?</th><th>Remedy</th><th>Main gemstone</th><th>Alternatives</th><th>Should you wear it?</th></tr></thead><tbody>${rows}</tbody></table></div>
+   ${m12}<p class="note">Wear one new stone at a time for a week or two and watch your sleep and mood. Ask for a lab certificate naming the mineral, because substitutes are often sold under the costlier stone’s name. There is no tested evidence that gemstones or rituals change outcomes; the habits help either way.</p></div>`;
+}
 function tRemedies() {
   const R = J.remedies(C, C.cur);
   const cl = C.cur ? [C.cur.md.lord, C.cur.ad.lord] : [];
   const fingers = 'Traditionally Jupiter’s gem goes on the index finger, Saturn’s on the middle, the Sun’s on the ring and Mercury’s and Venus’s on the little finger.';
   const mk = R.moksha;
   return `<p class="lead">Chapter 34: the birth chart fixes the basic pattern of life, but free will can change the details. There are four ways to please planets: wearing gemstones, good deeds, reciting mantras, and worshipping their deities. The book puts common-sense precautions first, such as driving carefully in a period that shows accidents.</p>
+  ${remedyTable()}
   ${savingsHousePlan()}
   ${tradingAndLoans()}
   <div class="section"><h3>Gemstones that suit you</h3><p class="lead">Wear gems only for planets that are favourable in your chart (functional benefics and yogakarakas). A gem speeds up the good results a planet promises, and it can help a benefic that is badly placed to deliver.</p>
