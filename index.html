@@ -288,7 +288,7 @@ tr.now td{background:var(--accent-soft)}
 .ln-barrow b{text-align:right}
 
 /* your real events */
-.remtab{width:100%;border-collapse:collapse;font-size:14px;min-width:980px}.remtab th,.remtab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.remtab{width:100%;border-collapse:collapse;font-size:14px;min-width:980px}.bodytab{min-width:760px}.remtab th,.remtab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .pr-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .pr-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pr-head h3{margin:0;font-size:17px;flex:1}.pr-ico{font-size:20px}
@@ -3497,6 +3497,41 @@ function phaseTheme(b) {
   const tone = f === 'benefic' ? 'Mostly supportive' : f === 'malefic' ? 'Mixed; effort and patience needed' : f === 'node' ? 'Unpredictable, with sudden turns' : 'Neutral';
   return `${tone}. Activates ${PRED_HOUSE_WORD[p.house]} (sits in the ${J.ORD(p.house)})${hs.length ? ' and ' + hs.map(h => PRED_HOUSE_WORD[h]).join(', ') + ' (rules the ' + hs.map(J.ORD).join(' & ') + ')' : ''}.`;
 }
+// ---------- Body map: which sign and which planet governs which part of the body (Kalapurusha tradition), read for this chart ----------
+const BODY_SIGN = ['Head, brain, face','Face, mouth, throat, neck, eyes (right)','Shoulders, arms, hands, lungs, nervous system','Chest, breasts, heart area, stomach','Upper abdomen, heart, spine, liver area','Lower abdomen, intestines, digestion',
+  'Lower back, kidneys, bladder, pelvis','Genitals, urinary and excretory organs','Hips, thighs, liver, arteries','Knees, bones, joints, skin','Calves, ankles, blood circulation','Feet, toes, lymph, sleep'];
+const BODY_PLANET = {
+  Sun:['Heart, bones, right eye, head, vitality','Bones','Heart trouble, fevers, eye problems, low energy, baldness'],
+  Moon:['Mind, sleep, left eye, chest, blood and body fluids','Blood','Anxiety, insomnia, colds, water retention, low mood'],
+  Mars:['Muscles, blood, head, marrow, energy','Marrow','Injuries, cuts, burns, fevers, inflammation, surgery, accidents'],
+  Mercury:['Nervous system, skin, speech, lungs, memory','Skin','Nervous complaints, skin trouble, speech or memory problems'],
+  Jupiter:['Liver, fat, pancreas, thighs, ears','Fat','Weight gain, diabetes, fatty liver, cholesterol, jaundice'],
+  Venus:['Kidneys, reproductive system, throat, face, hormones','Reproductive fluids','Kidney and urinary trouble, hormonal or reproductive problems'],
+  Saturn:['Legs, knees, joints, teeth, bones, nerves','Muscles','Chronic illness, joint and back pain, arthritis, fatigue, slow recovery'],
+  Rahu:['Unusual or hard-to-diagnose conditions, poisons, allergies','—','Mysterious illness, allergies, phobias, addictions, infections'],
+  Ketu:['Sudden or hidden conditions, nerves, wounds','—','Sudden fevers, cuts, viral illness, conditions that are hard to pin down']
+};
+function bodyMap() {
+  const P = C.P, run = C.cur ? [C.cur.md.lord, C.cur.ad.lord] : [], hard = b => ['Rahu', 'Ketu'].includes(b) || (['Saturn', 'Mars'].includes(b) && !['own', 'moolatrikona', 'exalted'].includes(P[b].dignity));
+  const pScore = b => (PRED_DIG[P[b].dignity] || 0) - (P[b].combust ? 1.5 : 0) - ([6, 8, 12].includes(P[b].house) ? 1 : 0);
+  const signRows = J.SIGNS.map((s, i) => {
+    const h = (i - C.lagna + 12) % 12 + 1, occ = J.PL.filter(b => P[b].sign === i), lord = J.SIGN_LORD[i];
+    const why = [];
+    occ.filter(hard).forEach(b => why.push(`${b} here`));
+    if (pScore(lord) <= -1) why.push(`its lord ${lord} is weak`);
+    if ([6, 8, 12].includes(h) && occ.length) why.push(`${J.ORD(h)} house holds ${occ.join(', ')}`);
+    return `<tr><td><b>${s}</b></td><td>${esc(BODY_SIGN[i])}</td><td>${J.ORD(h)}</td><td>${occ.join(', ') || '<span class="muted">—</span>'}</td><td>${lord}</td><td>${why.length ? chip('Look after', 'bad') + ' <span class="muted" style="font-size:12.5px">' + esc(why.join('; ')) + '</span>' : chip('Fine', 'good')}</td></tr>`;
+  }).join('');
+  const plRows = J.PL.map(b => {
+    const s = pScore(b), str = s >= 2 ? 'Strong' : s > -1 ? 'Medium' : 'Weak', bp = BODY_PLANET[b], now = run.includes(b);
+    const watch = now || s <= -1 || ['Rahu', 'Ketu'].includes(b) ? [now ? 'Running now' : 'Watch', 'bad'] : ['Fine', 'good'];
+    return `<tr><td><b>${b}</b></td><td>${esc(bp[0])}</td><td>${esc(bp[1])}</td><td>${esc(bp[2])}</td><td>${chip(str, s >= 2 ? 'good' : s > -1 ? 'mixed' : 'bad')}<br><span class="muted" style="font-size:12.5px">${esc(J.SIGNS[P[b].sign])}, ${J.ORD(P[b].house)} house</span></td><td>${chip(watch[0], watch[1])}</td></tr>`;
+  }).join('');
+  return `<div class="pr-phases" style="margin-top:18px"><h3>Body map</h3><p class="lead">Tradition maps the twelve signs onto the body from head (Aries) to feet (Pisces), and gives each planet its own organs and tissue (dhatu). “Look after” marks signs holding Saturn, Mars, Rahu or Ketu, signs whose lord is weak, and occupied 6th, 8th or 12th houses. These are areas to care for, not diagnoses; see a doctor for any real symptom.</p>
+   <h4 style="margin:10px 0 6px">Signs and body parts</h4><div class="tablewrap"><table class="remtab bodytab"><thead><tr><th>Sign</th><th>Body parts</th><th>Your house</th><th>Planets there</th><th>Sign lord</th><th>For you</th></tr></thead><tbody>${signRows}</tbody></table></div>
+   <h4 style="margin:14px 0 6px">Planets and body parts</h4><div class="tablewrap"><table class="remtab bodytab"><thead><tr><th>Planet</th><th>Body parts</th><th>Tissue (dhatu)</th><th>Typical problems when afflicted</th><th>Strength in your chart</th><th>For you</th></tr></thead><tbody>${plRows}</tbody></table></div>
+   ${run.length ? `<p class="note">You are running ${run[0]}–${run[1]} now, so the body areas of ${run.join(' and ')} deserve extra attention in this period.</p>` : ''}</div>`;
+}
 function tPredict() {
   const H = J.houseTable(C), cards = [];
   let jobScore = null, bizScore = null;
@@ -3516,6 +3551,7 @@ function tPredict() {
   return `<p class="lead">A forecast for each area of life. <b>What your chart promises</b> comes from the strength of the relevant houses, their lords, the natural significator planets and yogas (the same rules as the Houses and Planets tabs). <b>When</b> comes from your dasa timeline, the method that matched 9 of 13 of your logged life events. These are tendencies to plan with, not certainties; effort, choices and circumstances still decide outcomes.</p>
   <div class="pr-phases"><h3>Life phases ahead</h3><div class="tablewrap"><table class="pr-phtab"><thead><tr><th>Period</th><th>Years</th><th>Age</th><th>Sub-periods</th><th>Theme</th></tr></thead><tbody>${phases}</tbody></table></div></div>
   <div class="pr-grid">${cards.join('')}</div>
+  ${bodyMap()}
   <p class="note" style="margin-top:14px">Ratings combine house strength (the lord’s placement and dignity, occupants and aspects), the significator planets and yogas. “Needs effort” means the area develops with effort or delays, not that it is denied. Timing windows show only Medium or High confidence sub-periods. Remedies follow chapter 34 of the book (Remedies tab has the mantras and details).</p>`;
 }
 
