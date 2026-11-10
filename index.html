@@ -288,7 +288,15 @@ tr.now td{background:var(--accent-soft)}
 .ln-barrow b{text-align:right}
 
 /* your real events */
-.remtab{width:100%;border-collapse:collapse;font-size:14px;min-width:980px}.bodytab{min-width:760px}.remtab th,.remtab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.remtab{width:100%;border-collapse:collapse;font-size:14px;min-width:980px}.bodytab{min-width:760px}.rectab{min-width:820px}.remtab th,.remtab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.sky-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:6px 0 8px}.sky-chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;cursor:pointer}.sky-sp{flex:1}
+.sky-btn{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer;font:inherit;font-size:14px}.sky-btn:hover{border-color:var(--accent)}
+.sky-date{display:flex;align-items:center;gap:12px;margin:0 0 10px}.sky-date input{flex:1;accent-color:var(--accent)}.sky-date b{min-width:110px;text-align:right;font-variant-numeric:tabular-nums}
+.sky-wrap{position:relative;border-radius:12px;overflow:hidden;background:#070b18;min-height:360px;border:1px solid var(--line)}.sky-wrap canvas{display:block;width:100%;cursor:grab}
+.sky-load{position:absolute;inset:0;display:grid;place-items:center;color:#C9D3F0;font-size:14px}
+.sky-tip{position:absolute;z-index:3;max-width:230px;background:rgba(14,20,40,.94);color:#EEF1FA;border:1px solid #33416b;border-radius:8px;padding:8px 10px;font-size:12.8px;line-height:1.45;pointer-events:none}
+.sky-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;font-size:13px;color:var(--muted)}.sky-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}.sky-legend i.sky-ring{background:transparent;border:2px solid var(--ink);width:8px;height:8px}
+.skytab{min-width:720px}
 .pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .pr-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .pr-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pr-head h3{margin:0;font-size:17px;flex:1}.pr-ico{font-size:20px}
@@ -493,6 +501,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <button role="tab" data-t="transits" aria-selected="false">Transits now</button>
     <button role="tab" data-t="remedies" aria-selected="false">Remedies</button>
     <button role="tab" data-t="details" aria-selected="false">Chart details</button>
+    <button role="tab" data-t="sky3d" aria-selected="false">3D sky</button>
     <button role="tab" data-t="learn" aria-selected="false">Learn astrology</button>
   </nav>
   <section class="pane" id="pane"></section>
@@ -3036,13 +3045,147 @@ function wireLearn() {
   if (s) s.addEventListener('input', () => { const v = s.value.toLowerCase(); pane.querySelectorAll('.ln-t tbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(v) ? '' : 'none'; }); });
 }
 
+// ---------- 3D sky: the zodiac wheel with signs, 27 nakshatras, houses, birth planets and moving transits (three.js, loaded on first use) ----------
+const SKY = {raf: 0, renderer: null, off: 0, play: false, show: {natal: true, transit: true, naks: true}};
+const SKY_COL = {Sun: '#FDB813', Moon: '#E6E8F2', Mars: '#E0442E', Mercury: '#3DBE6E', Jupiter: '#F2C14E', Venus: '#F29BC0', Saturn: '#6F7FE0', Rahu: '#8A8A9C', Ketu: '#B08560'};
+const SKY_ABBR = {Sun: 'Su', Moon: 'Mo', Mars: 'Ma', Mercury: 'Me', Jupiter: 'Ju', Venus: 'Ve', Saturn: 'Sa', Rahu: 'Ra', Ketu: 'Ke'};
+const SKY_ELEM = ['#E4572E', '#7FA35A', '#5DA9E9', '#3B6FB6'];
+function tSky3D() {
+  return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them. Drag to turn it, scroll or pinch to zoom, and tap a planet for details. Move the date slider or press play to watch the transits travel over your chart.</p>
+  <div class="sky-bar">
+    <label class="sky-chk"><input type="checkbox" data-sky="natal" ${SKY.show.natal ? 'checked' : ''}> Birth planets</label>
+    <label class="sky-chk"><input type="checkbox" data-sky="transit" ${SKY.show.transit ? 'checked' : ''}> Transits</label>
+    <label class="sky-chk"><input type="checkbox" data-sky="naks" ${SKY.show.naks ? 'checked' : ''}> Nakshatras</label>
+    <span class="sky-sp"></span>
+    <button type="button" class="btn sky-btn" id="skyPlay" aria-label="Play transits">▶ Play</button>
+    <button type="button" class="btn sky-btn" id="skyToday">Today</button>
+  </div>
+  <div class="sky-date"><input type="range" id="skyRange" min="-730" max="1825" step="1" value="${SKY.off}" aria-label="Transit date"><b id="skyDate"></b></div>
+  <div class="sky-wrap" id="skyWrap"><div class="sky-load" id="skyLoad">Loading the 3D view…</div><div class="sky-tip" id="skyTip" hidden></div></div>
+  <div class="sky-legend">${J.PL.map(b => `<span><i style="background:${SKY_COL[b]}"></i>${b}</span>`).join('')}<span><i class="sky-ring"></i>Transit (outer, ringed)</span></div>
+  <h3 style="margin-top:16px">Transits on <span id="skyDate2"></span></h3>
+  <div class="tablewrap"><table class="remtab skytab"><thead><tr><th>Planet</th><th>Sign</th><th>Nakshatra (pada)</th><th>House from lagna</th><th>House from Moon</th><th>Over your birth planet</th></tr></thead><tbody id="skyRows"></tbody></table></div>`;
+}
+function skyStop() { if (SKY.raf) cancelAnimationFrame(SKY.raf); SKY.raf = 0; SKY.play = false; if (SKY.renderer) { SKY.renderer.dispose(); SKY.renderer = null; } if (SKY.onResize) removeEventListener('resize', SKY.onResize); }
+function skyLoadThree(cb) {
+  if (window.THREE) return cb();
+  const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  s.onload = cb; s.onerror = () => { const l = $('#skyLoad'); if (l) l.textContent = 'The 3D library could not load. Check your connection and open this tab again.'; };
+  document.head.appendChild(s);
+}
+function initSky3D() {
+  const when = () => new Date(Date.now() + SKY.off*864e5);
+  const rows = () => {
+    const T = J.transitPositions(when()), d = when();
+    $('#skyDate').textContent = $('#skyDate2').textContent = d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+    $('#skyRows').innerHTML = J.PL.map(b => { const t = T[b], over = J.PL.filter(n => Math.abs(((t.lon - C.P[n].lon + 540) % 360) - 180) < 3);
+      return `<tr><td><b style="color:${SKY_COL[b]}">●</b> <b>${b}</b>${t.retro && !['Rahu', 'Ketu'].includes(b) ? ' (R)' : ''}</td><td>${J.SIGNS[t.sign]} ${Math.floor(t.deg)}°</td><td>${J.NAKS[t.nak][0]} (${t.pada})</td><td>${J.ORD((t.sign - C.lagna + 12) % 12 + 1)}</td><td>${J.ORD((t.sign - C.P.Moon.sign + 12) % 12 + 1)}</td><td>${over.length ? chip(over.map(n => 'your ' + n).join(', '), 'acc') : '<span class="muted">—</span>'}</td></tr>`; }).join('');
+    return T;
+  };
+  rows();
+  $('#pane').querySelectorAll('[data-sky]').forEach(c => c.addEventListener('change', () => { SKY.show[c.dataset.sky] = c.checked; if (SKY.apply) SKY.apply(); }));
+  const range = $('#skyRange');
+  range.addEventListener('input', () => { SKY.off = +range.value; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
+  $('#skyToday').addEventListener('click', () => { SKY.off = 0; range.value = 0; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
+  $('#skyPlay').addEventListener('click', e => { SKY.play = !SKY.play; e.currentTarget.textContent = SKY.play ? '❚❚ Pause' : '▶ Play'; });
+  skyLoadThree(() => { if (tab === 'sky3d' && $('#skyWrap')) skyBuild(rows, range); });
+}
+function skyBuild(rows, range) {
+  const T3 = THREE, wrap = $('#skyWrap'); $('#skyLoad').remove();
+  const W = () => wrap.clientWidth, H = () => Math.max(360, Math.min(620, Math.round(wrap.clientWidth*0.72)));
+  const renderer = new T3.WebGLRenderer({antialias: true, alpha: false}); SKY.renderer = renderer;
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(W(), H()); renderer.setClearColor(0x070b18);
+  wrap.prepend(renderer.domElement); renderer.domElement.setAttribute('aria-label', '3D view of your chart and transits'); renderer.domElement.setAttribute('role', 'img');
+  const scene = new T3.Scene(), cam = new T3.PerspectiveCamera(45, W()/H(), 0.1, 500), world = new T3.Group(); scene.add(world);
+  scene.add(new T3.AmbientLight(0xffffff, 0.75)); const sun = new T3.PointLight(0xffffff, 0.9); sun.position.set(0, 30, 10); scene.add(sun);
+  // stars
+  const sg = new T3.BufferGeometry(), sp = []; for (let i = 0; i < 900; i++) { const r = 120 + Math.random()*80, a = Math.random()*Math.PI*2, z = Math.acos(2*Math.random() - 1); sp.push(r*Math.sin(z)*Math.cos(a), r*Math.cos(z), r*Math.sin(z)*Math.sin(a)); }
+  sg.setAttribute('position', new T3.Float32BufferAttribute(sp, 3)); scene.add(new T3.Points(sg, new T3.PointsMaterial({color: 0xaab4d6, size: 0.6})));
+  // angle: lagna at the left (9 o'clock), zodiac running counter-clockwise as seen from above
+  const L0 = C.L.lon, ang = lon => Math.PI + (lon - L0)*Math.PI/180, pos = (lon, r, y = 0) => new T3.Vector3(r*Math.cos(ang(lon)), y, -r*Math.sin(ang(lon)));
+  const label = (txt, col, h = 0.9, bold = true) => { const c = document.createElement('canvas'), g = c.getContext('2d'), f = 64;
+    g.font = `${bold ? '700' : '500'} ${f}px system-ui, sans-serif`; const w = Math.ceil(g.measureText(txt).width) + 24; c.width = w; c.height = f + 24;
+    g.font = `${bold ? '700' : '500'} ${f}px system-ui, sans-serif`; g.fillStyle = col; g.textBaseline = 'middle'; g.fillText(txt, 12, c.height/2);
+    const tx = new T3.CanvasTexture(c); tx.minFilter = T3.LinearFilter; const s = new T3.Sprite(new T3.SpriteMaterial({map: tx, depthTest: false, transparent: true}));
+    s.scale.set(h*w/c.height, h, 1); s.renderOrder = 10; return s; };
+  const ringSeg = (r0, r1, a0, a1, col, op) => { const g = new T3.RingGeometry(r0, r1, 1, 1, ang(a0), (a1 - a0)*Math.PI/180); const m = new T3.Mesh(g, new T3.MeshBasicMaterial({color: col, transparent: true, opacity: op, side: T3.DoubleSide}));
+    m.rotation.x = -Math.PI/2; return m; };
+  const line = (a, b, col, op = 1) => new T3.Line(new T3.BufferGeometry().setFromPoints([a, b]), new T3.LineBasicMaterial({color: col, transparent: true, opacity: op}));
+  // the RingGeometry runs counter-clockwise in its own plane; after rotating flat, check the direction matches ang()
+  // sign ring with element colours, sign names and house numbers
+  for (let s = 0; s < 12; s++) {
+    const a0 = s*30, a1 = a0 + 30, h = (s - C.lagna + 12) % 12 + 1;
+    world.add(ringSeg(9.6, 12, a0, a1, SKY_ELEM[s % 4], h === 1 ? 0.55 : 0.28));
+    world.add(line(pos(a0, 3.2), pos(a0, 12), 0x9aa6c8, 0.35));
+    const lb = label(J.SIGNS[s], '#EEF1FA', 0.7); lb.position.copy(pos(a0 + 15, 10.8, 0.05)); world.add(lb);
+    const hb = label(String(h), h === 1 ? '#FFD27A' : '#9FB0DA', h === 1 ? 1.1 : 0.85); hb.position.copy(pos(a0 + 15, 3.9, 0.05)); world.add(hb);
+  }
+  const lag = label('Lagna', '#FFD27A', 0.6); lag.position.copy(pos(L0, 12.9, 0.4)); world.add(lag); world.add(line(pos(L0, 0), pos(L0, 12.4), 0xFFD27A, 0.9));
+  // nakshatra ring
+  const naks = new T3.Group(); world.add(naks);
+  for (let n = 0; n < 27; n++) { const a0 = n*360/27, a1 = a0 + 360/27;
+    naks.add(ringSeg(12.2, 13.6, a0, a1, n % 2 ? 0x2b3a6b : 0x1c2747, 0.85));
+    naks.add(line(pos(a0, 12.2, 0.01), pos(a0, 13.6, 0.01), 0x5d6c99, 0.8));
+    const t = label(J.NAKS[n][0], '#C9D3F0', 0.42, false); t.position.copy(pos(a0 + 180/27, 12.9, 0.06)); naks.add(t); }
+  // earth
+  world.add(new T3.Mesh(new T3.SphereGeometry(0.9, 24, 16), new T3.MeshStandardMaterial({color: 0x2f6fb5, roughness: 0.8})));
+  // planets
+  const pick = [], mkPlanet = (b, lon, r, y, transit) => { const g = new T3.Group(), size = b === 'Sun' ? 0.62 : ['Rahu', 'Ketu'].includes(b) ? 0.42 : 0.5;
+    const m = new T3.Mesh(new T3.SphereGeometry(size, 24, 16), new T3.MeshStandardMaterial({color: SKY_COL[b], emissive: SKY_COL[b], emissiveIntensity: b === 'Sun' ? 0.8 : 0.25, roughness: 0.5}));
+    m.userData = {b, transit}; g.add(m); pick.push(m);
+    if (transit) { const rg = new T3.Mesh(new T3.TorusGeometry(size*1.45, 0.05, 8, 32), new T3.MeshBasicMaterial({color: 0xffffff})); rg.rotation.x = Math.PI/2; g.add(rg); }
+    const lb = label((transit ? 'T ' : '') + SKY_ABBR[b], SKY_COL[b], 0.62); lb.position.set(0, size + 0.55, 0); g.add(lb);
+    g.position.copy(pos(lon, r, y)); g.userData.stem = line(pos(lon, r, 0), pos(lon, r, y), SKY_COL[b], 0.5); return g; };
+  // spread birth planets that sit close together up the vertical axis so they don't overlap
+  const natal = new T3.Group(); world.add(natal); const order = J.PL.slice().sort((a, b) => C.P[a].lon - C.P[b].lon), lvl = {};
+  order.forEach((b, i) => { const prev = order.slice(0, i).filter(o => Math.abs(((C.P[o].lon - C.P[b].lon + 540) % 360) - 180) < 9); lvl[b] = prev.length; });
+  for (const b of J.PL) { const g = mkPlanet(b, C.P[b].lon, 6.6 + (lvl[b] % 2)*0.9, 0.6 + lvl[b]*1.0, false); natal.add(g, g.userData.stem); }
+  const trans = new T3.Group(); world.add(trans); const tObj = {};
+  for (const b of J.PL) { const g = mkPlanet(b, 0, 15, 1.6, true); tObj[b] = g; trans.add(g); }
+  const hits = new T3.Group(); world.add(hits);
+  SKY.moveT = T => { hits.clear(); const lv = {};
+    const ord = J.PL.slice().sort((a, b) => T[a].lon - T[b].lon);
+    ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(o => Math.abs(((T[o].lon - T[b].lon + 540) % 360) - 180) < 9).length; });
+    for (const b of J.PL) { const g = tObj[b]; g.position.copy(pos(T[b].lon, 15 + (lv[b] % 2)*1.1, 1.4 + lv[b]*1.0)); g.children[0].userData.lon = T[b].lon;
+      for (const n of J.PL) if (Math.abs(((T[b].lon - C.P[n].lon + 540) % 360) - 180) < 3) hits.add(line(pos(T[b].lon, 14.2, 0.2), pos(C.P[n].lon, 7.2, 0.2), SKY_COL[b], 0.9)); } };
+  SKY.moveT(J.transitPositions(new Date(Date.now() + SKY.off*864e5)));
+  SKY.apply = () => { natal.visible = SKY.show.natal; trans.visible = hits.visible = SKY.show.transit; naks.visible = SKY.show.naks; }; SKY.apply();
+  // camera orbit: drag to turn, wheel or pinch to zoom
+  let th = Math.PI/2, ph = 0.95, dist = W() < 520 ? 40 : 33; const place = () => { cam.position.set(dist*Math.sin(ph)*Math.cos(th), dist*Math.cos(ph), dist*Math.sin(ph)*Math.sin(th)); cam.lookAt(0, 0, 0); }; place();
+  const el = renderer.domElement, pts = new Map(); let pinch0 = 0, moved = false;
+  el.style.touchAction = 'none';
+  el.addEventListener('pointerdown', e => { pts.set(e.pointerId, [e.clientX, e.clientY]); moved = false; el.setPointerCapture(e.pointerId); });
+  el.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return hover(e); const [x0, y0] = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch0) dist = Math.max(16, Math.min(80, dist*pinch0/d)); pinch0 = d; }
+    else { const dx = e.clientX - x0, dy = e.clientY - y0; if (Math.abs(dx) + Math.abs(dy) > 2) moved = true; th += dx*0.008; ph = Math.max(0.12, Math.min(1.45, ph - dy*0.006)); }
+    place(); });
+  const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch0 = 0; if (!moved) hover(e, true); };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  el.addEventListener('wheel', e => { e.preventDefault(); dist = Math.max(16, Math.min(80, dist*(e.deltaY > 0 ? 1.08 : 0.92))); place(); }, {passive: false});
+  const ray = new T3.Raycaster(), mv = new T3.Vector2(), tip = $('#skyTip');
+  function hover(e, click) { const r = el.getBoundingClientRect(); mv.set(((e.clientX - r.left)/r.width)*2 - 1, -((e.clientY - r.top)/r.height)*2 + 1); ray.setFromCamera(mv, cam);
+    const hit = ray.intersectObjects(pick.filter(m => m.parent.parent.visible), false)[0];
+    if (!hit) { if (click || e.pointerType === 'mouse') tip.hidden = true; el.style.cursor = 'grab'; return; }
+    el.style.cursor = 'pointer'; if (!click && e.pointerType !== 'mouse') return;
+    const {b, transit} = hit.object.userData, T = transit ? J.transitPositions(new Date(Date.now() + SKY.off*864e5)) : null, p = transit ? T[b] : C.P[b];
+    const lon = p.lon, s = Math.floor(lon/30), nk = Math.floor(lon/(360/27)), pd = Math.floor((lon % (360/27))/(360/108)) + 1;
+    tip.innerHTML = `<b style="color:${SKY_COL[b]}">${transit ? 'Transit ' : 'Birth '}${b}</b>${p.retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}<br>${J.SIGNS[s]} ${J.fmtDeg ? J.fmtDeg(lon % 30) : (lon % 30).toFixed(1) + '°'} · ${J.NAKS[nk][0]} pada ${pd}<br>${J.ORD((s - C.lagna + 12) % 12 + 1)} house from your lagna · ${J.ORD((s - C.P.Moon.sign + 12) % 12 + 1)} from your Moon${transit ? '' : `<br>${p.dignity}${C.func[b] ? ' · ' + C.func[b] : ''}`}`;
+    tip.style.left = Math.min(r.width - 230, Math.max(6, e.clientX - r.left + 12)) + 'px'; tip.style.top = Math.max(6, e.clientY - r.top - 10) + 'px'; tip.hidden = false; }
+  SKY.onResize = () => { if (!SKY.renderer) return; renderer.setSize(W(), H()); cam.aspect = W()/H(); cam.updateProjectionMatrix(); }; addEventListener('resize', SKY.onResize);
+  let last = 0; const loop = t => { SKY.raf = requestAnimationFrame(loop);
+    if (SKY.play && t - last > 40) { last = t; SKY.off = SKY.off >= +range.max ? +range.min : SKY.off + 2; range.value = SKY.off; SKY.moveT(rows()); }
+    renderer.render(scene, cam); };
+  SKY.raf = requestAnimationFrame(loop);
+}
 function renderTab() {
-  const f = {events: tEvents, money: tMoney, overview: tOverview, predict: tPredict, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn}[tab];
+  const f = {events: tEvents, money: tMoney, overview: tOverview, predict: tPredict, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn, sky3d: tSky3D}[tab];
+  skyStop();
   try { $('#pane').innerHTML = f(); } catch (err) { console.error(err); $('#pane').innerHTML = `<p class="err">This tab hit an error (${esc(err.message)}). The rest of the app still works; please report it.</p>`; return; }
   if (tab === 'transits') initTransit();
   if (tab === 'planets') wirePlanets();
   if (tab === 'events') wireMyEvents();
   if (tab === 'learn') wireLearn();
+  if (tab === 'sky3d') initSky3D();
   enhanceTables();
   $('#pane').querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => { moneyMonths = +b.dataset.mm; renderTab(); }));
   $('#pane').querySelectorAll('[data-aspscope]').forEach(b => b.addEventListener('click', () => { aspScope = b.dataset.aspscope; renderTab(); }));
@@ -3532,6 +3675,32 @@ function bodyMap() {
    <h4 style="margin:14px 0 6px">Planets and body parts</h4><div class="tablewrap"><table class="remtab bodytab"><thead><tr><th>Planet</th><th>Body parts</th><th>Tissue (dhatu)</th><th>Typical problems when afflicted</th><th>Strength in your chart</th><th>For you</th></tr></thead><tbody>${plRows}</tbody></table></div>
    ${run.length ? `<p class="note">You are running ${run[0]}–${run[1]} now, so the body areas of ${run.join(' and ')} deserve extra attention in this period.</p>` : ''}</div>`;
 }
+// ---------- Recognition timeline: sub-periods ahead scored for career recognition (Sun / 10th lord periods, career themes, Jupiter on the 10th) ----------
+function recognitionTimeline() {
+  if (C._recTL) return C._recTL;
+  const now = new Date(), end = new Date(now.getTime() + 15*365.25*864e5), s10 = (C.lagna + 9) % 12, l10 = J.SIGN_LORD[s10], yr = 365.2425*864e5;
+  const fmtM = d => d.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'});
+  const rows = C.events.filter(e => e.end > now && e.start < end).map(e => {
+    const a = e.start > now ? e.start : now, why = [];
+    let sc = 0;
+    if (e.ad === 'Sun') { sc += 1.5; why.push('Sun (recognition) sub-period'); }
+    if (e.ad === l10 && e.ad !== 'Sun') { sc += 1; why.push(`${l10} rules your 10th house (career)`); }
+    if ([l10, 'Sun'].includes(e.md)) sc += 0.5;
+    for (const t of e.themes) if (['career', 'job'].includes(t.area) && t.level !== 'Low') { const w = t.level === 'High' ? 1.5 : 1; if (t.good) { sc += w; why.push('career theme'); } else { sc -= w; why.push('career pressure'); } }
+    if (e.mood === 'favourable') sc += 0.5; else if (e.mood === 'difficult') { sc -= 1; why.push('difficult period overall'); }
+    // Jupiter occupying or aspecting (5th/7th/9th) the 10th house; Rahu or Ketu crossing it
+    const jr = []; let node = false, open = null;
+    for (let t = a.getTime(); t < e.end.getTime(); t += 10*864e5) { const T = J.transitPositions(new Date(t)), d = (s10 - T.Jupiter.sign + 12) % 12;
+      if ([0, 4, 6, 8].includes(d)) { if (!open) { open = [new Date(t), new Date(t)]; jr.push(open); } else open[1] = new Date(t); } else open = null;
+      if (T.Rahu.sign === s10 || T.Ketu.sign === s10) node = true; }
+    if (jr.length) { sc += 1; why.push('Jupiter blesses your 10th house'); }
+    if (node) why.push('Rahu/Ketu crossing your 10th: sudden turns');
+    const r = sc >= 2.5 ? ['Strong', 'good'] : sc >= 1.5 ? ['Good', 'ok'] : sc <= -0.5 ? ['Slow', 'bad'] : ['Steady', 'mixed'];
+    return `<tr><td><b>${e.md}–${e.ad}</b></td><td class="mono" style="white-space:nowrap">${fmtM(a)} – ${fmtM(e.end)}</td><td>${Math.floor((a - C.date)/yr)}–${Math.floor((e.end - C.date)/yr)}</td><td>${esc([...new Set(why)].join('; ') || 'no special career signal')}</td><td style="white-space:nowrap">${jr.length ? jr.map(x => fmtM(x[0]) === fmtM(x[1]) ? fmtM(x[0]) : `${fmtM(x[0])} – ${fmtM(x[1])}`).join('<br>') : '<span class="muted">—</span>'}</td><td>${chip(r[0], r[1])}</td></tr>`;
+  }).join('');
+  return C._recTL = `<div class="pr-phases"><h3>Recognition timeline</h3><p class="lead">When your work is most likely to be noticed and rewarded over the next 15 years. Each sub-period is scored for a Sun or ${l10} (your 10th lord) sub-period, career themes in your dasa timeline, the period’s overall tone, and Jupiter blessing your 10th house (the dates in that column are the best months inside the period). Use the <b>Strong</b> and <b>Good</b> windows to show results and ask for credit; build quietly in the <b>Slow</b> ones.</p>
+   <div class="tablewrap"><table class="remtab rectab"><thead><tr><th>Period</th><th>Dates</th><th>Age</th><th>Why</th><th>Jupiter on your 10th</th><th>Recognition</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
 function tPredict() {
   const H = J.houseTable(C), cards = [];
   let jobScore = null, bizScore = null;
@@ -3550,6 +3719,7 @@ function tPredict() {
     return `<tr><td><b>${m.lord}</b> main period</td><td class="mono">${m.start.getFullYear()}–${m.end.getFullYear()}</td><td>age ${Math.max(0, age(m.start))}–${age(m.end)}</td><td>${f} favourable · ${ev.length - f - d} mixed · ${d} difficult</td><td>${esc(phaseTheme(m.lord))}</td></tr>`; }).join('');
   return `<p class="lead">A forecast for each area of life. <b>What your chart promises</b> comes from the strength of the relevant houses, their lords, the natural significator planets and yogas (the same rules as the Houses and Planets tabs). <b>When</b> comes from your dasa timeline, the method that matched 9 of 13 of your logged life events. These are tendencies to plan with, not certainties; effort, choices and circumstances still decide outcomes.</p>
   <div class="pr-phases"><h3>Life phases ahead</h3><div class="tablewrap"><table class="pr-phtab"><thead><tr><th>Period</th><th>Years</th><th>Age</th><th>Sub-periods</th><th>Theme</th></tr></thead><tbody>${phases}</tbody></table></div></div>
+  ${recognitionTimeline()}
   <div class="pr-grid">${cards.join('')}</div>
   ${bodyMap()}
   <p class="note" style="margin-top:14px">Ratings combine house strength (the lord’s placement and dignity, occupants and aspects), the significator planets and yogas. “Needs effort” means the area develops with effort or delays, not that it is denied. Timing windows show only Medium or High confidence sub-periods. Remedies follow chapter 34 of the book (Remedies tab has the mantras and details).</p>`;
