@@ -296,7 +296,21 @@ tr.now td{background:var(--accent-soft)}
 .sky-load{position:absolute;inset:0;display:grid;place-items:center;color:#C9D3F0;font-size:14px}
 .sky-tip{position:absolute;z-index:3;max-width:230px;background:rgba(14,20,40,.94);color:#EEF1FA;border:1px solid #33416b;border-radius:8px;padding:8px 10px;font-size:12.8px;line-height:1.45;pointer-events:none}
 .sky-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0;font-size:13px;color:var(--muted)}.sky-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}.sky-legend i.sky-ring{background:transparent;border:2px solid var(--ink);width:8px;height:8px}
-.skytab{min-width:720px}
+.skytab{min-width:900px}
+.sky-info{position:absolute;top:10px;left:10px;z-index:2;width:min(330px,calc(100% - 20px));max-height:calc(100% - 20px);overflow:auto;background:rgba(10,15,32,.86);color:#E7EBF7;border:1px solid #2c3a63;border-radius:10px;padding:10px 12px;font-size:12.6px;line-height:1.45;backdrop-filter:blur(3px)}
+.sky-info ul{margin:4px 0 6px;padding-left:0;list-style:none}.sky-info li{margin:3px 0}
+.sky-idate{font-size:16px;margin-bottom:4px;color:#FFD27A}.sky-idate b{font-size:20px}
+.sky-irow{margin:2px 0}.sky-sat{color:#AFC0F2}.sky-ih{margin-top:8px;font-weight:700;color:#C9D3F0;font-size:12px;text-transform:uppercase;letter-spacing:.04em}.sky-ih span{text-transform:none;font-weight:400;letter-spacing:0}
+.sky-mood{padding:1px 6px;border-radius:9px;font-size:11.5px;background:#2b3a6b}.sky-mood.favourable{background:#1f5a3a}.sky-mood.difficult{background:#6a2a2a}
+.sky-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.sky-g{color:#6EDB9A;font-weight:700}.sky-b{color:#FF8A80;font-weight:700}
+.sky-note{color:#8E9AC0;font-size:11.2px;margin-top:4px}
+.sky-infobtn{position:absolute;top:10px;right:10px;z-index:3;padding:5px 10px;border-radius:8px;border:1px solid #33416b;background:rgba(21,28,46,.9);color:#EEF1FA;font:inherit;font-size:12.5px;cursor:pointer}
+@media (max-width:600px){.sky-info{font-size:11.8px;max-height:55%}}
+.sky-sel{padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);font:inherit;font-size:13.5px}
+.sky-box.full{position:fixed;inset:0;z-index:1000;background:#070b18;color:#EEF1FA;padding:10px 14px;display:flex;flex-direction:column;box-sizing:border-box}
+.sky-box.full .sky-chk{color:#EEF1FA}.sky-box.full .sky-btn,.sky-box.full .sky-sel{background:#151C2E;color:#EEF1FA;border-color:#33416b}
+.sky-box.full .sky-wrap{flex:1;min-height:0;border:0;border-radius:8px}.sky-box.full .sky-date{margin-bottom:8px}
+body.sky-lock{overflow:hidden}
 .pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .pr-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .pr-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pr-head h3{margin:0;font-size:17px;flex:1}.pr-ico{font-size:20px}
@@ -1709,27 +1723,46 @@ function wireLearn() {
 }
 
 // ---------- 3D sky: the zodiac wheel with signs, 27 nakshatras, houses, birth planets and moving transits (three.js, loaded on first use) ----------
-const SKY = {raf: 0, renderer: null, off: 0, play: false, show: {natal: true, transit: true, naks: true}};
+const SKY = {raf: 0, renderer: null, off: 0, play: false, speed: 2, acc: 0, show: {natal: true, transit: true, naks: true}};
 const SKY_COL = {Sun: '#FDB813', Moon: '#E6E8F2', Mars: '#E0442E', Mercury: '#3DBE6E', Jupiter: '#F2C14E', Venus: '#F29BC0', Saturn: '#6F7FE0', Rahu: '#8A8A9C', Ketu: '#B08560'};
 const SKY_ABBR = {Sun: 'Su', Moon: 'Mo', Mars: 'Ma', Mercury: 'Me', Jupiter: 'Ju', Venus: 'Ve', Saturn: 'Sa', Rahu: 'Ra', Ketu: 'Ke'};
 const SKY_ELEM = ['#E4572E', '#7FA35A', '#5DA9E9', '#3B6FB6'];
 function tSky3D() {
   return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them. Drag to turn it, scroll or pinch to zoom, and tap a planet for details. Move the date slider or press play to watch the transits travel over your chart.</p>
+  <div class="sky-box" id="skyBox">
   <div class="sky-bar">
     <label class="sky-chk"><input type="checkbox" data-sky="natal" ${SKY.show.natal ? 'checked' : ''}> Birth planets</label>
     <label class="sky-chk"><input type="checkbox" data-sky="transit" ${SKY.show.transit ? 'checked' : ''}> Transits</label>
     <label class="sky-chk"><input type="checkbox" data-sky="naks" ${SKY.show.naks ? 'checked' : ''}> Nakshatras</label>
     <span class="sky-sp"></span>
     <button type="button" class="btn sky-btn" id="skyPlay" aria-label="Play transits">▶ Play</button>
+    <label class="sky-chk">Speed <select id="skySpeed" class="sky-sel" aria-label="Playback speed">${[[0.5, 'Very slow · ½ day/sec'], [2, 'Slow · 2 days/sec'], [7, 'Medium · 1 week/sec'], [30, 'Fast · 1 month/sec']].map(([v, t]) => `<option value="${v}" ${SKY.speed === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     <button type="button" class="btn sky-btn" id="skyToday">Today</button>
+    <button type="button" class="btn sky-btn" id="skyFull" aria-label="Full screen">⛶ Full screen</button>
   </div>
   <div class="sky-date"><input type="range" id="skyRange" min="-730" max="1825" step="1" value="${SKY.off}" aria-label="Transit date"><b id="skyDate"></b></div>
-  <div class="sky-wrap" id="skyWrap"><div class="sky-load" id="skyLoad">Loading the 3D view…</div><div class="sky-tip" id="skyTip" hidden></div></div>
+  <div class="sky-wrap" id="skyWrap"><div class="sky-load" id="skyLoad">Loading the 3D view…</div><button type="button" class="sky-infobtn" id="skyInfoBtn" aria-expanded="true">Effects ▾</button><div class="sky-info" id="skyInfo"></div><div class="sky-tip" id="skyTip" hidden></div></div>
+  </div>
   <div class="sky-legend">${J.PL.map(b => `<span><i style="background:${SKY_COL[b]}"></i>${b}</span>`).join('')}<span><i class="sky-ring"></i>Transit (outer, ringed)</span></div>
   <h3 style="margin-top:16px">Transits on <span id="skyDate2"></span></h3>
-  <div class="tablewrap"><table class="remtab skytab"><thead><tr><th>Planet</th><th>Sign</th><th>Nakshatra (pada)</th><th>House from lagna</th><th>House from Moon</th><th>Over your birth planet</th></tr></thead><tbody id="skyRows"></tbody></table></div>`;
+  <div class="tablewrap"><table class="remtab skytab"><thead><tr><th>Planet</th><th>Sign</th><th>Nakshatra (pada)</th><th>House from lagna</th><th>House from Moon</th><th>Over your birth planet</th><th>Classical effect (from your Moon)</th></tr></thead><tbody id="skyRows"></tbody></table></div>`;
 }
-function skyStop() { if (SKY.raf) cancelAnimationFrame(SKY.raf); SKY.raf = 0; SKY.play = false; if (SKY.renderer) { SKY.renderer.dispose(); SKY.renderer = null; } if (SKY.onResize) removeEventListener('resize', SKY.onResize); }
+// the panel inside the 3D view: the date, the running dasa, Saturn's phase and what each transit means for this chart
+function skyInfo(d, T, R) {
+  const box = $('#skyInfo'); if (!box) return;
+  const ev = C.events.find(e => e.start <= d && e.end > d), sm = (T.Saturn.sign - C.P.Moon.sign + 12) % 12 + 1;
+  const sat = {12: 'Ezharai Sani: first phase (Viraya Sani)', 1: 'Ezharai Sani: peak phase (Janma Sani)', 2: 'Ezharai Sani: last phase (Paadha Sani)', 4: 'Ardhashtama Sani (Saturn 4th from your Moon)', 8: 'Ashtama Sani (Saturn 8th from your Moon)'}[sm];
+  const hits = []; for (const b of J.PL) for (const n of J.PL) if (Math.abs(((T[b].lon - C.P[n].lon + 540) % 360) - 180) < 3 && !['Moon'].includes(b)) hits.push(`<li><b style="color:${SKY_COL[b]}">${b}</b> is crossing your birth <b style="color:${SKY_COL[n]}">${n}</b> (${C.P[n].lordOf.length ? 'ruler of your ' + C.P[n].lordOf.map(J.ORD).join(' & ') + ', ' : ''}in your ${J.ORD(C.P[n].house)}): its matters are activated now.</li>`);
+  const order = ['Saturn', 'Jupiter', 'Rahu', 'Ketu', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon'];
+  box.innerHTML = `<div class="sky-idate">${d.toLocaleDateString('en-GB', {weekday: 'short'})}, <b>${d.getDate()}</b> ${d.toLocaleDateString('en-GB', {month: 'long'})} <b>${d.getFullYear()}</b></div>
+   ${ev ? `<div class="sky-irow">Dasa: <b>${ev.md}–${ev.ad}</b> <span class="sky-mood ${ev.mood}">${ev.mood}</span></div>` : ''}
+   ${sat ? `<div class="sky-irow sky-sat">${sat}</div>` : ''}
+   ${hits.length ? `<div class="sky-ih">Over your birth planets</div><ul>${hits.join('')}</ul>` : ''}
+   <div class="sky-ih">Transit effects <span>(house from your Moon)</span></div>
+   <ul>${order.map(b => `<li><span class="sky-dot" style="background:${SKY_COL[b]}"></span><b>${b}</b> ${J.ORD(R[b].fromMoon)}: <span class="${R[b].good ? 'sky-g' : 'sky-b'}">${R[b].good ? '✓' : '✗'}</span> ${esc(R[b].res)}</li>`).join('')}</ul>
+   <div class="sky-note">Classical gochara rules counted from your Moon; slow planets (Saturn, Jupiter, Rahu, Ketu) matter most. Traditional, untested.</div>`;
+}
+function skyStop() { if (SKY.raf) cancelAnimationFrame(SKY.raf); SKY.raf = 0; SKY.play = false; if (SKY.renderer) { SKY.renderer.dispose(); SKY.renderer = null; } if (SKY.onResize) removeEventListener('resize', SKY.onResize); if (SKY.onKey) removeEventListener('keydown', SKY.onKey); document.body.classList.remove('sky-lock'); if (SKY.ph) { const b = document.getElementById('skyBox'); if (b) b.remove(); SKY.ph = null; } if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
 function skyLoadThree(cb) {
   if (window.THREE) return cb();
   const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
@@ -1739,10 +1772,11 @@ function skyLoadThree(cb) {
 function initSky3D() {
   const when = () => new Date(Date.now() + SKY.off*864e5);
   const rows = () => {
-    const T = J.transitPositions(when()), d = when();
+    const T = J.transitPositions(when()), d = when(), R = {}; J.transits(C, d).forEach(x => R[x.planet] = x);
     $('#skyDate').textContent = $('#skyDate2').textContent = d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+    skyInfo(d, T, R);
     $('#skyRows').innerHTML = J.PL.map(b => { const t = T[b], over = J.PL.filter(n => Math.abs(((t.lon - C.P[n].lon + 540) % 360) - 180) < 3);
-      return `<tr><td><b style="color:${SKY_COL[b]}">●</b> <b>${b}</b>${t.retro && !['Rahu', 'Ketu'].includes(b) ? ' (R)' : ''}</td><td>${J.SIGNS[t.sign]} ${Math.floor(t.deg)}°</td><td>${J.NAKS[t.nak][0]} (${t.pada})</td><td>${J.ORD((t.sign - C.lagna + 12) % 12 + 1)}</td><td>${J.ORD((t.sign - C.P.Moon.sign + 12) % 12 + 1)}</td><td>${over.length ? chip(over.map(n => 'your ' + n).join(', '), 'acc') : '<span class="muted">—</span>'}</td></tr>`; }).join('');
+      return `<tr><td><b style="color:${SKY_COL[b]}">●</b> <b>${b}</b>${t.retro && !['Rahu', 'Ketu'].includes(b) ? ' (R)' : ''}</td><td>${J.SIGNS[t.sign]} ${Math.floor(t.deg)}°</td><td>${J.NAKS[t.nak][0]} (${t.pada})</td><td>${J.ORD((t.sign - C.lagna + 12) % 12 + 1)}</td><td>${J.ORD((t.sign - C.P.Moon.sign + 12) % 12 + 1)}</td><td>${over.length ? chip(over.map(n => 'your ' + n).join(', '), 'acc') : '<span class="muted">—</span>'}</td><td>${chip(R[b].good ? 'Good' : 'Hard', R[b].good ? 'good' : 'bad')} ${esc(R[b].res)}</td></tr>`; }).join('');
     return T;
   };
   rows();
@@ -1750,12 +1784,23 @@ function initSky3D() {
   const range = $('#skyRange');
   range.addEventListener('input', () => { SKY.off = +range.value; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
   $('#skyToday').addEventListener('click', () => { SKY.off = 0; range.value = 0; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
-  $('#skyPlay').addEventListener('click', e => { SKY.play = !SKY.play; e.currentTarget.textContent = SKY.play ? '❚❚ Pause' : '▶ Play'; });
+  $('#skyPlay').addEventListener('click', e => { SKY.play = !SKY.play; SKY.acc = 0; e.currentTarget.textContent = SKY.play ? '❚❚ Pause' : '▶ Play'; });
+  $('#skySpeed').addEventListener('change', e => { SKY.speed = +e.target.value; });
+  $('#skyInfoBtn').addEventListener('click', e => { SKY.infoOff = !SKY.infoOff; $('#skyInfo').hidden = SKY.infoOff; e.currentTarget.textContent = SKY.infoOff ? 'Effects ▸' : 'Effects ▾'; e.currentTarget.setAttribute('aria-expanded', !SKY.infoOff); if (SKY.offset) SKY.offset(); });
+  if (SKY.infoOff) { $('#skyInfo').hidden = true; $('#skyInfoBtn').textContent = 'Effects ▸'; $('#skyInfoBtn').setAttribute('aria-expanded', 'false'); }
+  const box = $('#skyBox'), fullBtn = $('#skyFull'), setFull = on => {
+    if (on && !SKY.ph) { SKY.ph = document.createComment('sky'); box.before(SKY.ph); document.body.appendChild(box); } else if (!on && SKY.ph) { SKY.ph.replaceWith(box); SKY.ph = null; }
+    box.classList.toggle('full', on); document.body.classList.toggle('sky-lock', on); fullBtn.textContent = on ? '✕ Exit full screen' : '⛶ Full screen'; requestAnimationFrame(() => SKY.onResize && SKY.onResize()); };
+  fullBtn.addEventListener('click', async () => {
+    if (box.classList.contains('full')) { if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch (err) {} } setFull(false); return; }
+    setFull(true); try { if (box.requestFullscreen) await box.requestFullscreen(); } catch (err) { /* the frame may refuse real full screen; the page-filling view stays */ } });
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && box.classList.contains('full')) setFull(false); });
+  SKY.onKey = e => { if (e.key === 'Escape' && box.classList.contains('full')) setFull(false); }; addEventListener('keydown', SKY.onKey);
   skyLoadThree(() => { if (tab === 'sky3d' && $('#skyWrap')) skyBuild(rows, range); });
 }
 function skyBuild(rows, range) {
   const T3 = THREE, wrap = $('#skyWrap'); $('#skyLoad').remove();
-  const W = () => wrap.clientWidth, H = () => Math.max(360, Math.min(620, Math.round(wrap.clientWidth*0.72)));
+  const W = () => wrap.clientWidth, H = () => $('#skyBox').classList.contains('full') ? Math.max(240, wrap.clientHeight) : Math.max(360, Math.min(620, Math.round(wrap.clientWidth*0.72)));
   const renderer = new T3.WebGLRenderer({antialias: true, alpha: false}); SKY.renderer = renderer;
   renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(W(), H()); renderer.setClearColor(0x070b18);
   wrap.prepend(renderer.domElement); renderer.domElement.setAttribute('aria-label', '3D view of your chart and transits'); renderer.domElement.setAttribute('role', 'img');
@@ -1815,6 +1860,8 @@ function skyBuild(rows, range) {
   SKY.apply = () => { natal.visible = SKY.show.natal; trans.visible = hits.visible = SKY.show.transit; naks.visible = SKY.show.naks; }; SKY.apply();
   // camera orbit: drag to turn, wheel or pinch to zoom
   let th = Math.PI/2, ph = 0.95, dist = W() < 520 ? 40 : 33; const place = () => { cam.position.set(dist*Math.sin(ph)*Math.cos(th), dist*Math.cos(ph), dist*Math.sin(ph)*Math.sin(th)); cam.lookAt(0, 0, 0); }; place();
+  // when the effects panel is open on a wide view, shift the wheel right so the panel doesn't cover it
+  SKY.offset = () => { const sh = !SKY.infoOff && W() > 760 ? Math.min(180, W()*0.17) : 0; if (sh) cam.setViewOffset(W(), H(), -sh, 0, W(), H()); else cam.clearViewOffset(); cam.updateProjectionMatrix(); }; SKY.offset();
   const el = renderer.domElement, pts = new Map(); let pinch0 = 0, moved = false;
   el.style.touchAction = 'none';
   el.addEventListener('pointerdown', e => { pts.set(e.pointerId, [e.clientX, e.clientY]); moved = false; el.setPointerCapture(e.pointerId); });
@@ -1834,9 +1881,10 @@ function skyBuild(rows, range) {
     const lon = p.lon, s = Math.floor(lon/30), nk = Math.floor(lon/(360/27)), pd = Math.floor((lon % (360/27))/(360/108)) + 1;
     tip.innerHTML = `<b style="color:${SKY_COL[b]}">${transit ? 'Transit ' : 'Birth '}${b}</b>${p.retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}<br>${J.SIGNS[s]} ${J.fmtDeg ? J.fmtDeg(lon % 30) : (lon % 30).toFixed(1) + '°'} · ${J.NAKS[nk][0]} pada ${pd}<br>${J.ORD((s - C.lagna + 12) % 12 + 1)} house from your lagna · ${J.ORD((s - C.P.Moon.sign + 12) % 12 + 1)} from your Moon${transit ? '' : `<br>${p.dignity}${C.func[b] ? ' · ' + C.func[b] : ''}`}`;
     tip.style.left = Math.min(r.width - 230, Math.max(6, e.clientX - r.left + 12)) + 'px'; tip.style.top = Math.max(6, e.clientY - r.top - 10) + 'px'; tip.hidden = false; }
-  SKY.onResize = () => { if (!SKY.renderer) return; renderer.setSize(W(), H()); cam.aspect = W()/H(); cam.updateProjectionMatrix(); }; addEventListener('resize', SKY.onResize);
-  let last = 0; const loop = t => { SKY.raf = requestAnimationFrame(loop);
-    if (SKY.play && t - last > 40) { last = t; SKY.off = SKY.off >= +range.max ? +range.min : SKY.off + 2; range.value = SKY.off; SKY.moveT(rows()); }
+  SKY.onResize = () => { if (!SKY.renderer) return; renderer.setSize(W(), H()); cam.aspect = W()/H(); SKY.offset(); }; addEventListener('resize', SKY.onResize);
+  let last = 0; const loop = t => { SKY.raf = requestAnimationFrame(loop); const dt = last ? Math.min(100, t - last) : 0; last = t;
+    if (SKY.play) { SKY.acc += dt/1000*SKY.speed; const step = Math.floor(SKY.acc);
+      if (step >= 1) { SKY.acc -= step; SKY.off = SKY.off + step > +range.max ? +range.min : SKY.off + step; range.value = SKY.off; SKY.moveT(rows()); } }
     renderer.render(scene, cam); };
   SKY.raf = requestAnimationFrame(loop);
 }
