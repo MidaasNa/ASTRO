@@ -3127,7 +3127,18 @@ function sky2D(T) {
   const tl = (() => { const ord = J.PL.slice().sort((a, b) => T[a].lon - T[b].lon), lv = {}; ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((T[x].lon - T[b].lon + 540) % 360) - 180) < 9).length; }); return lv; })();
   for (const b of J.PL) { const [x, y] = P(C.P[b].lon, rn(b));
     o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]}</title></image>`; }
-  for (const b of J.PL) { const ang = T[b].lon + (tl[b] % 2 ? 1 : -1)*(tl[b] ? 3.2*Math.ceil(tl[b]/2) : 0), [x, y] = P(ang, 506);
+  // spread transit icons so close planets never overlap: group neighbours closer than 6.5° and fan each group out evenly
+  const spread = (() => { const gap = 6.5, ord = J.PL.slice().sort((x, y) => T[x].lon - T[y].lon);
+    // start the circle at the widest empty gap so no group wraps across 0°
+    let cut = 0, best = -1; ord.forEach((x, i) => { const nx = ord[(i + 1) % ord.length], g = ((T[nx].lon - T[x].lon) % 360 + 360) % 360; if (g > best) { best = g; cut = (i + 1) % ord.length; } });
+    const seq = ord.slice(cut).concat(ord.slice(0, cut)), base = T[seq[0]].lon, L = seq.map(x => ((T[x].lon - base) % 360 + 360) % 360);
+    let groups = seq.map((x, i) => ({m: [x], c: L[i]}));
+    for (let it = 0; it < 20; it++) { let merged = false;
+      for (let i = 0; i < groups.length - 1; i++) { const A = groups[i], B = groups[i + 1], aEnd = A.c + (A.m.length - 1)*gap/2, bStart = B.c - (B.m.length - 1)*gap/2;
+        if (bStart - aEnd < gap) { const m = A.m.concat(B.m), c = (A.c*A.m.length + B.c*B.m.length)/m.length; groups.splice(i, 2, {m, c}); merged = true; break; } }
+      if (!merged) break; }
+    const out = {}; for (const G of groups) G.m.forEach((x, i) => out[x] = base + G.c + (i - (G.m.length - 1)/2)*gap); return out; })();
+  for (const b of J.PL) { const ang = spread[b], [x, y] = P(ang, 506);
     o += `<circle cx="${f(x)}" cy="${f(y)}" r="23" fill="#0b1226" stroke="#fff" stroke-width="2"/><image href="${skyIconURL(b)}" x="${f(x - 19)}" y="${f(y - 19)}" width="38" height="38" data-tr2="${b}" class="w2-hit"><title>Transit ${b}${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}: ${J.SIGNS[T[b].sign]} ${J.fmtDeg(T[b].deg)}, ${J.NAKS[T[b].nak][0]}</title></image>
       ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}`; }
   const d = new Date(Date.now() + SKY.off*864e5);
