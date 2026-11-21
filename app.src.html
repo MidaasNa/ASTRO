@@ -321,6 +321,7 @@ tr.now td{background:var(--accent-soft)}
 .pada-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.pada-card{text-align:left;background:#151C2E;border:1px solid #33416b;border-radius:8px;color:#EEF1FA;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}.pada-card:hover{border-color:#FFD27A}.pada-card span{display:block;color:#AFB9DA;font-size:12.5px;margin-top:2px}
 .sky-why{font-size:12px;font-weight:600;margin-left:4px}
 .sky-tl{font-weight:600}
+.sky-slbtn{margin:4px 0 6px;background:#151C2E;color:#FFD27A;border-color:#33416b;font-size:12.5px;padding:4px 10px}.sltab td,.sltab th{font-size:13.5px}
 .nak-read{margin:0 0 8px;background:#151C2E;color:#FFD27A;border-color:#33416b}
 .sky-today{color:#FFD27A;text-transform:uppercase;font-size:11px}
 .sky-nk{color:#AFB9DA;font-size:11.8px;margin-left:13px}
@@ -2041,6 +2042,65 @@ function skyD10HTML(d, T) {
    ${natal ? `<ul class="sky-asp">${natal}</ul>` : ''}
    <div class="sky-hm">Transits in your career chart (a D10 sign lasts only 3°, so the slow planets matter most):</div><ul class="sky-asp">${tr}</ul>`;
 }
+// exchanges (parivartana): two planets in each other's signs, or in each other's nakshatras (star exchange), at birth and in the transits
+function skyExch(Pos) {
+  const out = [], starL = b => J.NAKS[Pos[b].nak][1];
+  for (let i = 0; i < J.PL.length; i++) for (let j = i + 1; j < J.PL.length; j++) { const a = J.PL[i], b = J.PL[j];
+    if (starL(a) === b && starL(b) === a) out.push({a, b, kind: 'star'});
+    if (![a, b].some(x => ['Rahu', 'Ketu'].includes(x)) && J.SIGN_LORD[Pos[a].sign] === b && J.SIGN_LORD[Pos[b].sign] === a) out.push({a, b, kind: 'sign'}); }
+  return out;
+}
+function skyExchHTML(T) {
+  const role = b => { const p = C.P[b]; return `${b}${p.lordOf && p.lordOf.length ? ` (rules your ${p.lordOf.map(J.ORD).join(' & ')}, sits in your ${J.ORD(p.house)})` : ` (in your ${J.ORD(p.house)})`}`; };
+  const where = (Pos, x) => x.kind === 'star' ? `${x.a} in ${J.NAKS[Pos[x.a].nak][0]} (${x.b}’s star) and ${x.b} in ${J.NAKS[Pos[x.b].nak][0]} (${x.a}’s star)` : `${x.a} in ${J.SIGNS[Pos[x.a].sign]} (${x.b}’s sign) and ${x.b} in ${J.SIGNS[Pos[x.b].sign]} (${x.a}’s sign)`;
+  const name = x => `${x.kind === 'star' ? 'Nakshatra parivartana' : 'Parivartana'}: ${x.a} ⇄ ${x.b}`;
+  const nat = skyExch(C.P), tr = skyExch(T).filter(x => x.kind === 'star');
+  const li = (Pos, x, birth) => `<li><button type="button" class="sky-ylink" data-pariv="${x.a}|${x.b}|${x.kind}|${birth ? 'natal' : 'transit'}">${x.a} ⇄ ${x.b}</button> <span class="sky-an">${x.kind === 'star' ? 'star exchange' : 'sign exchange'}</span>: ${where(Pos, x)}. ${birth ? `Links ${role(x.a)} with ${role(x.b)}: each delivers the other’s results, so the dasa of either one activates the houses of both.` : `For as long as both stay in these stars, the two planets work for each other in the transits.`}</li>`;
+  return `<div class="sky-ih">Exchanges <span>(parivartana)</span></div>
+   ${nat.length ? `<div class="sky-hm">In your birth chart:</div><ul class="sky-asp">${nat.map(x => li(C.P, x, true)).join('')}</ul>` : '<div class="sky-hm">No sign or star exchange in your birth chart.</div>'}
+   ${tr.length ? `<div class="sky-hm">In the transits now:</div><ul class="sky-asp">${tr.map(x => li(T, x, false)).join('')}</ul>` : ''}`;
+}
+// star lords and final effect: each birth planet gives the results of the lord of its nakshatra; following the chain shows where the whole chart pivots
+function skyStarLordRows() {
+  const P = C.P, hn = hs => hs.map(h => `${J.ORD(h)} (${J.HOUSE[h].n.toLowerCase()})`).join(' & ');
+  const DIGB = {Sun: 10, Mars: 10, Jupiter: 1, Mercury: 1, Moon: 4, Venus: 4, Saturn: 7};  // directional strength (dig bala)
+  const strength = b => { const p = P[b], s = (PRED_DIG[p.dignity] || 0) - (p.combust ? 1.5 : 0) - ([6, 8, 12].includes(p.house) ? 1 : 0) + (DIGB[b] === p.house ? 1 : 0); return s >= 1 ? 'strong' : s <= -1 ? 'weak' : 'average'; };
+  const ex = skyExch(P);
+  return J.PL.map(b => { const p = P[b], sl = J.NAKS[p.nak][1], q = P[sl], own = p.lordOf && p.lordOf.length ? `rules your ${hn(p.lordOf)}, in your ${J.ORD(p.house)}` : `in your ${J.ORD(p.house)}`;
+    const slHouses = q.lordOf && q.lordOf.length ? hn(q.lordOf) : `its ${J.ORD(q.house)}-house placement (${J.HOUSE[q.house].n.toLowerCase()})`, st = strength(sl);
+    const x = ex.filter(e => e.a === b || e.b === b).map(e => `${e.kind === 'star' ? 'star' : 'sign'} exchange with ${e.a === b ? e.b : e.a}`);
+    const eff = sl === b ? `In its own star: gives its own results fully (${own}).` :
+      `Its own matters (${own}) work out through ${sl}’s ${slHouses}. ${st === 'strong' ? 'These come freely.' : st === 'weak' ? 'These come with delay and effort.' : 'Results are moderate.'}${x.length ? ' The ' + x.join(' and the ') + ' binds the two planets’ houses together.' : ''}`;
+    return {b, sl, place: `${J.SIGNS[p.sign]}, ${J.ORD(p.house)} house${['exalted', 'own', 'moolatrikona', 'debilitated'].includes(p.dignity) ? ', ' + p.dignity : ''}`, nak: `${J.NAKS[p.nak][0]} ${p.pada}`,
+      slc: `${J.ORD(q.house)} house, ${PRED_DIGW[q.dignity] || q.dignity || 'node'}${q.lordOf && q.lordOf.length ? '; rules ' + q.lordOf.map(J.ORD).join(' & ') : ''} · ${st}`, x, eff}; });
+}
+function skyStarLoop() {
+  const sl = b => J.NAKS[C.P[b].nak][1], groups = {};
+  for (const b of J.PL) { const seen = []; let c = b; while (!seen.includes(c)) { seen.push(c); c = sl(c); } const cyc = seen.slice(seen.indexOf(c)).sort().join(' ⇄ '); (groups[cyc] = groups[cyc] || []).push(b); }
+  return Object.entries(groups).map(([cyc, list]) => `<b>${cyc.includes('⇄') ? cyc : cyc + ' (own star)'}</b> ← ${list.join(', ')}`).join('<br>');
+}
+function skyStarLordHTML() {
+  const R = skyStarLordRows();
+  return `<div class="sky-ih">Star lords · final effect <span>(birth chart)</span></div>
+   <ul class="sky-asp">${R.map(r => `<li><b style="color:${SKY_COL[r.b]}">${r.b}</b> → ${r.nak} <span class="sky-an">(${r.sl})</span>: ${esc(r.eff)}</li>`).join('')}</ul>
+   <div class="sky-hm">Where the chains end: ${skyStarLoop()}</div>
+   <button type="button" class="sky-btn sky-slbtn" data-sltable="1">📖 Open as a table</button>`;
+}
+function skyStarLordPage() {
+  const pg = skyPageEl(); if (!pg) return; const R = skyStarLordRows();
+  pg.dataset.kind = 'sltable'; pg.hidden = false; SKY.pageNav = () => {};
+  pg.innerHTML = `<div class="nak-in" style="max-width:1100px">
+    <div class="nak-nav"><span class="nak-num">Star lords and final effect</span><button type="button" class="sky-btn nak-close" aria-label="Close">✕ Close</button></div>
+    <h2>Planets, star lords and final effect</h2><div class="nak-m">Each planet gives the results of the lord of the nakshatra it occupies</div>
+    <div class="tablewrap"><table class="pr-phtab sltab"><thead><tr><th>Planet</th><th>Placement</th><th>Nakshatra (star lord)</th><th>Star lord’s condition</th><th>Exchange</th><th>Final effect</th></tr></thead><tbody>
+    ${R.map(r => `<tr><td><b style="color:${SKY_COL[r.b]}">${r.b}</b></td><td>${esc(r.place)}</td><td>${esc(r.nak)} (<b>${r.sl}</b>)</td><td>${esc(r.slc)}</td><td>${r.x.length ? r.x.map(t => `<button type="button" class="sky-ylink" data-pariv="${r.b}|${t.split(' with ')[1]}|${t.startsWith('star') ? 'star' : 'sign'}|natal">${esc(t)}</button>`).join('<br>') : '—'}</td><td>${esc(r.eff)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <h3>Where the chains end</h3><p>Following each planet to its star lord, then that planet’s star lord, and so on, every chain ends in a loop. The planets in a loop are the hidden centre of the chart: the houses they rule are where most of life’s results finally land.</p><p>${skyStarLoop()}</p>
+    <p class="sky-note">“Strong”, “average” and “weak” combine the star lord’s sign dignity, combustion and difficult-house placement. Traditional, untested.</p></div>`;
+  pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
+  pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
+}
+document.addEventListener('click', e => { const x = e.target.closest && e.target.closest('[data-sltable]'); if (x) { e.preventDefault(); skyStarLordPage(); } });
 function skyHouseHTML(sg, full) {
   const h = (sg - C.lagna + 12) % 12 + 1, H = J.HOUSE[h], fm = (sg - C.P.Moon.sign + 12) % 12 + 1, T = J.transitPositions(new Date(Date.now() + SKY.off*864e5));
   const natal = J.PL.filter(b => C.P[b].sign === sg), now = J.PL.filter(b => T[b].sign === sg), lord = J.SIGN_LORD[sg];
@@ -2521,6 +2581,7 @@ const YOGA_INFO = {
   marssaturnin: ['daridra', 'Mars and Saturn together in the 2nd house.', 'Two malefics in the house of savings and speech: money is hard to hold. An aspect from Mercury is said to soften it.'],
   sunin: ['dhana', 'The Sun in the 2nd house.', 'Free of Saturn’s aspect it gives wealth; aspected by Saturn it gives loss. The texts use it as a simple check on savings.'],
   neechabhanga: ['transit', 'Neecha bhanga means the breaking of a fall.', 'A debilitated planet is rescued when the lord of its sign, or the planet exalted there, sits in a kendra from the lagna or Moon. The texts compare it to a fallen king restored to the throne: after early struggle the planet rises, sometimes higher than if it had never fallen.'],
+  nakshatraparivartana: ['raja', 'Nakshatra parivartana is an exchange of stars.', 'Each of two planets sits in a nakshatra ruled by the other. Since a planet gives the results of its star lord, the two deliver each other’s results: a hidden but strong two-way link, used especially in Krishnamurti (KP) and Nadi astrology. When either planet’s dasa runs, the houses of both come alive.'],
   parivartana: ['raja', 'Parivartana means exchange.', 'Two planets in each other’s signs. Parashara calls it the strongest link between two planets: each acts as if in its own sign. Exchanges between good houses form Maha (great) parivartana; with difficult houses they mix struggle into the result.'],
   kalasarpa: ['transit', 'Kala Sarpa means the serpent of time.', 'All planets on one side of the Rahu–Ketu axis. It is not found in Parashara or the other classical texts and became popular only in the 20th century, so treat it with caution.'],
   papakartari: ['transit', 'Kartari means scissors (kathiri in Tamil).', 'Malefics on both sides of a point squeeze it, as we discussed for your Moon. A benefic aspect breaks the scissors.'],
@@ -2551,6 +2612,7 @@ function skyPageEl() {
   return pg;
 }
 function skyYogaPage(name) {
+  const pm = name.match(/^(Nakshatra parivartana|Parivartana): (\w+) ⇄ (\w+)/); if (pm) return skyParivPage(pm[2], pm[3], pm[1][0] === 'N' ? 'star' : 'sign', 'transit');
   const pg = skyPageEl(); if (!pg) return;
   const k = yogaKey(name), I = k ? YOGA_INFO[k] : null, natal = C.yogas.find(y => y.name === name) || C.yogas.find(y => k && yogaKey(y.name) === k);
   const catKey = I ? I[0] : natal ? ({'Great-person (Pancha Mahapurusha) yogas': 'mpy', 'Lunar (Chandra) yogas': 'moon', 'Solar (Ravi) yogas': 'sun', 'Pattern (Nabhasa) yogas': 'nabhasa', 'Raja yogas (power and prosperity)': 'raja', 'Association with power (Raja Sambandha)': 'jaimini', 'Wealth (Dhana) yogas': 'dhana', 'Poverty (Daridra) yogas': 'daridra'}[natal.cat] || 'other') : 'transit';
@@ -2819,6 +2881,52 @@ function skyTithiPage(t) {
   pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
 }
 document.addEventListener('click', e => { const x = e.target.closest && e.target.closest('[data-tithip]'); if (x) { e.preventDefault(); skyTithiPage(+x.dataset.tithip); } });
+// ---------- parivartana pages: the history of exchanges, Mantreswara's three kinds, and what each exchange of houses means ----------
+const PARIV_HIST = ['Parivartana means exchange. When two planets sit in each other’s signs, each acts as if it were in its own sign, and the two houses they rule become bound together. Parashara counts it as the strongest of the four relationships between planets (exchange, conjunction, mutual aspect and one-way aspect).',
+  'Mantreswara’s Phaladeepika (chapter 6) lists all 66 possible exchanges between the lords of the twelve houses and sorts them into three kinds: 28 Maha (great) parivartanas between the lords of good houses, 8 Khala (mixed) ones involving the 3rd lord, and 30 Dainya (miserable) ones involving the lord of the 6th, 8th or 12th.',
+  'The star exchange (nakshatra parivartana), where each planet sits in a nakshatra ruled by the other, is a later refinement used especially in Krishnamurti (KP) and Nadi astrology, built on the rule that a planet gives the results of its star lord.'];
+const PARIV_KIND = {
+  Maha: ['Maha parivartana (great exchange)', 'Phaladeepika promises the blessing of Lakshmi: wealth, fine clothes and ornaments, authority, vehicles, children and good fortune.'],
+  Khala: ['Khala parivartana (mixed exchange)', 'Phaladeepika says results alternate: at times eloquent and fortunate, at times fickle, arrogant or in trouble. Effort (the 3rd house) decides which side shows.'],
+  Dainya: ['Dainya parivartana (exchange of difficulty)', 'Phaladeepika warns of struggle, trouble from enemies, harsh speech and an unsettled mind in the matters involved. Later astrologers note that when the other planet is strong, or both are difficult-house lords, the trouble turns into growth through hardship.']};
+const PARIV_PAIR = {
+  '9-10': 'The lords of fortune and career exchange: Dharma-Karmadhipati, the greatest Raja yoga. Work becomes a calling, and luck supports the career.',
+  '1-9': 'Self and fortune exchange: a blessed, principled life, with help from father, teachers and luck.', '1-10': 'Self and career exchange: a person identified with their work, who rises by their own effort.',
+  '1-5': 'Self and intelligence exchange: talent, good judgement and merit from past lives.', '4-9': 'Home and fortune exchange: a happy home, property and the blessing of parents; a kendra–trikona Raja yoga.',
+  '5-9': 'Two trines exchange: deep fortune, devotion, good children and wise decisions.', '4-10': 'Home and career exchange: work and home support each other; property through career.',
+  '5-10': 'Intelligence and career exchange: success through skill, ideas and advice; a Raja yoga.', '2-11': 'Wealth and gains exchange: a classic Dhana yoga, money that comes and stays.',
+  '1-7': 'Self and partner exchange: life is shaped by marriage and partnerships.', '7-10': 'Partner and career exchange: business, clients and partners drive the career.',
+  '1-4': 'Self and home exchange: comfort, property and a contented mind.', '2-9': 'Wealth and fortune exchange: family wealth and lucky earnings.', '9-11': 'Fortune and gains exchange: gains through luck, elders and dharma.',
+  '6-8': 'Two difficult houses exchange: troubles cancel each other (a Vipareeta-type result): enemies and illnesses fall away through hardship.', '6-12': 'Two difficult houses exchange: losses to enemies, but also victory through letting go.',
+  '8-12': 'Two difficult houses exchange: hidden matters, foreign lands and spiritual depth; sudden expenses that later free you.',
+  '4-12': 'Home and the 12th (expenses, foreign lands, sleep, moksha) exchange: home life and spiritual life are tied together; money is spent on home and comfort, and a life away from the birthplace or a deep need for retreat is common.',
+  '1-12': 'Self and losses exchange: expenses and a pull towards foreign lands or spiritual life; take care of health and sleep.', '1-6': 'Self and obstacles exchange: rivals, debt or health matters shape the life; effort wins.',
+  '1-8': 'Self and the 8th exchange: sudden changes, research and a life of transformation; look after health.', '2-12': 'Wealth and expenses exchange: money comes and goes freely; save deliberately.'};
+function skyParivPage(a, b, kind, src) {
+  const pg = skyPageEl(); if (!pg) return;
+  const Pos = src === 'natal' ? C.P : skyPos(new Date(Date.now() + SKY.off*864e5)), hh = x => (Pos[x].sign - C.lagna + 12) % 12 + 1;
+  const ha = hh(a), hb = hh(b), lo = Math.min(ha, hb), hi = Math.max(ha, hb);
+  const type = [6, 8, 12].includes(ha) || [6, 8, 12].includes(hb) ? 'Dainya' : (ha === 3 || hb === 3) ? 'Khala' : 'Maha';
+  const K = PARIV_KIND[type], pair = PARIV_PAIR[`${lo}-${hi}`];
+  const where = kind === 'star' ? `${a} sits in ${J.NAKS[Pos[a].nak][0]}, a star ruled by ${b}, and ${b} sits in ${J.NAKS[Pos[b].nak][0]}, a star ruled by ${a}.` : `${a} sits in ${J.SIGNS[Pos[a].sign]}, ${b}’s sign, and ${b} sits in ${J.SIGNS[Pos[b].sign]}, ${a}’s sign.`;
+  const strong = [a, b].filter(x => ['exalted', 'moolatrikona', 'own'].includes(C.P[x] && src === 'natal' ? C.P[x].dignity : ''));
+  pg.dataset.kind = 'pariv'; pg.hidden = false; SKY.pageNav = () => {};
+  pg.innerHTML = `<div class="nak-in">
+    <div class="nak-nav"><span class="nak-num">${kind === 'star' ? 'Star exchange' : 'Sign exchange'} · ${src === 'natal' ? 'your birth chart' : 'transits on the date shown'}</span><button type="button" class="sky-btn nak-close" aria-label="Close">✕ Close</button></div>
+    <h2>${a} ⇄ ${b} <span>${kind === 'star' ? 'Nakshatra parivartana' : 'Parivartana'}</span></h2>
+    <div class="nak-m">An exchange between your ${J.ORD(ha)} and ${J.ORD(hb)} houses</div>
+    <div class="nak-facts"><span>Kind <b class="${type === 'Maha' ? 'sky-g' : type === 'Dainya' ? 'sky-b' : ''}">${K[0]}</b></span><span>${J.ORD(ha)} house <b>${esc(J.HOUSE[ha].n)}</b></span><span>${J.ORD(hb)} house <b>${esc(J.HOUSE[hb].n)}</b></span></div>
+    <h3>The exchange</h3><p>${esc(where)} ${a} is in your ${J.ORD(ha)} house and ${b} in your ${J.ORD(hb)}, so the matters of the ${J.ORD(ha)} (${esc(J.HOUSE[ha].sig)}) and the ${J.ORD(hb)} (${esc(J.HOUSE[hb].sig)}) are bound together.</p>
+    ${pair ? `<p>${esc(pair)}</p>` : ''}
+    <h3>${esc(K[0])}</h3><p>${esc(K[1])}${kind === 'star' ? ' For a star exchange the classification is borrowed from the houses involved; its effect is subtler than a sign exchange but works strongly in the two planets’ dasas.' : ''}</p>
+    ${src === 'natal' && strong.length ? `<p><b>Saving grace:</b> ${strong.join(' and ')} ${strong.length > 1 ? 'are' : 'is'} strong by sign at birth, which lifts the result above the plain rule.</p>` : ''}
+    ${src === 'natal' ? `<h3>When it works</h3><p>Most strongly in the dasa or sub-period of ${a} or ${b}: during either, the houses of both come alive.</p>` : `<h3>How long it lasts</h3><p>Only while both planets stay where they are; check the sign-change list in the panel.</p>`}
+    <h3>History</h3>${PARIV_HIST.map(x => `<p>${esc(x)}</p>`).join('')}
+    <p class="sky-note">Classification from Phaladeepika chapter 6; star exchanges from KP and Nadi practice. Traditional, untested.</p></div>`;
+  pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
+  pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
+}
+document.addEventListener('click', e => { const x = e.target.closest && e.target.closest('[data-pariv]'); if (x) { e.preventDefault(); const [a, b, k, src] = x.dataset.pariv.split('|'); skyParivPage(a, b, k, src); } });
 function skyNakOpen(n) { const hb = $('#skyHouse'); if (!hb) return; hb.dataset.sign = ''; hb.dataset.nak = n;
   hb.innerHTML = `<button type="button" class="sky-x" aria-label="Close">✕</button><button type="button" class="sky-btn nak-read">📖 Read the story</button>` + skyNakHTML(n, true); hb.hidden = false;
   hb.querySelector('.nak-read').addEventListener('click', () => skyNakPage(n));
@@ -2826,8 +2934,35 @@ function skyNakOpen(n) { const hb = $('#skyHouse'); if (!hb) return; hb.dataset.
 function skyHouseOpen(sg) { const hb = $('#skyHouse'); if (!hb) return; hb.dataset.sign = sg; hb.dataset.nak = '';
   hb.innerHTML = `<button type="button" class="sky-x" aria-label="Close">✕</button>` + skyHouseHTML(sg, true); hb.hidden = false;
   hb.querySelector('.sky-x').addEventListener('click', () => { hb.hidden = true; }); }
+// the nakshatra ring's picture band: number, symbol, deity and the traditional count of stars in each asterism
+const NAK_EMOJI = ['🐎','🔺','🔥','🐂','🦌','💧','🏹','🐄','🐍','👑','🛏️','🛋️','✋','💎','🌱','⛩️','🌸','☂️','🌳','💦','🐘','👂','🥁','⭕','⚔️','🌊','🐟'];
+const NAK_DSHORT = ['Ashwini Kumaras','Yama','Agni','Brahma','Soma','Rudra','Aditi','Brihaspati','Nagas','Pitrs','Bhaga','Aryaman','Savitr','Tvashtr','Vayu','Indra–Agni','Mitra','Indra','Nirriti','Apah','Vishvedevas','Vishnu','Vasus','Varuna','Aja Ekapada','Ahir Budhnya','Pushan'];
+const NAK_STARS = [3,3,6,5,3,1,4,3,6,5,2,2,5,1,1,4,4,3,9,2,2,3,4,100,2,2,32];
+const NAK_ICON = {};
+function skyNakIcon(n) {
+  if (NAK_ICON[n]) return NAK_ICON[n];
+  const W = 200, H = 320, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#FFD27A'; g.font = '700 30px system-ui, sans-serif'; g.fillText(String(n + 1), W/2, 20);
+  g.font = '56px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif'; g.fillText(NAK_EMOJI[n], W/2, 72);
+  g.fillStyle = '#C9D3F0'; g.font = '500 19px system-ui, sans-serif'; const dn = NAK_DSHORT[n];
+  if (g.measureText(dn).width > W - 8) { const parts = dn.split(/ |–/); g.fillText(parts[0], W/2, 116); g.fillText(parts.slice(1).join(' '), W/2, 138); } else g.fillText(dn, W/2, 124);
+  // the asterism, drawn large: the traditional number of stars (a ring for Shatabhisha's hundred, a shoal for Revati's 32)
+  const k = NAK_STARS[n], cx = W/2, cy = 232, rnd = (i => () => { i = (i*9301 + 49297) % 233280; return i/233280; })(n*97 + 13);
+  let pts = [];
+  if (k >= 100) { for (let i = 0; i < 24; i++) { const a = i/24*Math.PI*2; pts.push([cx + Math.cos(a)*62, cy + Math.sin(a)*58]); } }
+  else if (k >= 30) { for (let i = 0; i < 18; i++) { const a = i/18*Math.PI*2, r = 0.45 + rnd()*0.55; pts.push([cx + Math.cos(a)*76*r, cy + Math.sin(a)*60*r]); } }
+  else for (let i = 0; i < k; i++) { const a = rnd()*Math.PI*2, r = k === 1 ? 0 : 18 + rnd()*44; pts.push([cx + Math.cos(a)*r*1.35, cy + Math.sin(a)*r*0.95]); }
+  g.strokeStyle = 'rgba(175,192,242,.6)'; g.lineWidth = 3;
+  if (pts.length > 1 && k < 30) { const o = pts.slice().sort((p1, p2) => p1[0] - p2[0]); g.beginPath(); g.moveTo(o[0][0], o[0][1]); for (const q of o.slice(1)) g.lineTo(q[0], q[1]); g.stroke(); }
+  for (const [x, y] of pts) { const r = k === 1 ? 11 : k >= 30 ? 5 : 7;
+    const gl = g.createRadialGradient(x, y, 0, x, y, r*2.4); gl.addColorStop(0, 'rgba(255,255,255,.55)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gl; g.beginPath(); g.arc(x, y, r*2.4, 0, Math.PI*2); g.fill();
+    g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill(); }
+  return NAK_ICON[n] = c;
+}
 function tSky3D() {
-  return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them. Each planet is drawn as its traditional symbol in its colour: the Sun, a crescent Moon, Mars’s sword, Mercury as the brain (intellect), Jupiter as praying hands (the guru), Venus as a car (vehicles and comforts), Saturn’s crow (his vahana), Rahu as the bodiless head and Ketu as the headless body. Drag to turn it, scroll or pinch to zoom, hover over a planet for details, and click a planet (or its name in the legend) to read its story. Click a sign’s coloured band to read its story. Hover over a house to see what it signifies and which planets are moving through it; click a house to open its page with its history, meaning and what each planet does when it moves there. Hover a nakshatra for a quick summary, or click it to open its own page with its story, lord, deity, theme, how it works for your birth star (tara), and what each planet does when it moves into it. Eclipses within two weeks of the date appear as a dark disc on the zodiac, and the panel explains the last and next eclipses for your chart. The panel starts with your dasa period on that date (main, sub and sub-sub periods, what they bring, and how their lords are transiting), then the yogas the transits form, in the sky and with your own lagna, Moon and house lords. Transit planets within 8° of each other are linked by a gold line, and the panel explains each conjunction. Dashed lines show the houses Mars, Jupiter, Saturn, Rahu and Ketu aspect (turn them off with the Aspects box), and the panel lists every planet’s aspects and what they do. Retrograde transit planets carry a red ℞ and combust ones (too close to the Sun) an orange ✷, and the effects panel lists what each retrograde means for you, every sign change near the date and the next move of Saturn, Jupiter and Rahu/Ketu, with what each means for you. Use <b>◀ Previous</b> and <b>Next ▶</b> (or the arrow keys) to step the transits by a day, week, month, year or to the next sign change, or drag the date slider.</p>
+  return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them, each with its number, symbol, deity and its traditional count of stars. Each planet is drawn as its traditional symbol in its colour: the Sun, a crescent Moon, Mars’s sword, Mercury as the brain (intellect), Jupiter as praying hands (the guru), Venus as a car (vehicles and comforts), Saturn’s crow (his vahana), Rahu as the bodiless head and Ketu as the headless body. Drag to turn it, scroll or pinch to zoom, hover over a planet for details, and click a planet (or its name in the legend) to read its story. Click a sign’s coloured band to read its story. Hover over a house to see what it signifies and which planets are moving through it; click a house to open its page with its history, meaning and what each planet does when it moves there. Hover a nakshatra for a quick summary, or click it to open its own page with its story, lord, deity, theme, how it works for your birth star (tara), and what each planet does when it moves into it. Eclipses within two weeks of the date appear as a dark disc on the zodiac, and the panel explains the last and next eclipses for your chart. The panel starts with your dasa period on that date (main, sub and sub-sub periods, what they bring, and how their lords are transiting), then the yogas the transits form, in the sky and with your own lagna, Moon and house lords. Transit planets within 8° of each other are linked by a gold line, and the panel explains each conjunction. Dashed lines show the houses Mars, Jupiter, Saturn, Rahu and Ketu aspect (turn them off with the Aspects box), and the panel lists every planet’s aspects and what they do. Retrograde transit planets carry a red ℞ and combust ones (too close to the Sun) an orange ✷, and the effects panel lists what each retrograde means for you, every sign change near the date and the next move of Saturn, Jupiter and Rahu/Ketu, with what each means for you. Use <b>◀ Previous</b> and <b>Next ▶</b> (or the arrow keys) to step the transits by a day, week, month, year or to the next sign change, or drag the date slider.</p>
   <div class="sky-box" id="skyBox">
   <div class="sky-bar">
     <label class="sky-chk"><input type="checkbox" data-sky="natal" ${SKY.show.natal ? 'checked' : ''}> Birth planets</label>
@@ -2945,6 +3080,8 @@ function skyInfo(d, T, R) {
        + (CB.soon.length ? `<div class="sky-ih">Becoming combust soon</div><ul class="sky-ing">${CB.soon.map(x => skyCombTxt(x, T, false)).join('')}</ul>` : ''); })()
      + (I.slow.length ? `<div class="sky-ih">Next big moves <span>(slow planets)</span></div><ul class="sky-ing">${I.slow.map(skyIngTxt).join('')}</ul>` : ''); })()}
    ${C.yogas.length ? `<div class="sky-ih">Your birth yogas <span>(click to read)</span></div><div class="sky-savs">${[...new Set(C.yogas.map(y => y.name))].map(n => `<button type="button" class="sky-ylink sky-ychip" data-yogap="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+   ${skyExchHTML(T)}
+   ${skyStarLordHTML()}
    ${skyD9HTML(d, T)}
    ${skyD10HTML(d, T)}
    ${skyAVHTML(T)}
@@ -3040,7 +3177,11 @@ function skyBuild(rows, range) {
   for (let n = 0; n < 27; n++) { const a0 = n*360/27, a1 = a0 + 360/27;
     const nb = ringSeg(12.2, 13.6, a0, a1, n % 2 ? 0x2b3a6b : 0x1c2747, 0.85); nb.userData = {nak: n}; naks.add(nb); zones.push(nb);
     naks.add(line(pos(a0, 12.2, 0.01), pos(a0, 13.6, 0.01), 0x5d6c99, 0.8));
-    const t = label(J.NAKS[n][0], '#C9D3F0', 0.42, false); t.position.copy(pos(a0 + 180/27, 12.9, 0.06)); naks.add(t); }
+    const t = label(J.NAKS[n][0], '#C9D3F0', 0.42, false); t.position.copy(pos(a0 + 180/27, 12.9, 0.06)); naks.add(t);
+    const ob = ringSeg(13.6, 17.4, a0, a1, n % 2 ? 0x101833 : 0x0b1226, 0.92); ob.userData = {nak: n}; naks.add(ob); zones.push(ob);
+    naks.add(line(pos(a0, 13.6, 0.01), pos(a0, 17.4, 0.01), 0x5d6c99, 0.6));
+    const tx = new T3.CanvasTexture(skyNakIcon(n)); tx.minFilter = T3.LinearFilter;
+    const sp = new T3.Sprite(new T3.SpriteMaterial({map: tx, transparent: true, depthWrite: false})); sp.scale.set(2.5, 4.0, 1); sp.position.copy(pos(a0 + 180/27, 15.5, 0.8)); naks.add(sp); }
   // earth
   world.add(new T3.Mesh(new T3.SphereGeometry(0.9, 24, 16), new T3.MeshStandardMaterial({color: 0x2f6fb5, roughness: 0.8})));
   // planets
@@ -3060,26 +3201,26 @@ function skyBuild(rows, range) {
   order.forEach((b, i) => { const prev = order.slice(0, i).filter(o => Math.abs(((C.P[o].lon - C.P[b].lon + 540) % 360) - 180) < 9); lvl[b] = prev.length; });
   for (const b of J.PL) { const g = mkPlanet(b, C.P[b].lon, 6.6 + (lvl[b] % 2)*0.9, 0.6 + lvl[b]*1.0, false); natal.add(g, g.userData.stem); }
   const trans = new T3.Group(); world.add(trans); const tObj = {};
-  for (const b of J.PL) { const g = mkPlanet(b, 0, 15, 1.6, true); tObj[b] = g; trans.add(g); }
+  for (const b of J.PL) { const g = mkPlanet(b, 0, 19.0, 1.6, true); tObj[b] = g; trans.add(g); }
   const hits = new T3.Group(); world.add(hits); const asp = new T3.Group(); world.add(asp);
   SKY.moveT = T => { hits.clear(); const lv = {};
     { const dd = new Date(Date.now() + SKY.off*864e5); for (const x of skyEclipses(dd)) if (Math.abs(x.date - dd) < 15*864e5) {
       const at = pos(x.lon, 10.8, 0.9), disc = new T3.Mesh(new T3.SphereGeometry(0.55, 20, 14), new T3.MeshBasicMaterial({color: 0x050505})); disc.position.copy(at); hits.add(disc);
       const halo = label('◯', x.type === 'lunar' ? '#C0392B' : '#FFB347', 1.6); halo.position.copy(at); hits.add(halo);
       const tl = label(x.type === 'lunar' ? 'Lunar eclipse' : 'Solar eclipse', '#FFD27A', 0.5); tl.position.copy(pos(x.lon, 10.8, 1.9)); hits.add(tl); } }
-    for (const x of skyConj(T)) if (x.orb < 8) { const ln = new T3.Line(new T3.BufferGeometry().setFromPoints([pos(T[x.a].lon, 16.4, 0.4), pos(T[x.b].lon, 16.4, 0.4)]), new T3.LineBasicMaterial({color: 0xFFD27A})); hits.add(ln); }
+    for (const x of skyConj(T)) if (x.orb < 8) { const ln = new T3.Line(new T3.BufferGeometry().setFromPoints([pos(T[x.a].lon, 20.4, 0.4), pos(T[x.b].lon, 20.4, 0.4)]), new T3.LineBasicMaterial({color: 0xFFD27A})); hits.add(ln); }
     asp.clear(); for (const b of ['Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu']) for (const a of skyAspOf(b, T)) {
-      const ln = new T3.Line(new T3.BufferGeometry().setFromPoints([pos(T[b].lon, 14.6, 1.0), pos(a.sign*30 + 15, 7.6, 0.15)]), new T3.LineDashedMaterial({color: SKY_COL[b], dashSize: 0.45, gapSize: 0.3, transparent: true, opacity: 0.75}));
+      const ln = new T3.Line(new T3.BufferGeometry().setFromPoints([pos(T[b].lon, 18.6, 1.0), pos(a.sign*30 + 15, 7.6, 0.15)]), new T3.LineDashedMaterial({color: SKY_COL[b], dashSize: 0.45, gapSize: 0.3, transparent: true, opacity: 0.75}));
       ln.computeLineDistances(); asp.add(ln);
       const dot = new T3.Mesh(new T3.SphereGeometry(0.16, 10, 8), new T3.MeshBasicMaterial({color: SKY_COL[b]})); dot.position.copy(pos(a.sign*30 + 15, 7.6, 0.15)); asp.add(dot); }
     const ord = J.PL.slice().sort((a, b) => T[a].lon - T[b].lon);
     ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(o => Math.abs(((T[o].lon - T[b].lon + 540) % 360) - 180) < 9).length; });
-    for (const b of J.PL) { const g = tObj[b]; if (g.userData.rl) g.userData.rl.visible = !!T[b].retro; if (g.userData.cl) g.userData.cl.visible = Math.abs(((T[b].lon - T.Sun.lon + 540) % 360) - 180) < SKY_ORB(b, T); g.position.copy(pos(T[b].lon, 15 + (lv[b] % 2)*1.1, 1.4 + lv[b]*1.0)); g.children[0].userData.lon = T[b].lon;
-      for (const n of J.PL) if (Math.abs(((T[b].lon - C.P[n].lon + 540) % 360) - 180) < 3) hits.add(line(pos(T[b].lon, 14.2, 0.2), pos(C.P[n].lon, 7.2, 0.2), SKY_COL[b], 0.9)); } };
+    for (const b of J.PL) { const g = tObj[b]; if (g.userData.rl) g.userData.rl.visible = !!T[b].retro; if (g.userData.cl) g.userData.cl.visible = Math.abs(((T[b].lon - T.Sun.lon + 540) % 360) - 180) < SKY_ORB(b, T); g.position.copy(pos(T[b].lon, 19.0 + (lv[b] % 2)*1.1, 1.4 + lv[b]*1.0)); g.children[0].userData.lon = T[b].lon;
+      for (const n of J.PL) if (Math.abs(((T[b].lon - C.P[n].lon + 540) % 360) - 180) < 3) hits.add(line(pos(T[b].lon, 18.2, 0.2), pos(C.P[n].lon, 7.2, 0.2), SKY_COL[b], 0.9)); } };
   SKY.moveT(J.transitPositions(new Date(Date.now() + SKY.off*864e5)));
   SKY.apply = () => { natal.visible = SKY.show.natal; trans.visible = hits.visible = SKY.show.transit; asp.visible = SKY.show.transit && SKY.show.asp; naks.visible = SKY.show.naks; }; SKY.apply();
   // camera orbit: drag to turn, wheel or pinch to zoom
-  let th = Math.PI/2, ph = 0.95, dist = W() < 520 ? 40 : 33; const place = () => { cam.position.set(dist*Math.sin(ph)*Math.cos(th), dist*Math.cos(ph), dist*Math.sin(ph)*Math.sin(th)); cam.lookAt(0, 0, 0); }; place();
+  let th = Math.PI/2, ph = 0.95, dist = W() < 520 ? 50 : 41; const place = () => { cam.position.set(dist*Math.sin(ph)*Math.cos(th), dist*Math.cos(ph), dist*Math.sin(ph)*Math.sin(th)); cam.lookAt(0, 0, 0); }; place();
   // when the effects panel is open on a wide view, shift the wheel right so the panel doesn't cover it
   SKY.offset = () => { const sh = !SKY.infoOff && W() > 760 ? Math.min(180, W()*0.17) : 0; if (sh) cam.setViewOffset(W(), H(), -sh, 0, W(), H()); else cam.clearViewOffset(); cam.updateProjectionMatrix(); }; SKY.offset();
   const el = renderer.domElement, pts = new Map(); let pinch0 = 0, moved = false;
