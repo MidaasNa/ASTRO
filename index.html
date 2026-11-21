@@ -316,6 +316,13 @@ tr.now td{background:var(--accent-soft)}
 .nak-facts{display:flex;flex-wrap:wrap;gap:8px}.nak-facts span{background:#151C2E;border:1px solid #2c3a63;border-radius:8px;padding:4px 10px;font-size:13px;color:#AFB9DA}.nak-facts b{color:#EEF1FA}
 .nak-chart{background:#121a30;border:1px solid #2c3a63;border-radius:10px;padding:10px 12px;font-size:13.5px}.nak-chart ul{list-style:none;padding-left:0}
 .pl-head{display:flex;gap:14px;align-items:center}.pl-head h2{margin:0}.pl-fam{color:#C9D3F0;margin-top:10px}.sky-lg{cursor:pointer;border-radius:6px;padding:1px 4px}.sky-lg:hover,.sky-lg:focus{background:var(--panel-2);outline:none}
+.sky2d{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#070b18;z-index:1}.sky2d svg{width:100%;height:100%;max-height:100%}
+.w2-hit{cursor:pointer}.w2-hit:hover{stroke:#FFD27A;stroke-width:2}
+.w2-nk{fill:#C9D3F0;font:500 11px system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.w2-sg{fill:#EEF1FA;font:700 17px system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.w2-h{fill:#9FB0DA;font:700 18px system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none}.w2-h1{fill:#FFD27A;font-size:22px}
+.w2-r{fill:#FF6B6B;font:700 18px system-ui,sans-serif;pointer-events:none}
+.w2-c1{fill:#FFD27A;font:700 22px system-ui,sans-serif;text-anchor:middle}.w2-c2{fill:#E7EBF7;font:500 16px system-ui,sans-serif;text-anchor:middle}.w2-c3{fill:#8E9AC0;font:400 12px system-ui,sans-serif;text-anchor:middle}
 .sky-ylink{background:none;border:0;padding:0;font:inherit;font-weight:700;color:#FFD27A;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}.sky-ychip{font-weight:500;font-size:12px;background:#1c2747;border-radius:5px;padding:2px 6px;text-decoration:none}
 .dasa-hist{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 14px}.nak-page .dnow td{background:#22305a}
 .pada-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.pada-card{text-align:left;background:#151C2E;border:1px solid #33416b;border-radius:8px;color:#EEF1FA;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}.pada-card:hover{border-color:#FFD27A}.pada-card span{display:block;color:#AFB9DA;font-size:12.5px;margin-top:2px}
@@ -3084,7 +3091,7 @@ function wireLearn() {
 }
 
 // ---------- 3D sky: the zodiac wheel with signs, 27 nakshatras, houses, birth planets and moving transits (three.js, loaded on first use) ----------
-const SKY = {raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true}};
+const SKY = {mode: (() => { try { return localStorage.getItem('jk-skymode') || '3d'; } catch (err) { return '3d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true}};
 // Navagraha mandala tradition: each graha has its own shape (pitha) and colour
 const SKY_COL = {Sun: '#F2552C', Moon: '#F2F3F7', Mars: '#D7263D', Mercury: '#2FB560', Jupiter: '#F7C531', Venus: '#FFF1D6', Saturn: '#4C63D9', Rahu: '#8E889E', Ketu: '#E08A3C'};
 const SKY_SHAPE = {Sun: 'Sun', Moon: 'crescent Moon', Mars: 'sword', Mercury: 'brain', Jupiter: 'praying hands', Venus: 'car', Saturn: 'crow', Rahu: 'bodiless head', Ketu: 'headless body'};
@@ -4298,6 +4305,51 @@ function skyNakIcon(n) {
     g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill(); }
   return NAK_ICON[n] = c;
 }
+// ---------- 2D wheel: the same chart flat, with the nakshatra picture ring, birth planets inside and transits outside ----------
+const SKY_URL = {};
+const skyIconURL = b => SKY_URL[b] || (SKY_URL[b] = skyIcon(b).toDataURL());
+const skyNakURL = n => SKY_URL['n' + n] || (SKY_URL['n' + n] = skyNakIcon(n).toDataURL());
+function sky2D(T) {
+  const box = $('#sky2d'); if (!box || SKY.mode !== '2d') return;
+  const L0 = C.L.lon, th = lon => Math.PI + (lon - L0)*Math.PI/180, P = (lon, r) => [r*Math.cos(th(lon)), -r*Math.sin(th(lon))], f = v => v.toFixed(1);
+  const seg = (r0, r1, a0, a1) => { const [x0, y0] = P(a0, r1), [x1, y1] = P(a1, r1), [x2, y2] = P(a1, r0), [x3, y3] = P(a0, r0), lg = a1 - a0 > 180 ? 1 : 0;
+    return `M${f(x0)} ${f(y0)} A${r1} ${r1} 0 ${lg} 0 ${f(x1)} ${f(y1)} L${f(x2)} ${f(y2)} A${r0} ${r0} 0 ${lg} 1 ${f(x3)} ${f(y3)}Z`; };
+  const rot = lon => { let d = 90 - th(lon)*180/Math.PI; d = ((d % 360) + 360) % 360; if (d > 90 && d < 270) d -= 180; return d; };
+  const ELEM = ['#E4572E', '#7FA35A', '#5DA9E9', '#3B6FB6'];
+  let o = `<circle r="540" fill="#070b18"/><circle r="330" fill="#0b1226"/>`;
+  // nakshatra picture band and name ring
+  for (let n = 0; n < 27; n++) { const a0 = n*40/3, a1 = a0 + 40/3, m = a0 + 20/3, [x, y] = P(m, 402), [tx, ty] = P(m, 316);
+    o += `<path d="${seg(330, 472, a0, a1)}" fill="${n % 2 ? '#101833' : '#0b1226'}" stroke="#3a4a7a" stroke-width="1" data-nk2="${n}" class="w2-hit"><title>${J.NAKS[n][0]}</title></path>
+      <image href="${skyNakURL(n)}" x="${f(x - 34)}" y="${f(y - 54)}" width="68" height="109" pointer-events="none"/>
+      <path d="${seg(302, 330, a0, a1)}" fill="${n % 2 ? '#2b3a6b' : '#1c2747'}" stroke="#3a4a7a" stroke-width="1" data-nk2="${n}" class="w2-hit"><title>${J.NAKS[n][0]}</title></path>
+      <text x="${f(tx)}" y="${f(ty)}" transform="rotate(${f(rot(m))} ${f(tx)} ${f(ty)})" class="w2-nk">${J.NAKS[n][0]}</text>`; }
+  // signs and houses
+  for (let sg = 0; sg < 12; sg++) { const a0 = sg*30, a1 = a0 + 30, m = a0 + 15, h = (sg - C.lagna + 12) % 12 + 1, [sx, sy] = P(m, 271), [hx, hy] = P(m, 128);
+    o += `<path d="${seg(240, 302, a0, a1)}" fill="${ELEM[sg % 4]}" fill-opacity="${h === 1 ? 0.6 : 0.32}" stroke="#9aa6c8" stroke-opacity=".5" data-sg2="${sg}" class="w2-hit"><title>${J.SIGNS[sg]}: click for its story</title></path>
+      <path d="${seg(110, 240, a0, a1)}" fill="transparent" stroke="#9aa6c8" stroke-opacity=".25" data-h2="${h}" class="w2-hit"><title>${J.ORD(h)} house: click for its page</title></path>
+      <text x="${f(sx)}" y="${f(sy)}" transform="rotate(${f(rot(m))} ${f(sx)} ${f(sy)})" class="w2-sg">${J.SIGNS[sg]}</text>
+      <text x="${f(hx)}" y="${f(hy)}" class="w2-h${h === 1 ? ' w2-h1' : ''}">${h}</text>`; }
+  { const [lx, ly] = P(L0, 302); o += `<line x1="0" y1="0" x2="${f(lx)}" y2="${f(ly)}" stroke="#FFD27A" stroke-width="2"/>`; }
+  // planets: birth inside, transits outside, stacked when close together
+  const stack = (Pos, base, step) => { const ord = J.PL.slice().sort((a, b) => Pos[a].lon - Pos[b].lon), lv = {};
+    ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((Pos[x].lon - Pos[b].lon + 540) % 360) - 180) < 9).length; }); return b => base + lv[b]*step; };
+  const rn = stack(C.P, 205, -36), rt = stack(T, 500, 0);
+  const tl = (() => { const ord = J.PL.slice().sort((a, b) => T[a].lon - T[b].lon), lv = {}; ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((T[x].lon - T[b].lon + 540) % 360) - 180) < 9).length; }); return lv; })();
+  for (const b of J.PL) { const [x, y] = P(C.P[b].lon, rn(b));
+    o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]}</title></image>`; }
+  for (const b of J.PL) { const ang = T[b].lon + (tl[b] % 2 ? 1 : -1)*(tl[b] ? 3.2*Math.ceil(tl[b]/2) : 0), [x, y] = P(ang, 506);
+    o += `<circle cx="${f(x)}" cy="${f(y)}" r="23" fill="#0b1226" stroke="#fff" stroke-width="2"/><image href="${skyIconURL(b)}" x="${f(x - 19)}" y="${f(y - 19)}" width="38" height="38" data-pl2="${b}" class="w2-hit"><title>Transit ${b}${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}: ${J.SIGNS[T[b].sign]} ${J.fmtDeg(T[b].deg)}, ${J.NAKS[T[b].nak][0]}</title></image>
+      ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}`; }
+  const d = new Date(Date.now() + SKY.off*864e5);
+  o += `<circle r="108" fill="#0d1530" stroke="#3a4a7a"/><text y="-30" class="w2-c1">${d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</text>
+    <text y="6" class="w2-c2">Lagna ${J.SIGNS[C.lagna]}</text><text y="34" class="w2-c2">Moon ${J.SIGNS[C.P.Moon.sign]} · ${J.NAKS[C.P.Moon.nak][0]}</text><text y="62" class="w2-c3">inside: birth · outside: transits</text>`;
+  box.innerHTML = `<svg viewBox="-550 -550 1100 1100" role="img" aria-label="2D chart wheel with nakshatras">${o}</svg>`;
+}
+function skyApplyMode() {
+  const c = $('#skyWrap canvas'), b2 = $('#sky2d'), btn = $('#skyMode'); if (!b2) return;
+  const two = SKY.mode === '2d'; if (c) c.style.display = two ? 'none' : ''; b2.hidden = !two; if (btn) btn.textContent = two ? '◉ 3D view' : '◐ 2D wheel';
+  if (two) sky2D(J.transitPositions(new Date(Date.now() + SKY.off*864e5)));
+}
 function tSky3D() {
   return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them, each with its number, symbol, deity and its traditional count of stars. Each planet is drawn as its traditional symbol in its colour: the Sun, a crescent Moon, Mars’s sword, Mercury as the brain (intellect), Jupiter as praying hands (the guru), Venus as a car (vehicles and comforts), Saturn’s crow (his vahana), Rahu as the bodiless head and Ketu as the headless body. Drag to turn it, scroll or pinch to zoom, hover over a planet for details, and click a planet (or its name in the legend) to read its story. Click a sign’s coloured band to read its story. Hover over a house to see what it signifies and which planets are moving through it; click a house to open its page with its history, meaning and what each planet does when it moves there. Hover a nakshatra for a quick summary, or click it to open its own page with its story, lord, deity, theme, how it works for your birth star (tara), and what each planet does when it moves into it. Eclipses within two weeks of the date appear as a dark disc on the zodiac, and the panel explains the last and next eclipses for your chart. The panel starts with your dasa period on that date (main, sub and sub-sub periods, what they bring, and how their lords are transiting), then the yogas the transits form, in the sky and with your own lagna, Moon and house lords. Transit planets within 8° of each other are linked by a gold line, and the panel explains each conjunction. Dashed lines show the houses Mars, Jupiter, Saturn, Rahu and Ketu aspect (turn them off with the Aspects box), and the panel lists every planet’s aspects and what they do. Retrograde transit planets carry a red ℞ and combust ones (too close to the Sun) an orange ✷, and the effects panel lists what each retrograde means for you, every sign change near the date and the next move of Saturn, Jupiter and Rahu/Ketu, with what each means for you. Use <b>◀ Previous</b> and <b>Next ▶</b> (or the arrow keys) to step the transits by a day, week, month, year or to the next sign change, or drag the date slider.</p>
   <div class="sky-box" id="skyBox">
@@ -4311,10 +4363,11 @@ function tSky3D() {
     <select id="skyStep" class="sky-sel" aria-label="Step size">${[['1', '1 day'], ['7', '1 week'], ['30', '1 month'], ['365', '1 year'], ['sign', 'Next sign change']].map(([v, t]) => `<option value="${v}" ${SKY.step === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
     <button type="button" class="btn sky-btn" id="skyNext" aria-label="Next">Next ▶</button>
     <button type="button" class="btn sky-btn" id="skyToday">Today</button>
+    <button type="button" class="btn sky-btn" id="skyMode">◐ 2D wheel</button>
     <button type="button" class="btn sky-btn" id="skyFull" aria-label="Full screen">⛶ Full screen</button>
   </div>
   <div class="sky-date"><input type="range" id="skyRange" min="-730" max="1825" step="1" value="${SKY.off}" aria-label="Transit date"><b id="skyDate"></b></div>
-  <div class="sky-wrap" id="skyWrap"><div class="sky-load" id="skyLoad">Loading the 3D view…</div><button type="button" class="sky-infobtn" id="skyInfoBtn" aria-expanded="true">Effects ▾</button><div class="sky-info" id="skyInfo"></div><div class="sky-tip" id="skyTip" hidden></div><div class="sky-house" id="skyHouse" hidden></div></div>
+  <div class="sky-wrap" id="skyWrap"><div class="sky-load" id="skyLoad">Loading the 3D view…</div><button type="button" class="sky-infobtn" id="skyInfoBtn" aria-expanded="true">Effects ▾</button><div class="sky-info" id="skyInfo"></div><div class="sky2d" id="sky2d" hidden></div><div class="sky-tip" id="skyTip" hidden></div><div class="sky-house" id="skyHouse" hidden></div></div>
   </div>
   <div class="sky-legend">${J.PL.map(b => `<span class="sky-lg" role="button" tabindex="0" data-plpage="${b}" title="Read the story of ${b}"><img src="${skyIcon(b).toDataURL()}" width="24" height="24" alt="" style="vertical-align:-7px;margin-right:4px">${b} <span class="muted">· ${SKY_SHAPE[b]}</span></span>`).join('')}<span><i class="sky-ring"></i>Transit (outer, with a white ring)</span></div>
   <h3 style="margin-top:16px">Transits on <span id="skyDate2"></span></h3>
@@ -4442,7 +4495,7 @@ function initSky3D() {
   const rows = () => {
     const T = J.transitPositions(when()), d = when(), R = {}; J.transits(C, d).forEach(x => R[x.planet] = x);
     $('#skyDate').textContent = $('#skyDate2').textContent = d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
-    skyInfo(d, T, R); const hb = $('#skyHouse'); if (hb && !hb.hidden) { if (hb.dataset.sign) skyHouseOpen(+hb.dataset.sign); else if (hb.dataset.nak) skyNakOpen(+hb.dataset.nak); }
+    skyInfo(d, T, R); if (SKY.mode === '2d') sky2D(T); const hb = $('#skyHouse'); if (hb && !hb.hidden) { if (hb.dataset.sign) skyHouseOpen(+hb.dataset.sign); else if (hb.dataset.nak) skyNakOpen(+hb.dataset.nak); }
     $('#skyRows').innerHTML = J.PL.map(b => { const t = T[b], over = J.PL.filter(n => Math.abs(((t.lon - C.P[n].lon + 540) % 360) - 180) < 3);
       return `<tr><td><b style="color:${SKY_COL[b]}">●</b> <b>${b}</b>${t.retro && !['Rahu', 'Ketu'].includes(b) ? ' (R)' : ''}</td><td>${J.SIGNS[t.sign]} ${Math.floor(t.deg)}°</td><td>${J.NAKS[t.nak][0]} (${t.pada})</td><td>${J.ORD((t.sign - C.lagna + 12) % 12 + 1)}</td><td>${J.ORD((t.sign - C.P.Moon.sign + 12) % 12 + 1)}</td><td>${over.length ? chip(over.map(n => 'your ' + n).join(', '), 'acc') : '<span class="muted">—</span>'}</td><td>${chip(R[b].good ? 'Good' : 'Hard', R[b].good ? 'good' : 'bad')} ${esc(R[b].res)}</td></tr>`; }).join('');
     return T;
@@ -4464,6 +4517,9 @@ function initSky3D() {
   SKY.onArrow = e => { if (tab !== 'sky3d' || /input|select|textarea/i.test(e.target.tagName)) return; if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
   addEventListener('keydown', SKY.onArrow);
   $('#pane').querySelectorAll('[data-plpage]').forEach(x => { const go = () => skyPlanetPage(x.dataset.plpage); x.addEventListener('click', go); x.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+  $('#skyMode').addEventListener('click', () => { SKY.mode = SKY.mode === '2d' ? '3d' : '2d'; try { localStorage.setItem('jk-skymode', SKY.mode); } catch (err) {} skyApplyMode(); });
+  $('#sky2d').addEventListener('click', e => { const t = e.target.closest('.w2-hit'); if (!t) return; const d = t.dataset;
+    if (d.nk2) skyNakPage(+d.nk2); else if (d.pl2) skyPlanetPage(d.pl2); else if (d.sg2) skySignPage(+d.sg2); else if (d.h2) skyHousePage(+d.h2); });
   $('#skyInfoBtn').addEventListener('click', e => { SKY.infoOff = !SKY.infoOff; $('#skyInfo').hidden = SKY.infoOff; e.currentTarget.textContent = SKY.infoOff ? 'Effects ▸' : 'Effects ▾'; e.currentTarget.setAttribute('aria-expanded', !SKY.infoOff); if (SKY.offset) SKY.offset(); });
   if (SKY.infoOff) { $('#skyInfo').hidden = true; $('#skyInfoBtn').textContent = 'Effects ▸'; $('#skyInfoBtn').setAttribute('aria-expanded', 'false'); }
   const box = $('#skyBox'), fullBtn = $('#skyFull'), setFull = on => {
@@ -4481,7 +4537,7 @@ function skyBuild(rows, range) {
   const W = () => wrap.clientWidth, H = () => $('#skyBox').classList.contains('full') ? Math.max(240, wrap.clientHeight) : Math.max(360, Math.min(620, Math.round(wrap.clientWidth*0.72)));
   const renderer = new T3.WebGLRenderer({antialias: true, alpha: false}); SKY.renderer = renderer;
   renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(W(), H()); renderer.setClearColor(0x070b18);
-  wrap.prepend(renderer.domElement); renderer.domElement.setAttribute('aria-label', '3D view of your chart and transits'); renderer.domElement.setAttribute('role', 'img');
+  wrap.prepend(renderer.domElement); setTimeout(skyApplyMode, 0); renderer.domElement.setAttribute('aria-label', '3D view of your chart and transits'); renderer.domElement.setAttribute('role', 'img');
   const scene = new T3.Scene(), cam = new T3.PerspectiveCamera(45, W()/H(), 0.1, 500), world = new T3.Group(); scene.add(world);
   scene.add(new T3.AmbientLight(0xffffff, 0.75)); const sun = new T3.PointLight(0xffffff, 0.9); sun.position.set(0, 30, 10); scene.add(sun);
   // stars
