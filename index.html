@@ -323,6 +323,12 @@ tr.now td{background:var(--accent-soft)}
 .w2-h{fill:#9FB0DA;font:700 18px system-ui,sans-serif;text-anchor:middle;dominant-baseline:middle;pointer-events:none}.w2-h1{fill:#FFD27A;font-size:22px}
 .w2-r{fill:#FF6B6B;font:700 18px system-ui,sans-serif;pointer-events:none}
 .w2-c1{fill:#FFD27A;font:700 22px system-ui,sans-serif;text-anchor:middle}.w2-c2{fill:#E7EBF7;font:500 16px system-ui,sans-serif;text-anchor:middle}.w2-c3{fill:#8E9AC0;font:400 12px system-ui,sans-serif;text-anchor:middle}
+.sky-seg{display:inline-flex}.sky-seg .sky-btn{border-radius:0;margin-left:-1px}.sky-seg .sky-btn:first-child{border-radius:8px 0 0 8px}.sky-seg .sky-btn:last-child{border-radius:0 8px 8px 0}.sky-seg .sky-btn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.sky-box.full .sky-seg .sky-btn.on{background:#EFA13A;color:#1A1204}
+.sky-compute{background:linear-gradient(135deg,#B8680A,#EFA13A);color:#1A1204;border-color:#EFA13A;font-weight:700}
+.rd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px;margin-top:14px}
+.rd-card{background:#121a30;border:1px solid #2c3a63;border-radius:10px;padding:10px 12px;font-size:14px}.rd-card ul{padding-left:0;list-style:none;margin:6px 0}.rd-card li{margin:4px 0}
+.rd-h{display:flex;gap:8px;align-items:center;margin-bottom:4px}.rd-h b{flex:1;font-size:16px;color:#FFD27A}.rd-tip{margin:6px 0 0;color:#C9D3F0;font-size:13.5px}.rd-win li{font-size:13px}
+@media (max-width:600px){.rd-grid{grid-template-columns:1fr}}
 .sky-ylink{background:none;border:0;padding:0;font:inherit;font-weight:700;color:#FFD27A;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}.sky-ychip{font-weight:500;font-size:12px;background:#1c2747;border-radius:5px;padding:2px 6px;text-decoration:none}
 .dasa-hist{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 14px}.nak-page .dnow td{background:#22305a}
 .pada-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.pada-card{text-align:left;background:#151C2E;border:1px solid #33416b;border-radius:8px;color:#EEF1FA;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}.pada-card:hover{border-color:#FFD27A}.pada-card span{display:block;color:#AFB9DA;font-size:12.5px;margin-top:2px}
@@ -3091,7 +3097,7 @@ function wireLearn() {
 }
 
 // ---------- 3D sky: the zodiac wheel with signs, 27 nakshatras, houses, birth planets and moving transits (three.js, loaded on first use) ----------
-const SKY = {mode: (() => { try { return localStorage.getItem('jk-skymode') || '3d'; } catch (err) { return '3d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true}};
+const SKY = {chart2d: 'd1', mode: (() => { try { return localStorage.getItem('jk-skymode') || '3d'; } catch (err) { return '3d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true}};
 // Navagraha mandala tradition: each graha has its own shape (pitha) and colour
 const SKY_COL = {Sun: '#F2552C', Moon: '#F2F3F7', Mars: '#D7263D', Mercury: '#2FB560', Jupiter: '#F7C531', Venus: '#FFF1D6', Saturn: '#4C63D9', Rahu: '#8E889E', Ketu: '#E08A3C'};
 const SKY_SHAPE = {Sun: 'Sun', Moon: 'crescent Moon', Mars: 'sword', Mercury: 'brain', Jupiter: 'praying hands', Venus: 'car', Saturn: 'crow', Rahu: 'bodiless head', Ketu: 'headless body'};
@@ -4282,7 +4288,7 @@ const TR_REMEDY = {
   Jupiter: 'Respect teachers and elders; visit a Guru (Dakshinamurthy) shrine on Thursday; donate chick peas or yellow dal; wear the yellow topaz you chose.',
   Venus: 'Keep spending and relationships balanced; give white sweets or rice to women in need on Friday; worship Lakshmi; be kind and attentive to your wife.',
   Saturn: 'Hanuman Chalisa on Saturday; light a sesame-oil lamp; help workers, the elderly or the disabled; be punctual, patient and honest, and finish pending work.',
-  Rahu: 'Worship Durga; avoid shortcuts, deception and addictions; donate black gram (urad dal) on Saturday; keep your head covered outdoors (Lal Kitab for Rahu in the 10th).',
+  Rahu: 'Worship Durga; avoid shortcuts, deception and addictions; donate black gram (urad dal) on Saturday; keep your head covered outdoors.',
   Ketu: 'Worship Ganesha; feed stray dogs; meditate; avoid hasty breaks or quitting in anger; get unexplained health complaints checked.'};
 function skyNextChange(b, d, key) {
   const day = 864e5, cur = skyPos(d)[b][key], st = ['Moon'].includes(b) ? 0.25 : ['Sun', 'Mercury', 'Venus', 'Mars'].includes(b) ? 1 : 4;
@@ -4398,6 +4404,68 @@ function skyTransitPage(b) {
   pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
   pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
 }
+// ---------- "Compute": an astrologer-style reading of every area of life for the date shown, from the birth promise, the running dasa and all the transits ----------
+const READ_AREAS = [
+  {k: 'career', t: 'Career & work', ic: '💼', h: [10, 6, 11], ev: ['career', 'job'], pred: 'career', tip: 'Keep a written record of your results; raise requests calmly and in writing; avoid open clashes with seniors on hard days.'},
+  {k: 'money', t: 'Money & finance', ic: '💰', h: [2, 11, 5], ev: ['wealth'], pred: 'wealth', tip: 'Save a fixed amount automatically on salary day; avoid lending and speculative bets when the tone is difficult; plan big purchases for good windows.'},
+  {k: 'family', t: 'Family & home life', ic: '🏠', h: [4, 2], ev: ['property', 'mind'], pred: 'family', tip: 'Keep routines calm at home; talk through money and family plans together; give planned, agreed support to both families.'},
+  {k: 'marriage', t: 'Marriage & partner', ic: '💍', h: [7, 2], ev: ['marriage'], pred: 'marriage', tip: 'Spend unhurried time together; avoid sharp words on tense days; make decisions as a team.'},
+  {k: 'children', t: 'Children', ic: '👶', h: [5], ev: ['children'], pred: 'children', tip: 'Steady routines, reading together and patience; keep up their health check-ups.'},
+  {k: 'health', t: 'Health', ic: '🩺', h: [1, 6, 8], ev: ['health'], pred: 'health', tip: 'Fixed sleep, medication on time, regular walking and check-ups; ride and drive carefully.'},
+  {k: 'mind', t: 'Mind, mood & sleep', ic: '🧘', h: [4, 12], ev: ['mind'], pred: 'mind', tip: 'Protect your sleep; short daily prayer or meditation; avoid big decisions when the mood is low.'},
+  {k: 'friends', t: 'Friends & networks', ic: '🤝', h: [11, 3, 7], ev: [], pred: null, tip: 'Invest in the few people who return your effort; keep lending to friends small.'},
+  {k: 'property', t: 'Property & vehicles', ic: '🔑', h: [4], ev: ['property'], pred: 'property', tip: 'Check papers carefully; buy in favourable windows and on good muhurta days.'},
+  {k: 'travel', t: 'Travel & foreign links', ic: '✈️', h: [12, 9, 3], ev: ['travel'], pred: 'travel', tip: 'Plan journeys with buffers; foreign clients or work abroad are worth exploring in good windows.'},
+  {k: 'learning', t: 'Learning & skills', ic: '📚', h: [5, 9, 3], ev: ['education'], pred: 'education', tip: 'A new certification or skill pays off most when Jupiter supports your 5th or 9th.'},
+  {k: 'parents', t: 'Parents & elders', ic: '👪', h: [9, 4], ev: ['father'], pred: 'parents', tip: 'Stay close to your mother and elders; keep their medical care on schedule.'},
+  {k: 'spiritual', t: 'Spiritual life', ic: '🕉️', h: [12, 9, 5], ev: ['spiritual'], pred: 'spiritual', tip: 'Regular worship and charity steady the mind through hard transits.'}];
+function skyReading(d) {
+  const T = skyPos(d), H = J.houseTable(C), ev = C.events.find(e => e.start <= d && e.end > d);
+  const W = b => ['Saturn', 'Jupiter', 'Rahu', 'Ketu'].includes(b) ? 2 : b === 'Moon' ? 0.3 : 1, ben = b => ['Jupiter', 'Venus', 'Mercury', 'Moon'].includes(b);
+  const F = {}; for (const b of J.PL) { const x = trFactors(b, T, d); F[b] = {fl: x.fl, t: Math.sign(x.pos.length - x.neg.length)}; }
+  const fm = (T.Saturn.sign - C.P.Moon.sign + 12) % 12 + 1, satPh = {12: 'the first phase of Ezharai Sani', 1: 'the peak of Ezharai Sani (Janma Sani)', 2: 'the last phase of Ezharai Sani', 4: 'Ardhashtama Sani', 8: 'Ashtama Sani'}[fm];
+  return READ_AREAS.map(A => {
+    let score = 0; const lines = [];
+    for (const b of J.PL) { const {fl, t} = F[b]; if (!A.h.includes(fl)) continue; const w = W(b)*(fl === A.h[0] ? 1 : 0.6); score += w*t;
+      const e = trEvents(b, fl, t); const what = (t >= 0 ? e.good : e.bad)[0];
+      if (b !== 'Moon') lines.push({w, t, s: `${b} is moving through your ${J.ORD(fl)} house (${t > 0 ? 'favourable' : t < 0 ? 'difficult' : 'mixed'} for you)${what ? `: ${what.toLowerCase()}` : ''}.`}); }
+    for (const b of ['Saturn', 'Jupiter', 'Rahu', 'Ketu', 'Mars']) for (const a of skyAspOf(b, T)) { const h = (a.sign - C.lagna + 12) % 12 + 1; if (!A.h.includes(h) || h === F[b].fl) continue;
+      const tg = ben(b) ? ([6, 8, 12].includes(h) ? -1 : 1) : ([3, 6, 10, 11].includes(h) ? 1 : -1), w = 0.5*W(b)*(h === A.h[0] ? 1 : 0.6); score += w*tg;
+      lines.push({w, t: tg, s: `${b}’s ${J.ORD(a.n)} aspect falls on your ${J.ORD(h)} house: ${tg > 0 ? (ben(b) ? 'protection and growth' : 'drive that helps you push through') : (ben(b) ? 'mixed support' : 'pressure and delay')}.`}); }
+    if (ev) for (const th of ev.themes) if (A.ev.includes(th.area)) { const w = th.level === 'High' ? 2 : th.level === 'Medium' ? 1.2 : 0.5; score += (th.good ? 1 : -1)*w;
+      lines.push({w: w + 1, t: th.good ? 1 : -1, s: `Your ${ev.md}–${ev.ad} period itself points to ${th.good ? J.AREAS[th.area].good : J.AREAS[th.area].bad} (${th.level.toLowerCase()} confidence).`}); }
+    if (satPh && ['mind', 'health', 'money', 'family'].includes(A.k)) { score -= 1; lines.push({w: 1.5, t: -1, s: `Saturn is in ${satPh}, which adds strain here; patience and routine help most.`}); }
+    const PA = A.pred ? PRED_AREAS.find(x => x.k === A.pred) : null, pr = PA ? predArea(PA, H) : null;
+    const promise = pr ? pr.rating[0] : (() => { const r = H.find(x => x && x.h === 11); return r ? r.verdict : 'Mixed'; })();
+    const now = score >= 1.5 ? ['Favourable now', 'good'] : score <= -1.5 ? ['Challenging now', 'bad'] : ['Mixed now', 'mixed'];
+    const neg = lines.filter(l => l.t < 0).sort((a, b) => b.w - a.w)[0], negPl = neg ? (neg.s.match(/^(\w+)/) || [])[1] : null;
+    return {A, score, now, promise, lines: lines.sort((a, b) => b.w - a.w).slice(0, 5), best: pr ? pr.best : [], fmtP: pr ? pr.fmtP : null, remedy: negPl && TR_REMEDY[negPl] ? TR_REMEDY[negPl] : ''};
+  });
+}
+function skyReadingPage() {
+  const pg = skyPageEl(); if (!pg) return;
+  const d = new Date(Date.now() + SKY.off*864e5), R = skyReading(d), T = skyPos(d), ev = C.events.find(e => e.start <= d && e.end > d), fdt = x => x.toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric'});
+  const fm = (T.Saturn.sign - C.P.Moon.sign + 12) % 12 + 1, satPh = {12: 'Ezharai Sani, first phase', 1: 'Ezharai Sani, peak (Janma Sani)', 2: 'Ezharai Sani, last phase', 4: 'Ardhashtama Sani', 8: 'Ashtama Sani'}[fm];
+  const strong = R.filter(r => r.now[1] === 'good').sort((a, b) => b.score - a.score), weak = R.filter(r => r.now[1] === 'bad').sort((a, b) => a.score - b.score);
+  const slow = ['Saturn', 'Jupiter', 'Rahu', 'Ketu'].map(b => `${b} in your ${J.ORD((T[b].sign - C.lagna + 12) % 12 + 1)}`).join(', ');
+  pg.dataset.kind = 'reading'; pg.hidden = false; SKY.pageNav = () => {};
+  pg.innerHTML = `<div class="nak-in" style="max-width:900px">
+    <div class="nak-nav"><span class="nak-num">Astrological reading</span><button type="button" class="sky-btn nak-close" aria-label="Close">✕ Close</button></div>
+    <h2>Your life reading <span>${fdt(d)}</span></h2>
+    <div class="nak-m">${esc(C.inp && C.inp.name ? C.inp.name + ' · ' : '')}Lagna ${J.SIGNS[C.lagna]} · Moon ${J.SIGNS[C.P.Moon.sign]} in ${J.NAKS[C.P.Moon.nak][0]}</div>
+    <div class="nak-chart"><h3 style="margin-top:0">Summary</h3>
+      <p>${ev ? `You are in the <b>${ev.md}–${ev.ad}</b> period (${fdt(ev.start)} – ${fdt(ev.end)}), rated <b>${ev.mood}</b>. ` : ''}The slow planets now: ${slow}.${satPh ? ` Saturn is in <b>${satPh}</b> from your Moon.` : ''}</p>
+      <p>${strong.length ? `<b class="sky-g">Strongest now:</b> ${strong.slice(0, 4).map(r => r.A.t.toLowerCase()).join(', ')}. ` : ''}${weak.length ? `<b class="sky-b">Needs care now:</b> ${weak.slice(0, 4).map(r => r.A.t.toLowerCase()).join(', ')}.` : ''}</p>
+      <p>${strong.length ? `Make the most of ${strong[0].A.t.toLowerCase()} while it is supported` : 'This is a period to consolidate rather than expand'}${weak.length ? `, and protect ${weak[0].A.t.toLowerCase()} with patience and the remedies below` : ''}.</p></div>
+    <div class="rd-grid">${R.map(r => `<article class="rd-card"><div class="rd-h"><span>${r.A.ic}</span><b>${r.A.t}</b><span class="chip ${r.now[1]}">${r.now[0]}</span></div>
+      <div class="sky-hm">Birth promise: <b>${esc(r.promise)}</b></div>
+      ${r.lines.length ? `<ul>${r.lines.map(l => `<li><span class="${l.t > 0 ? 'sky-g' : l.t < 0 ? 'sky-b' : ''}">${l.t > 0 ? '✓' : l.t < 0 ? '✗' : '±'}</span> ${esc(l.s)}</li>`).join('')}</ul>` : '<p class="muted">No major transit or period influence on this area right now: an ordinary, steady time.</p>'}
+      ${r.best.length && r.fmtP ? `<div class="sky-hm">Best windows ahead:</div><ul class="rd-win">${r.best.slice(0, 2).map(r.fmtP).join('')}</ul>` : ''}
+      <p class="rd-tip"><b>Advice:</b> ${esc(r.A.tip)}${r.remedy && r.now[1] !== 'good' ? ` <b>Remedy:</b> ${esc(r.remedy)}` : ''}</p></article>`).join('')}</div>
+    <p class="sky-note">Computed from your birth chart, your running dasa and the positions of all nine planets on ${fdt(d)}: transits through and aspects on the houses of each area, period themes and Saturn’s phases. Move the date with Previous/Next and press Compute again for another date. This is traditional astrology: tendencies to plan with, not certainties.</p></div>`;
+  pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
+  pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
+}
 function skyNakOpen(n) { const hb = $('#skyHouse'); if (!hb) return; hb.dataset.sign = ''; hb.dataset.nak = n;
   hb.innerHTML = `<button type="button" class="sky-x" aria-label="Close">✕</button><button type="button" class="sky-btn nak-read">📖 Read the story</button>` + skyNakHTML(n, true); hb.hidden = false;
   hb.querySelector('.nak-read').addEventListener('click', () => skyNakPage(n));
@@ -4438,7 +4506,9 @@ const skyIconURL = b => SKY_URL[b] || (SKY_URL[b] = skyIcon(b).toDataURL());
 const skyNakURL = n => SKY_URL['n' + n] || (SKY_URL['n' + n] = skyNakIcon(n).toDataURL());
 function sky2D(T) {
   const box = $('#sky2d'); if (!box || SKY.mode !== '2d') return;
-  const L0 = C.L.lon, th = lon => Math.PI + (lon - L0)*Math.PI/180, P = (lon, r) => [r*Math.cos(th(lon)), -r*Math.sin(th(lon))], f = v => v.toFixed(1);
+  const dv = SKY.chart2d || 'd1', d9 = dv !== 'd1', LON = x => dv === 'd9' ? (x*9) % 360 : dv === 'd10' ? skyD10(x)*30 + ((x % 3)/3)*30 : x, LAG = dv === 'd9' ? C.L.d9 : dv === 'd10' ? C.L.d10 : C.lagna;
+  const NP = {}, TT = {}; for (const b of J.PL) { NP[b] = {lon: LON(C.P[b].lon)}; TT[b] = {lon: LON(T[b].lon)}; }
+  const L0 = LON(C.L.lon), th = lon => Math.PI + (lon - L0)*Math.PI/180, P = (lon, r) => [r*Math.cos(th(lon)), -r*Math.sin(th(lon))], f = v => v.toFixed(1);
   const seg = (r0, r1, a0, a1) => { const [x0, y0] = P(a0, r1), [x1, y1] = P(a1, r1), [x2, y2] = P(a1, r0), [x3, y3] = P(a0, r0), lg = a1 - a0 > 180 ? 1 : 0;
     return `M${f(x0)} ${f(y0)} A${r1} ${r1} 0 ${lg} 0 ${f(x1)} ${f(y1)} L${f(x2)} ${f(y2)} A${r0} ${r0} 0 ${lg} 1 ${f(x3)} ${f(y3)}Z`; };
   const rot = lon => { let d = 90 - th(lon)*180/Math.PI; d = ((d % 360) + 360) % 360; if (d > 90 && d < 270) d -= 180; return d; };
@@ -4447,28 +4517,28 @@ function sky2D(T) {
   // nakshatra picture band and name ring
   for (let n = 0; n < 27; n++) { const a0 = n*40/3, a1 = a0 + 40/3, m = a0 + 20/3, [x, y] = P(m, 402), [tx, ty] = P(m, 316);
     o += `<path d="${seg(330, 472, a0, a1)}" fill="${n % 2 ? '#101833' : '#0b1226'}" stroke="#3a4a7a" stroke-width="1" data-nk2="${n}" class="w2-hit"><title>${J.NAKS[n][0]}</title></path>
-      <image href="${skyNakURL(n)}" x="${f(x - 34)}" y="${f(y - 54)}" width="68" height="109" pointer-events="none"/>
+      ${d9 ? '' : `<image href="${skyNakURL(n)}" x="${f(x - 34)}" y="${f(y - 54)}" width="68" height="109" pointer-events="none"/>`}
       <path d="${seg(302, 330, a0, a1)}" fill="${n % 2 ? '#2b3a6b' : '#1c2747'}" stroke="#3a4a7a" stroke-width="1" data-nk2="${n}" class="w2-hit"><title>${J.NAKS[n][0]}</title></path>
-      <text x="${f(tx)}" y="${f(ty)}" transform="rotate(${f(rot(m))} ${f(tx)} ${f(ty)})" class="w2-nk">${J.NAKS[n][0]}</text>`; }
+      ${d9 ? '' : `<text x="${f(tx)}" y="${f(ty)}" transform="rotate(${f(rot(m))} ${f(tx)} ${f(ty)})" class="w2-nk">${J.NAKS[n][0]}</text>`}`; }
   // signs and houses
-  for (let sg = 0; sg < 12; sg++) { const a0 = sg*30, a1 = a0 + 30, m = a0 + 15, h = (sg - C.lagna + 12) % 12 + 1, [sx, sy] = P(m, 271), [hx, hy] = P(m, 128);
+  for (let sg = 0; sg < 12; sg++) { const a0 = sg*30, a1 = a0 + 30, m = a0 + 15, h = (sg - LAG + 12) % 12 + 1, [sx, sy] = P(m, 271), [hx, hy] = P(m, 128);
     o += `<path d="${seg(240, 302, a0, a1)}" fill="${ELEM[sg % 4]}" fill-opacity="${h === 1 ? 0.6 : 0.32}" stroke="#9aa6c8" stroke-opacity=".5" data-sg2="${sg}" class="w2-hit"><title>${J.SIGNS[sg]}: click for its story</title></path>
-      <path d="${seg(110, 240, a0, a1)}" fill="transparent" stroke="#9aa6c8" stroke-opacity=".25" data-h2="${h}" class="w2-hit"><title>${J.ORD(h)} house: click for its page</title></path>
+      <path d="${seg(110, 240, a0, a1)}" fill="transparent" stroke="#9aa6c8" stroke-opacity=".25" ${d9 ? '' : `data-h2="${h}" class="w2-hit"`}><title>${J.ORD(h)} house${d9 ? (dv === 'd9' ? ' of the navamsa' : ' of the career chart') : ': click for its page'}</title></path>
       <text x="${f(sx)}" y="${f(sy)}" transform="rotate(${f(rot(m))} ${f(sx)} ${f(sy)})" class="w2-sg">${J.SIGNS[sg]}</text>
       <text x="${f(hx)}" y="${f(hy)}" class="w2-h${h === 1 ? ' w2-h1' : ''}">${h}</text>`; }
   { const [lx, ly] = P(L0, 302); o += `<line x1="0" y1="0" x2="${f(lx)}" y2="${f(ly)}" stroke="#FFD27A" stroke-width="2"/>`; }
   // planets: birth inside, transits outside, stacked when close together
   const stack = (Pos, base, step) => { const ord = J.PL.slice().sort((a, b) => Pos[a].lon - Pos[b].lon), lv = {};
     ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((Pos[x].lon - Pos[b].lon + 540) % 360) - 180) < 9).length; }); return b => base + lv[b]*step; };
-  const rn = stack(C.P, 205, -36), rt = stack(T, 500, 0);
+  const rn = stack(NP, 205, -36);
   const tl = (() => { const ord = J.PL.slice().sort((a, b) => T[a].lon - T[b].lon), lv = {}; ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((T[x].lon - T[b].lon + 540) % 360) - 180) < 9).length; }); return lv; })();
-  for (const b of J.PL) { const [x, y] = P(C.P[b].lon, rn(b));
-    o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]}</title></image>`; }
+  for (const b of J.PL) { const [x, y] = P(NP[b].lon, rn(b));
+    o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]} · D9 ${J.SIGNS[C.P[b].d9]} · D10 ${J.SIGNS[C.P[b].d10]}</title></image>`; }
   // spread transit icons so close planets never overlap: group neighbours closer than 6.5° and fan each group out evenly
-  const spread = (() => { const gap = 6.5, ord = J.PL.slice().sort((x, y) => T[x].lon - T[y].lon);
+  const spread = (() => { const gap = 6.5, ord = J.PL.slice().sort((x, y) => TT[x].lon - TT[y].lon);
     // start the circle at the widest empty gap so no group wraps across 0°
-    let cut = 0, best = -1; ord.forEach((x, i) => { const nx = ord[(i + 1) % ord.length], g = ((T[nx].lon - T[x].lon) % 360 + 360) % 360; if (g > best) { best = g; cut = (i + 1) % ord.length; } });
-    const seq = ord.slice(cut).concat(ord.slice(0, cut)), base = T[seq[0]].lon, L = seq.map(x => ((T[x].lon - base) % 360 + 360) % 360);
+    let cut = 0, best = -1; ord.forEach((x, i) => { const nx = ord[(i + 1) % ord.length], g = ((TT[nx].lon - TT[x].lon) % 360 + 360) % 360; if (g > best) { best = g; cut = (i + 1) % ord.length; } });
+    const seq = ord.slice(cut).concat(ord.slice(0, cut)), base = TT[seq[0]].lon, L = seq.map(x => ((TT[x].lon - base) % 360 + 360) % 360);
     let groups = seq.map((x, i) => ({m: [x], c: L[i]}));
     for (let it = 0; it < 20; it++) { let merged = false;
       for (let i = 0; i < groups.length - 1; i++) { const A = groups[i], B = groups[i + 1], aEnd = A.c + (A.m.length - 1)*gap/2, bStart = B.c - (B.m.length - 1)*gap/2;
@@ -4480,12 +4550,13 @@ function sky2D(T) {
       ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}`; }
   const d = new Date(Date.now() + SKY.off*864e5);
   o += `<circle r="108" fill="#0d1530" stroke="#3a4a7a"/><text y="-30" class="w2-c1">${d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</text>
-    <text y="6" class="w2-c2">Lagna ${J.SIGNS[C.lagna]}</text><text y="34" class="w2-c2">Moon ${J.SIGNS[C.P.Moon.sign]} · ${J.NAKS[C.P.Moon.nak][0]}</text><text y="62" class="w2-c3">inside: birth · outside: transits</text>`;
+    <text y="6" class="w2-c2">${dv === 'd9' ? 'Navamsa D9 · Lagna ' + J.SIGNS[C.L.d9] : dv === 'd10' ? 'Dasamsa D10 · Lagna ' + J.SIGNS[C.L.d10] : 'Lagna ' + J.SIGNS[C.lagna]}</text><text y="34" class="w2-c2">Moon ${J.SIGNS[C.P.Moon.sign]} · ${J.NAKS[C.P.Moon.nak][0]}</text><text y="62" class="w2-c3">inside: birth · outside: transits</text>`;
   box.innerHTML = `<svg viewBox="-550 -550 1100 1100" role="img" aria-label="2D chart wheel with nakshatras">${o}</svg>`;
 }
 function skyApplyMode() {
   const c = $('#skyWrap canvas'), b2 = $('#sky2d'), btn = $('#skyMode'); if (!b2) return;
   const two = SKY.mode === '2d'; if (c) c.style.display = two ? 'none' : ''; b2.hidden = !two; if (btn) btn.textContent = two ? '◉ 3D view' : '◐ 2D wheel';
+  document.querySelectorAll('#skyDiv [data-c2]').forEach(bt => { const on = bt.dataset.c2 === (SKY.chart2d || 'd1') && two; bt.classList.toggle('on', on); bt.setAttribute('aria-pressed', on); });
   if (two) sky2D(J.transitPositions(new Date(Date.now() + SKY.off*864e5)));
 }
 function tSky3D() {
@@ -4501,6 +4572,8 @@ function tSky3D() {
     <select id="skyStep" class="sky-sel" aria-label="Step size">${[['1', '1 day'], ['7', '1 week'], ['30', '1 month'], ['365', '1 year'], ['sign', 'Next sign change']].map(([v, t]) => `<option value="${v}" ${SKY.step === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
     <button type="button" class="btn sky-btn" id="skyNext" aria-label="Next">Next ▶</button>
     <button type="button" class="btn sky-btn" id="skyToday">Today</button>
+    <button type="button" class="btn sky-btn sky-compute" id="skyCompute">🔮 Compute reading</button>
+    <span class="sky-seg" id="skyDiv" role="group" aria-label="Chart for the 2D wheel"><button type="button" class="btn sky-btn" data-c2="d1">D1</button><button type="button" class="btn sky-btn" data-c2="d9">D9</button><button type="button" class="btn sky-btn" data-c2="d10">D10</button></span>
     <button type="button" class="btn sky-btn" id="skyMode">◐ 2D wheel</button>
     <button type="button" class="btn sky-btn" id="skyFull" aria-label="Full screen">⛶ Full screen</button>
   </div>
@@ -4656,6 +4729,8 @@ function initSky3D() {
   SKY.onArrow = e => { if (tab !== 'sky3d' || /input|select|textarea/i.test(e.target.tagName)) return; if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
   addEventListener('keydown', SKY.onArrow);
   $('#pane').querySelectorAll('[data-plpage]').forEach(x => { const go = () => skyPlanetPage(x.dataset.plpage); x.addEventListener('click', go); x.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+  $('#skyCompute').addEventListener('click', () => skyReadingPage());
+  $('#skyDiv').querySelectorAll('[data-c2]').forEach(bt => bt.addEventListener('click', () => { SKY.chart2d = bt.dataset.c2; if (SKY.mode !== '2d') SKY.mode = '2d'; skyApplyMode(); }));
   $('#skyMode').addEventListener('click', () => { SKY.mode = SKY.mode === '2d' ? '3d' : '2d'; try { localStorage.setItem('jk-skymode', SKY.mode); } catch (err) {} skyApplyMode(); });
   $('#sky2d').addEventListener('click', e => { const t = e.target.closest('.w2-hit'); if (!t) return; const d = t.dataset;
     if (d.nk2) skyNakPage(+d.nk2); else if (d.tr2) skyTransitPage(d.tr2); else if (d.pl2) skyPlanetPage(d.pl2); else if (d.sg2) skySignPage(+d.sg2); else if (d.h2) skyHousePage(+d.h2); });
