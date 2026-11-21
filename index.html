@@ -3688,11 +3688,12 @@ function skyPlanetPage(b) {
     <h3>In your chart</h3><div class="nak-chart"><ul>
       <li><b>At birth:</b> ${J.SIGNS[p.sign]} ${J.fmtDeg(p.deg)}, your ${J.ORD(p.house)} house (${esc(J.HOUSE[p.house].n.toLowerCase())}), ${J.NAKS[p.nak][0]} nakshatra <button type="button" class="sky-ylink sky-why" data-plnak="${b}|${p.nak}">why this star matters</button>${p.dignity ? ', ' + p.dignity : ''}${p.retro && !['Rahu', 'Ketu'].includes(b) ? ', retrograde' : ''}${p.combust ? ', combust' : ''}${p.vargottama && !['Rahu', 'Ketu'].includes(b) ? ', vargottama' : ''}.</li>
       ${p.lordOf && p.lordOf.length ? `<li><b>Rules</b> your ${p.lordOf.map(h => `${J.ORD(h)} (${J.HOUSE[h].n.toLowerCase()})`).join(' and ')}; ${({benefic: 'good for you (a functional benefic)', malefic: 'difficult for you (a functional malefic)', neutral: 'functionally neutral for you', yogakaraka: 'the yogakaraka, your best planet'})[C.func[b]] || 'a shadow planet'}.</li>` : ''}
-      <li><b>Moving now</b> (${(new Date(Date.now() + SKY.off*864e5)).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}): ${J.SIGNS[t.sign]} in ${J.NAKS[t.nak][0]} <button type="button" class="sky-ylink sky-why" data-plnak="${b}|${t.nak}">why</button>, your ${J.ORD(fl)} house, ${J.ORD(fm)} from your Moon: <span class="${g ? 'sky-g' : 'sky-b'}">${g ? '✓' : '✗'}</span> ${esc(res)}.</li>
+      <li><button type="button" class="sky-ylink" data-trp2="${b}">Moving now</button> (${(new Date(Date.now() + SKY.off*864e5)).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}): ${J.SIGNS[t.sign]} in ${J.NAKS[t.nak][0]} <button type="button" class="sky-ylink sky-why" data-plnak="${b}|${t.nak}">why</button>, your ${J.ORD(fl)} house, ${J.ORD(fm)} from your Moon: <span class="${g ? 'sky-g' : 'sky-b'}">${g ? '✓' : '✗'}</span> ${esc(res)}.</li>
       ${periods.length ? `<li><b>Its main period (mahadasa)</b> in your life: ${periods.join(', ')}.</li>` : ''}
       <li><b>Remedy:</b> ${esc(d.deed[0].toUpperCase() + d.deed.slice(1))}${d.grain ? `; donate ${esc(d.grain)} on ${esc(d.day)}` : ''}; worship ${esc(d.deity)}.</li></ul></div>
     <p class="sky-note">Stories retold briefly from the Puranas, the epics and the Tamil Navagraha temple traditions; versions differ between texts and regions.</p></div>`;
   pg.querySelectorAll('[data-pl]').forEach(x => x.addEventListener('click', () => skyPlanetPage(x.dataset.pl)));
+  pg.querySelectorAll('[data-trp2]').forEach(x => x.addEventListener('click', () => skyTransitPage(x.dataset.trp2)));
   pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
   pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
 }
@@ -4176,6 +4177,7 @@ function skyTaraPage(i) {
   pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
   pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
 }
+document.addEventListener('click', e => { const x = e.target.closest && e.target.closest('[data-trp5]'); if (x) { e.preventDefault(); skyTransitPage(x.dataset.trp5); } });
 document.addEventListener('click', e => { const x = e.target.closest && e.target.closest('[data-tarap]'); if (x) { e.preventDefault(); skyTaraPage(+x.dataset.tarap); } });
 // ---------- the 30 tithis: history, deity, group, festivals, stories and your own birth tithi ----------
 const TITHI_HIST = ['A tithi is a lunar day: the time the Moon takes to move 12° further ahead of the Sun. Thirty tithis make a lunar month, fifteen in the waxing half (Shukla paksha, valarpirai in Tamil) from new Moon to full Moon, and fifteen in the waning half (Krishna paksha, theipirai) back to the new Moon. Because the Moon’s speed varies, a tithi lasts anywhere from about 19 to 26 hours.',
@@ -4271,6 +4273,131 @@ function skyParivPage(a, b, kind, src) {
   pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
 }
 document.addEventListener('click', e => { const x = e.target.closest && e.target.closest('[data-pariv]'); if (x) { e.preventDefault(); const [a, b, k, src] = x.dataset.pariv.split('|'); skyParivPage(a, b, k, src); } });
+// ---------- transit page: where a moving planet is (sign, nakshatra, pada, house), every factor that makes it good or hard for you, and its remedy ----------
+const TR_REMEDY = {
+  Sun: 'Offer water to the Sun at sunrise (Surya arghya) and recite the Aditya Hridayam or Gayatri; respect your father and seniors; avoid ego clashes with bosses.',
+  Moon: 'Keep regular sleep and meals; offer water or milk at a Shiva temple on Monday; spend time with your mother; avoid big emotional decisions on the hard days.',
+  Mars: 'Recite the Hanuman Chalisa or visit Murugan on Tuesday; exercise to burn excess energy; drive carefully and avoid arguments and risky work with fire or tools.',
+  Mercury: 'Double-check messages, contracts and payments; chant Vishnu Sahasranama or worship Vishnu on Wednesday; donate moong dal or help a student.',
+  Jupiter: 'Respect teachers and elders; visit a Guru (Dakshinamurthy) shrine on Thursday; donate chick peas or yellow dal; wear the yellow topaz you chose.',
+  Venus: 'Keep spending and relationships balanced; give white sweets or rice to women in need on Friday; worship Lakshmi; be kind and attentive to your wife.',
+  Saturn: 'Hanuman Chalisa on Saturday; light a sesame-oil lamp; help workers, the elderly or the disabled; be punctual, patient and honest, and finish pending work.',
+  Rahu: 'Worship Durga; avoid shortcuts, deception and addictions; donate black gram (urad dal) on Saturday; keep your head covered outdoors (Lal Kitab for Rahu in the 10th).',
+  Ketu: 'Worship Ganesha; feed stray dogs; meditate; avoid hasty breaks or quitting in anger; get unexplained health complaints checked.'};
+function skyNextChange(b, d, key) {
+  const day = 864e5, cur = skyPos(d)[b][key], st = ['Moon'].includes(b) ? 0.25 : ['Sun', 'Mercury', 'Venus', 'Mars'].includes(b) ? 1 : 4;
+  let k = st; while (k < 1500 && skyPos(new Date(d.getTime() + k*day))[b][key] === cur) k += st;
+  if (st > 1) { k -= st; while (skyPos(new Date(d.getTime() + (k + 1)*day))[b][key] === cur) k++; k++; }
+  return new Date(d.getTime() + k*day);
+}
+// ---------- concrete results of a transit: what tends to happen in life when a planet moves through each house, chosen by the planet's own nature ----------
+// each event: [text, planets it is typical of ('*' = any)]
+const TR_EVENTS = [null,
+ {g: [['Better health, energy and confidence', '*'], ['A fresh start or a new personal project', 'Sun Mars Jupiter Rahu'], ['Looking and feeling your best; attention from others', 'Venus Moon'], ['Recognition for who you are', 'Sun Jupiter']],
+  b: [['Fatigue, fever or minor illness', 'Sun Mars Saturn Ketu'], ['Ego clashes and a short temper', 'Sun Mars Rahu'], ['Low mood or self-doubt', 'Moon Saturn Ketu'], ['Weight gain or overindulgence', 'Jupiter Venus']]},
+ {g: [['Rise in savings and bank balance', 'Jupiter Venus Mercury Moon'], ['Family harmony and good food at home', 'Moon Venus Jupiter'], ['Earnings through speech, teaching or sales', 'Mercury Jupiter'], ['Money from family or a lump sum', 'Jupiter Rahu']],
+  b: [['A drain on savings; unexpected bills', 'Saturn Rahu Ketu Mars'], ['Family quarrels or harsh words', 'Mars Sun Saturn'], ['Dental, eye or throat trouble', 'Sun Saturn Ketu'], ['Overspending on food or comforts', 'Venus Moon']]},
+ {g: [['Bold initiatives succeed; a new skill or course', '*'], ['Short trips that pay off', 'Mercury Moon Rahu'], ['Success in sales, writing, media or online work', 'Mercury Rahu'], ['Help from brothers or sisters', 'Mars Jupiter']],
+  b: [['Arguments with siblings or neighbours', 'Mars Saturn'], ['Risky ventures or hasty decisions', 'Mars Rahu'], ['Minor travel trouble or paperwork errors', 'Mercury Ketu']]},
+ {g: [['Buying a vehicle', 'Venus Mars Moon Jupiter'], ['Buying land, a house or property', 'Mars Saturn Jupiter Venus'], ['Home renovation, new furniture or appliances', 'Venus Moon Mercury'], ['Peace at home and support from your mother', 'Moon Jupiter Venus']],
+  b: [['Vehicle repairs or vehicle expenses', 'Mars Saturn Rahu Ketu'], ['Property disputes or a stressful move', 'Mars Saturn Rahu'], ['Concern about your mother’s health', 'Saturn Sun Ketu Mars'], ['Unrest or tension at home', '*']]},
+ {g: [['Gains in shares, trading or speculation', 'Jupiter Rahu Mercury Venus'], ['Good news about children; their progress', 'Jupiter Sun Moon'], ['Success in studies, exams or creative work', 'Mercury Jupiter Venus'], ['Romance and enjoyment', 'Venus Moon']],
+  b: [['Losses in shares or speculation: avoid risky bets', 'Saturn Rahu Ketu Mars'], ['Worry about children’s health or studies', 'Saturn Mars Ketu'], ['Breaks in study or poor judgement', 'Saturn Rahu'], ['Heartbreak or emotional stress', 'Moon Venus Ketu']]},
+ {g: [['Victory over rivals or in litigation', 'Mars Saturn Rahu Sun Ketu'], ['Clearing loans and debts', 'Jupiter Saturn Sun'], ['A new job or better terms at work', 'Saturn Mercury Sun'], ['Recovery from illness', 'Jupiter Sun Mars']],
+  b: [['Taking new loans or debts', 'Venus Moon Jupiter'], ['Health issues; get check-ups', 'Moon Venus Jupiter Mercury'], ['Conflicts with co-workers', 'Mercury Venus'], ['Legal or service problems', 'Jupiter Moon']]},
+ {g: [['A marriage proposal or a happier marriage', 'Jupiter Venus Moon'], ['New partnerships, clients or business deals', 'Mercury Venus Jupiter Rahu'], ['Good public dealings and contracts', 'Mercury Jupiter']],
+  b: [['Friction with your spouse or partners', 'Mars Saturn Sun Rahu Ketu'], ['Contract or partnership disputes', 'Saturn Mars Mercury'], ['Spouse’s health needs attention', 'Saturn Ketu Mars']]},
+ {g: [['Sudden gains: inheritance, insurance payout or bonus', 'Jupiter Rahu Venus Mercury'], ['Breakthroughs in research or hidden matters', 'Saturn Ketu Mercury'], ['Gains through your spouse’s money', 'Venus Jupiter']],
+  b: [['Sudden losses or unexpected expenses', '*'], ['Accident, injury or surgery: be careful', 'Mars Saturn Rahu Ketu'], ['Hidden problems or old illness surfacing', 'Saturn Ketu Moon'], ['Tax, insurance or loan trouble', 'Saturn Rahu Mercury']]},
+ {g: [['Good luck and support from father or mentors', 'Jupiter Sun Moon Venus'], ['Long-distance travel or pilgrimage', 'Jupiter Moon Rahu Ketu'], ['Higher studies or a valuable certification', 'Jupiter Mercury'], ['Help from seniors and government', 'Sun Jupiter']],
+  b: [['Concern for your father’s health', 'Saturn Sun Mars Ketu'], ['Delays in luck; plans needing one more push', 'Saturn Rahu'], ['Disagreements with mentors or bosses', 'Sun Mars Saturn'], ['Travel hiccups', 'Rahu Ketu Mars']]},
+ {g: [['Career growth, promotion or a raise', 'Jupiter Sun Saturn Mars Mercury Venus'], ['Recognition and a better reputation', 'Sun Jupiter Venus'], ['A new role or bigger responsibility', 'Saturn Rahu Mars'], ['Success in business or self-employment', 'Mercury Venus Rahu']],
+  b: [['Pressure from your boss or workload', 'Saturn Sun Mars'], ['A forced job change or uncertainty at work', 'Rahu Ketu Saturn'], ['Reputation issues: keep everything in writing', 'Rahu Moon Mars'], ['Credit for your work going to others', 'Ketu Rahu Sun']]},
+ {g: [['Rise in income, bonuses or profits', '*'], ['Gains from shares and investments', 'Jupiter Rahu Mercury Venus Saturn'], ['Wishes fulfilled; help from friends and networks', 'Jupiter Venus Moon'], ['Support from elder siblings', 'Jupiter Sun']],
+  b: [['Gains delayed or smaller than expected', 'Saturn Ketu'], ['Friends or networks costing money', 'Venus Moon Rahu'], ['Elder sibling’s difficulty', 'Saturn Mars']]},
+ {g: [['Foreign travel, foreign clients or a job abroad', 'Rahu Jupiter Moon Saturn'], ['Spiritual growth, pilgrimage or charity', 'Jupiter Ketu Saturn'], ['Planned spending on good things (home, education)', 'Venus Jupiter'], ['Restful sleep and retreat', 'Venus Moon']],
+  b: [['Heavy expenses or losses', '*'], ['Hospital visits or health costs', 'Saturn Mars Sun Ketu'], ['Sleeplessness and worry', 'Moon Saturn Rahu Mars'], ['Money lent not returning; avoid lending', 'Saturn Rahu Mercury']]}];
+function trEvents(b, h, tone) {
+  const area = J.HOUSE[h].sig.split(', ').slice(0, 3).join(', ');
+  const pick = (list, good) => { const own = list.filter(e => e[1] === '*' || e[1].split(' ').includes(b)); return own.length ? own.slice(0, 4).map(e => e[0]) : [`${good ? 'Support for' : 'Some strain in'} your ${J.ORD(h)}-house matters (${area})`]; };
+  return {good: tone >= 0 ? pick(TR_EVENTS[h].g, true) : [], bad: tone <= 0 ? pick(TR_EVENTS[h].b, false) : []};
+}
+// the positives and negatives of one transit for this chart (shared by the transit page and the effects panel)
+function trFactors(b, T, d) {
+  const t = T[b], sg = t.sign, n = t.nak, fl = (sg - C.lagna + 12) % 12 + 1, fm = (sg - C.P.Moon.sign + 12) % 12 + 1, [g, res] = J.TRANSIT[b][fm - 1], tar = skyTara(n), node = ['Rahu', 'Ketu'].includes(b);
+  const pos = [], neg = [];
+  (g ? pos : neg).push(`Classical gochara: ${J.ORD(fm)} from your Moon gives “${res}”.`);
+  // dignity
+  if (!node) { if (SKY_EXS[b] === sg) pos.push(`${b} is exalted in ${J.SIGNS[sg]}: at its strongest.`); else if ((SKY_EXS[b] + 6) % 12 === sg) neg.push(`${b} is debilitated in ${J.SIGNS[sg]}: at its weakest.`); else if (SKY_OWN[b].includes(sg)) pos.push(`${b} is in its own sign.`); }
+  // tara
+  (tar[2] > 0 ? pos : tar[2] < 0 ? neg : pos).push(`Its star ${J.NAKS[n][0]} is your ${tar[0]} tara (${tar[1]}).`);
+  // ashtakavarga
+  if (SKY_AVT[b]) { const bi = skyAV().bav[b][sg]; (bi >= 4 ? pos : neg).push(`Ashtakavarga: ${bi} of 8 bindus in ${J.SIGNS[sg]} (${bi >= 5 ? 'very good' : bi === 4 ? 'fair, through effort' : 'weak: delays and strain'}); the sign’s total is ${skyAV().sav[sg]}.`); }
+  // retrograde and combust
+  if (!node && t.retro) neg.push(`Retrograde: its results come late or repeat; matters of your ${J.ORD(fl)} house return for review.`);
+  if (!node && b !== 'Sun' && Math.abs(((t.lon - T.Sun.lon + 540) % 360) - 180) < SKY_ORB(b, T)) neg.push(`Combust (too close to the Sun): it loses strength for now.`);
+  // star lord and its relation
+  const sl = J.NAKS[n][1], fr = SKY_FRIEND[b] || [[], []];
+  (sl === b || fr[0].includes(sl) ? pos : fr[1].includes(sl) ? neg : pos).push(`Star lord ${sl} is ${sl === b ? 'itself' : fr[0].includes(sl) ? 'its friend' : fr[1].includes(sl) ? 'its enemy' : 'neutral to it'}.`);
+  // over birth planets, conjunctions, Saturn's phases, dasa lord
+  const over = J.PL.filter(x => Math.abs(((t.lon - C.P[x].lon + 540) % 360) - 180) < 3);
+  if (over.length) neg.push(`It is crossing your birth ${over.join(', ')}: those planets’ matters are stirred strongly now.`);
+  for (const x of skyConj(T).filter(c => c.a === b || c.b === b)) { const [tx, gg] = SKY_CONJ[x.a + '|' + x.b]; (gg > 0 ? pos : neg).push(`With ${x.a === b ? x.b : x.a} (${x.orb.toFixed(1)}°): ${tx}.`); }
+  if (b === 'Saturn') { const ph = {12: 'Ezharai Sani, first phase', 1: 'Ezharai Sani, peak (Janma Sani)', 2: 'Ezharai Sani, last phase', 4: 'Ardhashtama Sani', 8: 'Ashtama Sani'}[fm]; if (ph) neg.push(`${ph}.`); }
+  const ev = C.events.find(e => e.start <= d && e.end > d); if (ev && [ev.md, ev.ad].includes(b)) pos.push(`${b} is also your current ${ev.md === b ? 'main period' : 'sub-period'} lord, so this transit hits harder, good or bad.`);
+  return {pos, neg, fl};
+}
+// "Likely results now" for the effects panel: each transit's tone and its two most typical results
+function skyResultsHTML(d, T) {
+  const order = ['Saturn', 'Jupiter', 'Rahu', 'Ketu', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon'];
+  return `<div class="sky-ih">Likely results now <span>(click a planet for the full analysis)</span></div><ul class="sky-asp">${order.map(b => {
+    const F = trFactors(b, T, d), sc = F.pos.length - F.neg.length, tone = sc >= 1 ? 1 : sc <= -1 ? -1 : 0, E = trEvents(b, F.fl, tone);
+    const items = E.good.slice(0, tone === 0 ? 1 : 2).map(x => `<span class="sky-g">✓</span> ${esc(x)}`).concat(E.bad.slice(0, tone === 0 ? 1 : 2).map(x => `<span class="sky-b">✗</span> ${esc(x)}`));
+    return `<li><button type="button" class="sky-ylink" data-trp5="${b}">${b}</button> <span class="sky-an">${J.ORD(F.fl)} house${b === 'Moon' ? ', today' : ''}</span>: ${items.join('; ')}</li>`; }).join('')}</ul>`;
+}
+function skyTransitPage(b) {
+  const pg = skyPageEl(); if (!pg) return;
+  const d = new Date(Date.now() + SKY.off*864e5), T = skyPos(d), t = T[b], sg = t.sign, n = t.nak, k = n*4 + t.pada - 1;
+  const fl = (sg - C.lagna + 12) % 12 + 1, fm = (sg - C.P.Moon.sign + 12) % 12 + 1, [g, res] = J.TRANSIT[b][fm - 1], H = J.HOUSE[fl], tar = skyTara(n);
+  const node = ['Rahu', 'Ketu'].includes(b), fdt = x => x.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+  const {pos, neg} = trFactors(b, T, d);
+  // aspects it casts
+  const asp = skyAspOf(b, T).map(a => { const h = (a.sign - C.lagna + 12) % 12 + 1, nat = J.PL.filter(x => C.P[x].sign === a.sign); return `${J.ORD(a.n)} aspect on your ${J.ORD(h)} house (${J.HOUSE[h].n.toLowerCase()})${nat.length ? ', on your birth ' + nat.join(', ') : ''}`; });
+  const nSign = skyNextChange(b, d, 'sign'), nNak = skyNextChange(b, d, 'nak'), score = pos.length - neg.length;
+  const verdict = score >= 2 ? ['Mostly favourable', 'sky-g'] : score <= -2 ? ['Mostly difficult', 'sky-b'] : ['Mixed', ''];
+  pg.dataset.kind = 'transit'; pg.hidden = false; SKY.pageNav = dir => skyTransitPage(J.PL[(J.PL.indexOf(b) + dir + 9) % 9]);
+  pg.innerHTML = `<div class="nak-in">
+    <div class="nak-nav"><button type="button" class="sky-btn" data-trp="${J.PL[(J.PL.indexOf(b) + 8) % 9]}">◀ ${J.PL[(J.PL.indexOf(b) + 8) % 9]}</button><span class="nak-num">Transit on ${fdt(d)}</span><button type="button" class="sky-btn" data-trp="${J.PL[(J.PL.indexOf(b) + 1) % 9]}">${J.PL[(J.PL.indexOf(b) + 1) % 9]} ▶</button><button type="button" class="sky-btn nak-close" aria-label="Close">✕ Close</button></div>
+    <div class="pl-head"><img src="${skyIconURL(b)}" width="64" height="64" alt=""><div><h2>Transit ${b}${t.retro && !node ? ' ℞' : ''}</h2><div class="nak-m"><b class="${verdict[1]}">${verdict[0]}</b> for you on ${fdt(d)}</div></div></div>
+    <div class="nak-facts">
+      <span>Sign <button type="button" class="sky-ylink" data-sgp4="${sg}">${J.SIGNS[sg]}</button> ${J.fmtDeg(t.deg)}</span>
+      <span>Nakshatra <button type="button" class="sky-ylink" data-nkp4="${n}">${J.NAKS[n][0]}</button></span>
+      <span>Pada <button type="button" class="sky-ylink" data-pada="${k}">${t.pada}</button> (${J.SIGNS[k % 12]} navamsa)</span>
+      <span>House <button type="button" class="sky-ylink" data-hp4="${fl}">${J.ORD(fl)}</button> from lagna</span><span><b>${J.ORD(fm)}</b> from your Moon</span>
+      <span>Tara <button type="button" class="sky-ylink" data-tarap="${(n - C.P.Moon.nak + 27) % 27 % 9}">${tar[0]}</button></span></div>
+    ${(() => { const tone = score >= 1 ? 1 : score <= -1 ? -1 : 0, E = trEvents(b, fl, tone), ben = ['Jupiter', 'Venus', 'Mercury', 'Moon'].includes(b);
+      const ah = skyAspOf(b, T).map(a => (a.sign - C.lagna + 12) % 12 + 1).filter(h => h !== fl);
+      const side = ah.map(h => { const tg = ben ? ([6, 8, 12].includes(h) ? -1 : 1) : ([3, 6, 10, 11].includes(h) ? 1 : -1), e = trEvents(b, h, tg); return `<li><b>${J.ORD(h)} house (${esc(J.HOUSE[h].n.toLowerCase())}), by aspect:</b> <span class="${tg > 0 ? 'sky-g' : 'sky-b'}">${tg > 0 ? '✓' : '✗'}</span> ${esc((tg > 0 ? e.good : e.bad).slice(0, 2).join('; '))}</li>`; }).join('');
+      return `<h3>Likely results until ${fdt(nSign)}</h3><div class="nak-chart">
+        ${E.good.length ? `<p class="sky-g"><b>Good outcomes to expect</b></p><ul>${E.good.map(x => `<li>✓ ${esc(x)}</li>`).join('')}</ul>` : ''}
+        ${E.bad.length ? `<p class="sky-b"><b>Watch out for</b></p><ul>${E.bad.map(x => `<li>✗ ${esc(x)}</li>`).join('')}</ul>` : ''}
+        ${side ? `<p class="muted" style="margin-top:6px">It also touches, through its aspects:</p><ul>${side}</ul>` : ''}
+        <p class="muted">These come from your ${J.ORD(fl)} house (what ${b} occupies), the kind of events ${b} typically brings, and the overall tone above. They are most likely when ${b} is also a dasa or sub-period lord.</p></div>`; })()}
+    <h3>What it does</h3><p>${b} ${SKY_PWORD[b]} your <b>${J.ORD(fl)} house</b>: ${esc(H.sig)}. It stays in ${J.SIGNS[sg]} until <b>${fdt(nSign)}</b> and in ${J.NAKS[n][0]} until ${fdt(nNak)}.</p>
+    <p>Aspects: ${asp.join('; ')}.</p>
+    <h3 class="sky-g">Positives</h3>${pos.length ? `<ul>${pos.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="muted">None strong.</p>'}
+    <h3 class="sky-b">Negatives</h3>${neg.length ? `<ul>${neg.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="muted">None strong.</p>'}
+    <h3>Remedy</h3><p>${esc(TR_REMEDY[b])}</p><p class="muted">Traditional: ${esc(J.PD[b].deed[0].toUpperCase() + J.PD[b].deed.slice(1))}${J.PD[b].grain ? `; donate ${esc(J.PD[b].grain)} on ${esc(J.PD[b].day)}` : ''}; worship ${esc(J.PD[b].deity)}.</p>
+    <p><button type="button" class="sky-btn nak-read" data-plp4="${b}">📖 The story of ${b}</button> <button type="button" class="sky-btn nak-read" data-plnak="${b}|${n}">📖 Why ${b} in ${J.NAKS[n][0]}</button></p>
+    <p class="sky-note">The verdict counts the positives against the negatives above. Use Previous and Next in the 3D view to move the date. Traditional, untested.</p></div>`;
+  pg.querySelectorAll('[data-trp]').forEach(x => x.addEventListener('click', () => skyTransitPage(x.dataset.trp)));
+  pg.querySelector('[data-sgp4]').addEventListener('click', () => skySignPage(sg));
+  pg.querySelector('[data-nkp4]').addEventListener('click', () => skyNakPage(n));
+  pg.querySelector('[data-hp4]').addEventListener('click', () => skyHousePage(fl));
+  pg.querySelector('[data-plp4]').addEventListener('click', () => skyPlanetPage(b));
+  pg.querySelector('.nak-close').addEventListener('click', () => { pg.hidden = true; });
+  pg.scrollTop = 0; pg.querySelector('.nak-close').focus();
+}
 function skyNakOpen(n) { const hb = $('#skyHouse'); if (!hb) return; hb.dataset.sign = ''; hb.dataset.nak = n;
   hb.innerHTML = `<button type="button" class="sky-x" aria-label="Close">✕</button><button type="button" class="sky-btn nak-read">📖 Read the story</button>` + skyNakHTML(n, true); hb.hidden = false;
   hb.querySelector('.nak-read').addEventListener('click', () => skyNakPage(n));
@@ -4338,7 +4465,7 @@ function sky2D(T) {
   for (const b of J.PL) { const [x, y] = P(C.P[b].lon, rn(b));
     o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]}</title></image>`; }
   for (const b of J.PL) { const ang = T[b].lon + (tl[b] % 2 ? 1 : -1)*(tl[b] ? 3.2*Math.ceil(tl[b]/2) : 0), [x, y] = P(ang, 506);
-    o += `<circle cx="${f(x)}" cy="${f(y)}" r="23" fill="#0b1226" stroke="#fff" stroke-width="2"/><image href="${skyIconURL(b)}" x="${f(x - 19)}" y="${f(y - 19)}" width="38" height="38" data-pl2="${b}" class="w2-hit"><title>Transit ${b}${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}: ${J.SIGNS[T[b].sign]} ${J.fmtDeg(T[b].deg)}, ${J.NAKS[T[b].nak][0]}</title></image>
+    o += `<circle cx="${f(x)}" cy="${f(y)}" r="23" fill="#0b1226" stroke="#fff" stroke-width="2"/><image href="${skyIconURL(b)}" x="${f(x - 19)}" y="${f(y - 19)}" width="38" height="38" data-tr2="${b}" class="w2-hit"><title>Transit ${b}${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}: ${J.SIGNS[T[b].sign]} ${J.fmtDeg(T[b].deg)}, ${J.NAKS[T[b].nak][0]}</title></image>
       ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}`; }
   const d = new Date(Date.now() + SKY.off*864e5);
   o += `<circle r="108" fill="#0d1530" stroke="#3a4a7a"/><text y="-30" class="w2-c1">${d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</text>
@@ -4351,7 +4478,7 @@ function skyApplyMode() {
   if (two) sky2D(J.transitPositions(new Date(Date.now() + SKY.off*864e5)));
 }
 function tSky3D() {
-  return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them, each with its number, symbol, deity and its traditional count of stars. Each planet is drawn as its traditional symbol in its colour: the Sun, a crescent Moon, Mars’s sword, Mercury as the brain (intellect), Jupiter as praying hands (the guru), Venus as a car (vehicles and comforts), Saturn’s crow (his vahana), Rahu as the bodiless head and Ketu as the headless body. Drag to turn it, scroll or pinch to zoom, hover over a planet for details, and click a planet (or its name in the legend) to read its story. Click a sign’s coloured band to read its story. Hover over a house to see what it signifies and which planets are moving through it; click a house to open its page with its history, meaning and what each planet does when it moves there. Hover a nakshatra for a quick summary, or click it to open its own page with its story, lord, deity, theme, how it works for your birth star (tara), and what each planet does when it moves into it. Eclipses within two weeks of the date appear as a dark disc on the zodiac, and the panel explains the last and next eclipses for your chart. The panel starts with your dasa period on that date (main, sub and sub-sub periods, what they bring, and how their lords are transiting), then the yogas the transits form, in the sky and with your own lagna, Moon and house lords. Transit planets within 8° of each other are linked by a gold line, and the panel explains each conjunction. Dashed lines show the houses Mars, Jupiter, Saturn, Rahu and Ketu aspect (turn them off with the Aspects box), and the panel lists every planet’s aspects and what they do. Retrograde transit planets carry a red ℞ and combust ones (too close to the Sun) an orange ✷, and the effects panel lists what each retrograde means for you, every sign change near the date and the next move of Saturn, Jupiter and Rahu/Ketu, with what each means for you. Use <b>◀ Previous</b> and <b>Next ▶</b> (or the arrow keys) to step the transits by a day, week, month, year or to the next sign change, or drag the date slider.</p>
+  return `<p class="lead">Your chart as a 3D sky. The inner ring holds your <b>birth planets</b>, the outer ring the <b>planets moving now</b> (transits), with the 12 signs, your houses (1 = lagna, at the left) and all 27 nakshatras around them, each with its number, symbol, deity and its traditional count of stars. Each planet is drawn as its traditional symbol in its colour: the Sun, a crescent Moon, Mars’s sword, Mercury as the brain (intellect), Jupiter as praying hands (the guru), Venus as a car (vehicles and comforts), Saturn’s crow (his vahana), Rahu as the bodiless head and Ketu as the headless body. Drag to turn it, scroll or pinch to zoom, hover over a planet for details; click a birth planet (or its name in the legend) to read its story, and click a transit planet for a full analysis of that transit: its sign, nakshatra, pada and house, the positives, negatives and remedy. Click a sign’s coloured band to read its story. Hover over a house to see what it signifies and which planets are moving through it; click a house to open its page with its history, meaning and what each planet does when it moves there. Hover a nakshatra for a quick summary, or click it to open its own page with its story, lord, deity, theme, how it works for your birth star (tara), and what each planet does when it moves into it. Eclipses within two weeks of the date appear as a dark disc on the zodiac, and the panel explains the last and next eclipses for your chart. The panel starts with your dasa period on that date (main, sub and sub-sub periods, what they bring, and how their lords are transiting), then the yogas the transits form, in the sky and with your own lagna, Moon and house lords. Transit planets within 8° of each other are linked by a gold line, and the panel explains each conjunction. Dashed lines show the houses Mars, Jupiter, Saturn, Rahu and Ketu aspect (turn them off with the Aspects box), and the panel lists every planet’s aspects and what they do. Retrograde transit planets carry a red ℞ and combust ones (too close to the Sun) an orange ✷, and the effects panel lists what each retrograde means for you, every sign change near the date and the next move of Saturn, Jupiter and Rahu/Ketu, with what each means for you. Use <b>◀ Previous</b> and <b>Next ▶</b> (or the arrow keys) to step the transits by a day, week, month, year or to the next sign change, or drag the date slider.</p>
   <div class="sky-box" id="skyBox">
   <div class="sky-bar">
     <label class="sky-chk"><input type="checkbox" data-sky="natal" ${SKY.show.natal ? 'checked' : ''}> Birth planets</label>
@@ -4461,6 +4588,7 @@ function skyInfo(d, T, R) {
   box.innerHTML = `<div class="sky-idate">${d.toLocaleDateString('en-GB', {weekday: 'short'})}, <b>${d.getDate()}</b> ${d.toLocaleDateString('en-GB', {month: 'long'})} <b>${d.getFullYear()}</b></div>
    <div class="sky-irow">Tithi: <button type="button" class="sky-ylink" data-tithip="${tithiOf(d)}">${tithiName(tithiOf(d))}</button> <span class="muted">· your birth tithi:</span> <button type="button" class="sky-ylink sky-tl" data-tithip="${tithiOf(C.date)}">${tithiName(tithiOf(C.date))}</button></div>
    ${skyDasaHTML(d, T)}
+   ${skyResultsHTML(d, T)}
    ${sat ? `<div class="sky-irow sky-sat">${sat}</div>` : ''}
    ${hits.length ? `<div class="sky-ih">Over your birth planets</div><ul>${hits.join('')}</ul>` : ''}
    ${(() => { const I = skyIngresses(d); return (I.near.length ? `<div class="sky-ih">Sign changes <span>(a week before to a month after)</span></div><ul class="sky-ing">${I.near.map(skyIngTxt).join('')}</ul>` : '')
@@ -4519,7 +4647,7 @@ function initSky3D() {
   $('#pane').querySelectorAll('[data-plpage]').forEach(x => { const go = () => skyPlanetPage(x.dataset.plpage); x.addEventListener('click', go); x.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
   $('#skyMode').addEventListener('click', () => { SKY.mode = SKY.mode === '2d' ? '3d' : '2d'; try { localStorage.setItem('jk-skymode', SKY.mode); } catch (err) {} skyApplyMode(); });
   $('#sky2d').addEventListener('click', e => { const t = e.target.closest('.w2-hit'); if (!t) return; const d = t.dataset;
-    if (d.nk2) skyNakPage(+d.nk2); else if (d.pl2) skyPlanetPage(d.pl2); else if (d.sg2) skySignPage(+d.sg2); else if (d.h2) skyHousePage(+d.h2); });
+    if (d.nk2) skyNakPage(+d.nk2); else if (d.tr2) skyTransitPage(d.tr2); else if (d.pl2) skyPlanetPage(d.pl2); else if (d.sg2) skySignPage(+d.sg2); else if (d.h2) skyHousePage(+d.h2); });
   $('#skyInfoBtn').addEventListener('click', e => { SKY.infoOff = !SKY.infoOff; $('#skyInfo').hidden = SKY.infoOff; e.currentTarget.textContent = SKY.infoOff ? 'Effects ▸' : 'Effects ▾'; e.currentTarget.setAttribute('aria-expanded', !SKY.infoOff); if (SKY.offset) SKY.offset(); });
   if (SKY.infoOff) { $('#skyInfo').hidden = true; $('#skyInfoBtn').textContent = 'Effects ▸'; $('#skyInfoBtn').setAttribute('aria-expanded', 'false'); }
   const box = $('#skyBox'), fullBtn = $('#skyFull'), setFull = on => {
@@ -4638,7 +4766,7 @@ function skyBuild(rows, range) {
       else { if (click) { if (u.band) skySignPage(u.sign); else skyHousePage((u.sign - C.lagna + 12) % 12 + 1); tip.hidden = true; return; }
         if (e.pointerType !== 'mouse') return; tip.innerHTML = skyHouseHTML(u.sign, false); }
       tip.style.left = Math.min(r.width - 300, Math.max(6, e.clientX - r.left + 12)) + 'px'; tip.style.top = Math.max(6, Math.min(r.height - 220, e.clientY - r.top - 10)) + 'px'; tip.hidden = false; return; }
-    el.style.cursor = 'pointer'; if (click) { tip.hidden = true; skyPlanetPage(hit.object.userData.b); return; } if (e.pointerType !== 'mouse') return;
+    el.style.cursor = 'pointer'; if (click) { tip.hidden = true; if (hit.object.userData.transit) skyTransitPage(hit.object.userData.b); else skyPlanetPage(hit.object.userData.b); return; } if (e.pointerType !== 'mouse') return;
     const {b, transit} = hit.object.userData, T = transit ? J.transitPositions(new Date(Date.now() + SKY.off*864e5)) : null, p = transit ? T[b] : C.P[b];
     const lon = p.lon, s = Math.floor(lon/30), nk = Math.floor(lon/(360/27)), pd = Math.floor((lon % (360/27))/(360/108)) + 1;
     tip.innerHTML = `<b style="color:${SKY_COL[b]}">${transit ? 'Transit ' : 'Birth '}${b}</b>${p.retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}<br>${J.SIGNS[s]} ${J.fmtDeg ? J.fmtDeg(lon % 30) : (lon % 30).toFixed(1) + '°'} · ${J.NAKS[nk][0]} pada ${pd}<br>${J.ORD((s - C.lagna + 12) % 12 + 1)} house from your lagna · ${J.ORD((s - C.P.Moon.sign + 12) % 12 + 1)} from your Moon${transit ? '' : `<br>${p.dignity}${C.func[b] ? ' · ' + C.func[b] : ''}`}`;
