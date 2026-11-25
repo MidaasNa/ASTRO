@@ -83,6 +83,28 @@ form.birth{background:var(--panel);border:1px solid var(--line);border-radius:10
 .seg button[aria-pressed="true"]{background:var(--indigo);color:var(--panel)}
 .chartctl{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .chartbox{position:relative}
+svg .wm{pointer-events:none;opacity:.24;transform-box:fill-box;transform-origin:center;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+svg .wm .f{fill:currentColor;stroke:none}
+svg .wm.lord{opacity:.22}
+svg .wm.turn{animation:wmturn .62s cubic-bezier(.45,.05,.35,1) both}
+@keyframes wmturn{0%{transform:perspective(400px) scaleX(1) skewY(0)}48%{transform:scaleX(.02) skewY(-10deg);opacity:.03}52%{transform:scaleX(.02) skewY(10deg);opacity:.03}100%{transform:scaleX(1) skewY(0)}}
+.wm-sweep{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:4px}
+.wm-sweep::before{content:'';position:absolute;top:0;bottom:0;width:38%;left:100%;background:linear-gradient(90deg,transparent,rgba(0,0,0,.10) 45%,rgba(255,255,255,.22) 55%,transparent);animation:wmsweep .7s ease-in-out forwards}
+.wm-sweep.back::before{left:auto;right:100%;animation-name:wmsweepb}
+@keyframes wmsweep{to{left:-40%}} @keyframes wmsweepb{to{right:-40%}}
+.wm-nav{position:absolute;right:-2px;top:50%;transform:translate(100%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3}
+.wm-nav button{width:26px;height:30px;border:1px solid var(--line);background:var(--panel);color:var(--indigo);border-radius:6px;cursor:pointer;font-size:16px;line-height:1;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.wm-nav button:hover{background:var(--indigo);color:var(--panel)}
+.wm-nav span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:3px 0}
+.chartbox.has-wm{margin-right:30px}
+svg .wm.wm2{opacity:.3}
+svg .wm.wm2.lord{opacity:.38}
+#skyWrap .wm-nav{right:14px;transform:translateY(-50%);z-index:4}
+#skyWrap .wm-nav button{background:#0d1530;color:#cdd6ff;border-color:#3a4a7a}
+#skyWrap .wm-nav button:hover{background:#cdd6ff;color:#0d1530}
+#skyWrap .wm-nav span{color:#9aa6c8}
+#skyWrap .wm-sweep::before{background:linear-gradient(90deg,transparent,rgba(0,0,0,.35) 45%,rgba(205,214,255,.14) 55%,transparent)}
+@media (prefers-reduced-motion:reduce){svg .wm.turn,.wm-sweep::before{animation:none}}
 .chartbox svg{width:100%;height:auto;display:block}
 .chartbox svg text{pointer-events:none}
 .chartbox .asp path{opacity:0;pointer-events:none;transition:opacity .15s}
@@ -156,6 +178,21 @@ details.pl summary::-webkit-details-marker{display:none}
 .chip.bad{background:var(--bad-soft);color:var(--bad)}
 .chip.mixed{background:var(--mixed-soft);color:var(--mixed)}
 .chip.ok{background:var(--panel-2);color:var(--indigo)}
+.hg-t tr.hg-d td{font-size:12.8px;padding-top:2px;padding-bottom:12px;border-top:0}
+.hg-t tr.hg-r td{border-bottom:0}
+.hg-dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:6px 18px}
+.hg-k{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.hg-t tr.hg-d.good td{background:var(--good-soft)} .hg-t tr.hg-d.bad td{background:var(--bad-soft)} .hg-t tr.hg-d.mix td{background:var(--mixed-soft)}
+.hg-t tr.hg-d.good td:first-child{border-left:4px solid var(--good)} .hg-t tr.hg-d.bad td:first-child{border-left:4px solid var(--bad)} .hg-t tr.hg-d.mix td:first-child{border-left:4px solid var(--mixed)}
+.hg-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin:10px 0}
+.hg{padding:8px 11px;border-radius:8px;border-left:4px solid;font-size:13.5px}
+.hg.good{background:var(--good-soft);border-color:var(--good)} .hg.bad{background:var(--bad-soft);border-color:var(--bad)} .hg.grow{background:var(--mixed-soft);border-color:var(--mixed)}
+.hg-sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin:0 2px}
+.hg-sw.good{background:var(--good)} .hg-sw.bad{background:var(--bad)} .hg-sw.mix{background:var(--mixed)}
+.hg-t tr.hg-r.good td{background:var(--good-soft)} .hg-t tr.hg-r.bad td{background:var(--bad-soft)} .hg-t tr.hg-r.mix td{background:var(--mixed-soft)}
+.hg-t tr.hg-r td:first-child{border-left:4px solid transparent} .hg-t tr.hg-r.good td:first-child{border-left-color:var(--good)} .hg-t tr.hg-r.bad td:first-child{border-left-color:var(--bad)} .hg-t tr.hg-r.mix td:first-child{border-left-color:var(--mixed)}
+.hg-tag{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.hg-tag.good{background:var(--good);color:#fff} .hg-tag.bad{background:var(--bad);color:#fff} .hg-tag.grow,.hg-tag.mix{background:var(--mixed);color:#fff}
 .chip.acc{background:var(--accent-soft);color:var(--accent)}
 .adv-seg{flex-wrap:wrap}
 .adv-two{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:18px;align-items:start;margin:12px 0}
@@ -537,10 +574,6 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
           <button type="button" data-v="d10" aria-pressed="false">Dasamsa D-10</button>
         </div>
         <div class="togs"><button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
-        <div class="seg" role="group" aria-label="Chart style">
-          <button type="button" data-s="south" aria-pressed="true">South</button>
-          <button type="button" data-s="north" aria-pressed="false">North</button>
-        </div>
       </div>
       <div class="chartbox" id="chartbox"></div>
       <div class="chartlegend" id="chartlegend" aria-label="House owners"></div>
@@ -958,10 +991,122 @@ function renderLegend() {
   }).join('') + `<span class="lg note muted"><b style="color:var(--good)">▲</b>&nbsp;exalted (solid green) · <b style="color:var(--indigo)">★</b>&nbsp;own sign (dashed, planet colour) · <b style="color:var(--bad)">▼</b>&nbsp;debilitated (dotted red)</span>`;
 }
 function renderChart() {
-  $('#chartbox').innerHTML = (style === 'south' ? southSVG() : northSVG()) + '<div class="charttip" id="charttip" role="tooltip" hidden></div>';
+  $('#chartbox').innerHTML = (style === 'south' ? southSVG() : northSVG()) + '<div class="charttip" id="charttip" role="tooltip" hidden></div>'; wmApply($('#chartbox'));
   renderLegend();
   $('#chartnote').textContent = {d1:'Rasi chart: existence at the physical level.', d9:'Navamsa: marriage and spouse, dharma, basic skills and the inner self.', d10:'Dasamsa: career, activities and achievements in society.'}[view] + ' Each house is tinted in the colour of the planet that owns it; inner borders mark exalted (▲), own-sign (★) and debilitated (▼) planets; the outlined box is the lagna. Hover over or tap a house for details and to see the aspects landing on it; press Aspects to show them all. R = retrograde.';
 }
+
+// ---------- chart watermark: zodiac sign or sign lord in every house, turned like a page with the arrows ----------
+const WM_PAGES = [['sign', 'Signs'], ['lord', 'Sign lords'], ['none', 'No watermark']];
+let wmI = Math.max(0, WM_PAGES.findIndex(x => x[0] === store.get('jk-wm')));
+
+// line-art pictures of the 12 signs (original drawings on a 100×100 grid, stroked in the current colour)
+const ZOD_ART = (() => {
+  const leoMane = (() => { let d = ''; const n = 12, cx = 50, cy = 52, r = 29; for (let i = 0; i < n; i++) { const a0 = i/n*2*Math.PI, a1 = (i + 1)/n*2*Math.PI, am = (a0 + a1)/2;
+    const p = (a, rr) => `${(cx + rr*Math.cos(a)).toFixed(1)} ${(cy + rr*Math.sin(a)).toFixed(1)}`; d += `${i ? '' : 'M' + p(a0, r)} Q${p(am, r + 11)} ${p(a1, r)} `; } return d + 'Z'; })();
+  const wheat = (() => { let d = 'M74 86 L74 36 '; for (let y = 42; y <= 66; y += 6) d += `M74 ${y} Q79 ${y - 3} 80 ${y - 9} M74 ${y} Q69 ${y - 3} 68 ${y - 9} `; return d; })();
+  const scorp = [[58, 58, 4.6], [65, 54, 4.2], [70, 47, 3.8], [73, 40, 3.5], [73, 33, 3.2], [69, 27, 2.9]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
+  const legsS = [36, 42, 48, 54].map(x => `M${x} 54 L${x - 5} 46 M${x} 70 L${x - 5} 78`).join(' ');
+  return [
+    // Aries: ram's face with curled horns
+    `<path d="M42 38 Q50 34 58 38 L60 58 Q56 74 50 79 Q44 74 40 58 Z"/><path d="M46 36 Q50 30 54 36"/><path d="M42 40 C30 25 11 31 13 48 C14 61 31 63 32 52 C33 44 24 43 23 50"/><path d="M58 40 C70 25 89 31 87 48 C86 61 69 63 68 52 C67 44 76 43 77 50"/><circle cx="45.5" cy="51" r="1.7" class="f"/><circle cx="54.5" cy="51" r="1.7" class="f"/><path d="M46 70 Q50 74 54 70"/>`,
+    // Taurus: bull's face with horns
+    `<path d="M36 40 Q50 33 64 40 Q67 57 60 66 Q50 74 40 66 Q33 57 36 40 Z"/><ellipse cx="50" cy="68" rx="11" ry="7"/><circle cx="46" cy="68" r="1.5" class="f"/><circle cx="54" cy="68" r="1.5" class="f"/><circle cx="43.5" cy="50" r="1.7" class="f"/><circle cx="56.5" cy="50" r="1.7" class="f"/><path d="M38 41 C27 38 19 29 22 15"/><path d="M62 41 C73 38 81 29 78 15"/><path d="M36 45 Q26 47 23 42 Q30 39 37 42"/><path d="M64 45 Q74 47 77 42 Q70 39 63 42"/>`,
+    // Gemini: the twins holding hands
+    `<circle cx="34" cy="24" r="7"/><circle cx="66" cy="24" r="7"/><path d="M30 34 Q34 31 38 34 L43 70 L25 70 Z"/><path d="M62 34 Q66 31 70 34 L75 70 L57 70 Z"/><path d="M30 72 L30 85 M38 72 L38 85 M62 72 L62 85 M70 72 L70 85"/><path d="M31 41 L22 56 M69 41 L78 56 M37 41 L50 51 L63 41"/>`,
+    // Cancer: the crab
+    `<ellipse cx="50" cy="58" rx="18" ry="12"/><path d="M45 47 L43 40 M55 47 L57 40"/><circle cx="43" cy="38.5" r="2" class="f"/><circle cx="57" cy="38.5" r="2" class="f"/><path d="M33 52 Q23 44 25 33 M25 33 C15 31 15 19 23 17 M25 33 C31 29 31 23 27 21"/><path d="M67 52 Q77 44 75 33 M75 33 C85 31 85 19 77 17 M75 33 C69 29 69 23 73 21"/><path d="M33 58 L22 62 L18 70 M34 63 L25 70 L23 78 M38 68 L31 76 L31 84 M67 58 L78 62 L82 70 M66 63 L75 70 L77 78 M62 68 L69 76 L69 84"/>`,
+    // Leo: lion's face in its mane
+    `<path d="${leoMane}"/><path d="M38 44 Q50 36 62 44 L60 62 Q50 72 40 62 Z"/><circle cx="37.5" cy="39" r="4"/><circle cx="62.5" cy="39" r="4"/><circle cx="44.5" cy="50" r="1.7" class="f"/><circle cx="55.5" cy="50" r="1.7" class="f"/><path d="M46 58 L54 58 L50 63 Z" class="f"/><path d="M50 63 Q46 68 43 66 M50 63 Q54 68 57 66"/>`,
+    // Virgo: the maiden with a stalk of grain
+    `<ellipse cx="48" cy="38" rx="9" ry="11"/><path d="M39 34 Q48 21 57 34"/><path d="M40 32 Q32 46 36 60 Q38 70 31 80 M56 32 Q63 46 60 58 Q58 68 63 78"/><path d="M43.5 38 Q45 39 46.5 38 M49.5 38 Q51 39 52.5 38 M46 44 Q48 45.5 50 44"/><path d="M38 64 Q48 56 58 64 L62 86 L34 86 Z"/><path d="${wheat}"/>`,
+    // Libra: the scales
+    `<circle cx="50" cy="19" r="3"/><path d="M50 22 L50 80 M38 83 L62 83 M44 80 L56 80 M22 30 L78 30"/><path d="M22 30 L14 52 M22 30 L30 52 M12 52 Q22 63 32 52 Z"/><path d="M78 30 L70 52 M78 30 L86 52 M68 52 Q78 63 88 52 Z"/>`,
+    // Scorpio: the scorpion, tail raised
+    `<ellipse cx="42" cy="62" rx="14" ry="9"/>${scorp}<path d="M66 24 Q59 19 61 30"/><path d="M30 58 Q22 50 21 42 M21 42 C13 40 13 30 21 28 M21 42 C26 38 27 33 24 31"/><path d="M30 66 Q22 72 22 77 M22 77 C14 79 14 89 22 89 M22 77 C27 80 28 85 25 87"/><path d="${legsS}"/>`,
+    // Sagittarius: bow and arrow
+    `<g transform="rotate(-35 50 50)"><path d="M36 16 Q82 50 36 84"/><path d="M36 16 L24 50 L36 84"/><path d="M20 50 L86 50"/><path d="M88 50 L77 44 L77 56 Z" class="f"/><path d="M24 50 L17 44 M24 50 L17 56 M29 50 L22 44 M29 50 L22 56"/></g>`,
+    // Capricorn: goat's face with long horns and beard
+    `<path d="M42 40 Q50 35 58 40 L56 62 Q50 70 44 62 Z"/><path d="M44 40 C40 26 32 16 21 14 M47 38 C45 27 38 20 26 17"/><path d="M56 40 C60 26 68 16 79 14 M53 38 C55 27 62 20 74 17"/><path d="M42 45 L29 46 L41 51 M58 45 L71 46 L59 51"/><circle cx="46.5" cy="48" r="1.6" class="f"/><circle cx="53.5" cy="48" r="1.6" class="f"/><path d="M46 65 L48 81 L50 73 L52 81 L54 65"/>`,
+    // Aquarius: water pouring from a pot
+    `<g transform="translate(36 40) scale(0.66) rotate(100) translate(-50 -50)"><path d="M38 20 L62 20 M43 20 Q45 27 41 32 M57 20 Q55 27 59 32 M41 32 C22 40 22 66 40 75 L60 75 C78 66 78 40 59 32 M42 75 L44 82 L56 82 L58 75 M30 50 Q50 43 70 50 M31 58 Q50 51 69 58"/></g><path d="M57 42 C67 44 71 54 67 62 C64 68 67 74 71 80 M56 47 C61 54 60 62 57 70"/><path d="M14 87 Q20 81 26 87 Q32 93 38 87 Q44 81 50 87 Q56 93 62 87 Q68 81 74 87 Q80 93 86 87"/>`,
+    // Pisces: two fish swimming in a circle
+    `<path d="M30 34 Q48 20 68 32 Q48 44 30 34 Z"/><path d="M30 34 L19 26 L22 34 L19 42 Z"/><circle cx="61" cy="31" r="1.6" class="f"/><path d="M70 66 Q52 80 32 68 Q52 56 70 66 Z"/><path d="M70 66 L81 74 L78 66 L81 58 Z"/><circle cx="39" cy="67" r="1.6" class="f"/><path d="M68 32 Q86 38 84 52 M32 68 Q14 62 16 48"/>`
+  ];
+})();
+
+const wmArt = (s, k) => k === 'sign' ? ZOD_ART[s] : k === 'lord' ? `<image href="${skyIconURL(J.SIGN_LORD[s])}" x="0" y="0" width="100" height="100"/>` : '';
+const wmCol = (dark) => dark ? '#cdd6ff' : 'var(--indigo)';
+function wmPaint(t, k) { const s = +t.dataset.s; t.innerHTML = wmArt(s, k); t.classList.toggle('lord', k === 'lord'); }
+// one watermark: an outer group places it, the inner group (class wm) is what turns
+function wmMark(s, cx, cy, sz, dark, f) {
+  const k = WM_PAGES[wmI][0];
+  return `<g transform="translate(${(cx - sz/2).toFixed(1)} ${(cy - sz/2).toFixed(1)}) scale(${(sz/100).toFixed(3)})" aria-hidden="true"><g class="wm${dark ? ' wm2' : ''}${k === 'lord' ? ' lord' : ''}" data-s="${s}" data-f="${f.toFixed(3)}" style="color:${wmCol(dark)};stroke:currentColor">${wmArt(s, k)}</g></g>`;
+}
+function wmApply(box) {
+  if (!box) return; const svg = box.querySelector('svg'); if (!svg || svg.dataset.wm) return; svg.dataset.wm = '1';
+  const vb = svg.viewBox.baseVal, W = vb.width || 400, X0 = vb.x || 0;
+  svg.querySelectorAll('.hz').forEach(el => {
+    let cx, cy, sz;
+    if (el.tagName.toLowerCase() === 'rect') { const x = +el.getAttribute('x'), y = +el.getAttribute('y'), w = +el.getAttribute('width'), h = +el.getAttribute('height'); cx = x + w/2; cy = y + h/2 + 3; sz = Math.min(w, h)*0.72; }
+    else { const pts = el.getAttribute('points').trim().split(/\s+/).map(q => q.split(',').map(Number)), xs = pts.map(q => q[0]), ys = pts.map(q => q[1]);
+      cx = xs.reduce((a, b) => a + b, 0)/xs.length; cy = ys.reduce((a, b) => a + b, 0)/ys.length; sz = Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys))*0.5; }
+    el.insertAdjacentHTML('afterend', wmMark(+el.dataset.s, cx, cy, sz, false, (cx - X0)/W));
+  });
+  wmNav(box);
+}
+function wmNav(box) {
+  box.classList.add('has-wm');
+  if (!box.querySelector('.wm-nav')) box.insertAdjacentHTML('beforeend', `<div class="wm-nav"><button type="button" data-wmturn="-1" aria-label="Previous watermark page">‹</button><span>${WM_PAGES[wmI][1]}</span><button type="button" data-wmturn="1" aria-label="Next watermark page">›</button></div>`);
+}
+
+// ---------- the same watermark pictures in the 3D view (sprites that always face you)
+const WM3_TEX = {};
+function wm3Tex(s, k) {
+  const key = k + s; if (WM3_TEX[key]) return WM3_TEX[key];
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), tx = new THREE.CanvasTexture(c); tx.minFilter = THREE.LinearFilter;
+  if (k === 'lord') { g.drawImage(skyIcon(J.SIGN_LORD[s]), 0, 0, 256, 256); tx.needsUpdate = true; }
+  else { const col = '#cdd6ff', svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="256" height="256"><g fill="none" stroke="${col}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${ZOD_ART[s].replace(/class="f"/g, `fill="${col}" stroke="none"`)}</g></svg>`;
+    const im = new Image(); im.onload = () => { g.drawImage(im, 0, 0, 256, 256); tx.needsUpdate = true; }; im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+  return WM3_TEX[key] = tx;
+}
+const WM3_OP = {sign: 0.36, lord: 0.26, none: 0};
+function wm3Sprite(s) {
+  const k = WM_PAGES[wmI][0], m = new THREE.Sprite(new THREE.SpriteMaterial({map: wm3Tex(s, k === 'none' ? 'sign' : k), transparent: true, depthWrite: false, opacity: WM3_OP[k]}));
+  m.scale.set(3.6, 3.6, 1); m.renderOrder = 1; m.userData.wm = {s}; return m;
+}
+function wm3Turn(dir, k) {
+  const L = SKY.wm3 || []; if (!L.length) return;
+  const calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now(), D = 620;
+  const job = L.map(m => { const f = (m.position.x + 12)/24; return {m, delay: calm ? 0 : (dir > 0 ? 1 - f : f)*260, swapped: false}; });
+  const swap = j => { j.swapped = true; const s = j.m.userData.wm.s; j.m.material.map = wm3Tex(s, k === 'none' ? 'sign' : k); j.m.material.opacity = WM3_OP[k]; j.m.material.needsUpdate = true; };
+  if (calm) { job.forEach(swap); return; }
+  const step = now => { let busy = false;
+    for (const j of job) { const t = Math.max(0, Math.min(1, (now - t0 - j.delay)/D)); if (t < 1) busy = true;
+      if (t >= 0.5 && !j.swapped) swap(j);
+      const sx = Math.max(0.02, Math.abs(Math.cos(Math.PI*t))); j.m.scale.set(3.6*sx, 3.6, 1); }
+    if (busy) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function wmTurn(dir) {
+  wmI = (wmI + dir + WM_PAGES.length) % WM_PAGES.length; store.set('jk-wm', WM_PAGES[wmI][0]);
+  wm3Turn(dir, WM_PAGES[wmI][0]);
+  const k = WM_PAGES[wmI][0], calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.has-wm').forEach(box => {
+    box.querySelectorAll('.wm-nav span').forEach(x => x.textContent = WM_PAGES[wmI][1]);
+    const marks = box.querySelectorAll('svg .wm');
+    if (calm) { marks.forEach(t => wmPaint(t, k)); return; }
+    const sw = document.createElement('div'); sw.className = 'wm-sweep' + (dir < 0 ? ' back' : ''); box.appendChild(sw); setTimeout(() => sw.remove(), 800);
+    marks.forEach(t => {
+      const f = +t.dataset.f, delay = Math.round((dir > 0 ? 1 - f : f)*260);   // the page sweeps from the arrow's side across the chart
+      t.classList.remove('turn'); void t.getBoundingClientRect(); t.style.animationDelay = delay + 'ms'; t.classList.add('turn');
+      setTimeout(() => wmPaint(t, k), delay + 310);
+      setTimeout(() => t.classList.remove('turn'), delay + 700);
+    });
+  });
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-wmturn]'); if (b) { e.stopPropagation(); wmTurn(+b.dataset.wmturn); } });
+
 let tipsOn = true;
 function setTips(on) { tipsOn = on; store.set('jk-tips', on); document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', on)); if (!on) document.querySelectorAll('.charttip').forEach(t => t.hidden = true); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-tiptoggle]'); if (b) setTips(!tipsOn); });
@@ -1126,7 +1271,7 @@ function transitTip(h, s, T, date) {
 function renderTransitChart() {
   const box = document.getElementById('tchartbox'); if (!box || !C) return;
   C.T = J.transitPositions(tDate);
-  box.innerHTML = transitSVG(C.T) + '<div class="charttip" role="tooltip" hidden></div>';
+  box.innerHTML = transitSVG(C.T) + '<div class="charttip" role="tooltip" hidden></div>'; wmApply(box);
   const T = J.transits(C, tDate), cur = C.cur ? [C.cur.md.lord, C.cur.ad.lord] : [];
   document.getElementById('tlist').innerHTML = T.map(t => `<div class="trow${cur.includes(t.planet) ? ' dl' : ''}"><span>${pdot(t.planet)}<b>${t.planet}</b>${cur.includes(t.planet) ? ' <span class="muted">dasa lord</span>' : ''}</span><span class="mono">${J.fmtDeg(t.deg)} ${J.SAB[t.sign]}${t.retro && t.planet !== 'Rahu' && t.planet !== 'Ketu' ? ' R' : ''}</span><span>${J.ORD(tRef === 'moon' ? t.fromMoon : t.fromLag)}</span>${chip(t.good ? 'Good' : 'Difficult', t.good ? 'good' : 'bad')}</div>`).join('');
   document.getElementById('ttable').innerHTML = T.map(t => `<tr${cur.includes(t.planet) ? ' class="now"' : ''}><td>${t.planet}${cur.includes(t.planet) ? ' <span class="muted">(dasa lord)</span>' : ''}</td><td class="mono">${J.fmtDeg(t.deg)} ${J.SAB[t.sign]}${t.retro && t.planet !== 'Rahu' && t.planet !== 'Ketu' ? ' R' : ''}</td><td>${J.NAKS[t.nak][0]} ${t.pada}</td><td>${J.ORD(t.fromMoon)}</td><td>${J.ORD(t.fromLag)}</td><td>${chip(t.good ? 'Good' : 'Difficult', t.good ? 'good' : 'bad')}</td><td>${esc(t.res)}</td></tr>`).join('');
@@ -1143,7 +1288,7 @@ let nowDate = new Date();
 function renderNow() {
   const box = document.getElementById('nowbox'); if (!box || !C) return;
   nowDate = new Date(); C.Tnow = J.transitPositions(nowDate);
-  box.innerHTML = transitSVG(C.Tnow, nowDate, 'nah') + '<div class="charttip" role="tooltip" hidden></div>';
+  box.innerHTML = transitSVG(C.Tnow, nowDate, 'nah') + '<div class="charttip" role="tooltip" hidden></div>'; wmApply(box);
   document.getElementById('nowdate').textContent = nowDate.toLocaleString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
   document.querySelectorAll('[data-nref]').forEach(x => x.setAttribute('aria-pressed', x.dataset.nref === tRef));
   document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', tipsOn));
@@ -1284,6 +1429,37 @@ const PL_EASY = {
 const SIGN_EASY = ['bold starter', 'steady and comfort-loving', 'curious talker', 'caring and emotional', 'proud leader', 'careful analyst', 'balanced diplomat', 'intense and secretive', 'optimistic teacher', 'practical worker', 'humanitarian thinker', 'dreamy and spiritual'];
 const HOUSE_EASY = ['', 'You: body, health, personality', 'Money in hand, family, speech, food', 'Courage, younger siblings, skills, short trips', 'Mother, home, vehicles, inner peace', 'Children, intelligence, romance, speculation', 'Enemies, debts, disease, daily job, competition', 'Spouse, partnerships, business deals', 'Sudden events, secrets, longevity, in-laws’ money', 'Luck, father, guru, dharma, long trips', 'Career, status, boss, reputation', 'Gains, income, friends, wishes fulfilled', 'Expenses, loss, sleep, foreign lands, moksha'];
 
+const HOUSE_AREA = {1: 'Self, body, health, personality, head', 2: 'Money, family, speech, face, food', 3: 'Courage, effort, younger siblings, short trips, hands, communication',
+  4: 'Home, mother, emotional peace, vehicles, property, education', 5: 'Intelligence, children, creativity, romance, past merit', 6: 'Illness, enemies, debts, competition, daily work and service',
+  7: 'Spouse, marriage, partnerships, business deals', 8: 'Sudden events, obstacles, longevity, secrets, chronic illness, inheritance', 9: 'Luck, father, guru, religion, higher studies, long journeys',
+  10: 'Career, status, reputation, authority, actions in the world', 11: 'Gains, income, wishes fulfilled, friends, elder siblings', 12: 'Losses, expenses, sleep, hospitals, foreign lands, spirituality, moksha'};
+const HOUSE_SHORT = {1: 'self and body', 2: 'money and family', 3: 'courage and siblings', 4: 'home and mother', 5: 'children and intelligence', 6: 'illness, enemies and daily work', 7: 'marriage and partners', 8: 'sudden events and obstacles', 9: 'luck and father', 10: 'career and status', 11: 'gains and friends', 12: 'losses, sleep and foreign lands'};
+const HOUSE_PEOPLE = {1: 'You yourself', 2: 'Your immediate family', 3: 'Younger brothers and sisters, neighbours, colleagues', 4: 'Mother', 5: 'Children, students', 6: 'Enemies, rivals, maternal uncle, employees', 7: 'Spouse, business partners', 8: 'In-laws (your spouse’s family)', 9: 'Father, guru, teachers', 10: 'Boss, employer, government', 11: 'Elder brothers and sisters, friends', 12: 'Foreigners, hidden enemies, people in hospitals or ashrams'};
+const HOUSE_BODY = {1: 'Head, brain', 2: 'Face, eyes, mouth, throat', 3: 'Shoulders, arms, hands, ears', 4: 'Chest, heart, lungs', 5: 'Stomach, upper belly', 6: 'Intestines, lower belly', 7: 'Kidneys, lower back, pelvis', 8: 'Private parts, excretory organs', 9: 'Hips, thighs', 10: 'Knees', 11: 'Calves, ankles', 12: 'Feet, left eye, sleep'};
+let HT = null;
+function houseReadingLine(h) {
+  const sg = (C.lagna + h - 1) % 12, lord = J.SIGN_LORD[sg], lh = C.P[lord].house, occ = J.PL.filter(b => C.P[b].sign === sg);
+  let t = lh === h ? `Your ${J.ORD(h)} house (${HOUSE_SHORT[h]}) is ruled by ${lord}, which sits in its own house: strong protection for these matters.`
+    : `Your ${J.ORD(h)} house (${HOUSE_SHORT[h]}) is ruled by ${lord}, which sits in your ${J.ORD(lh)} (${HOUSE_SHORT[lh]}): ${HOUSE_SHORT[h]} are tied to ${HOUSE_SHORT[lh]}.`;
+  if (lh !== h) t += [6, 8, 12].includes(lh) ? ' Its lord in a difficult house means these matters come with struggle or delay.' : [1, 4, 5, 7, 9, 10, 11].includes(lh) ? ' Its lord in a good house supports these matters.' : '';
+  const d = C.P[lord].dignity;
+  if (d === 'exalted' || d === 'own' || d === 'moolatrikona') t += ` ${lord} is ${d === 'exalted' ? 'exalted' : 'in its own sign'}, so it delivers well.`; else if (d === 'debilitated') t += ` ${lord} is debilitated, so it needs support.`;
+  if (occ.length) t += ` ${occ.join(', ')} ${occ.length > 1 ? 'sit' : 'sits'} here and colour${occ.length > 1 ? '' : 's'} these matters with ${occ.length > 1 ? 'their' : 'its'} nature.`;
+  return t;
+}
+function lordPeriodsLine(lord) {
+  const now = new Date(), yr = d => d.getFullYear(), age = d => Math.floor((d - C.date)/31556952e3), my = d => d.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'});
+  const md = C.dasa.MD.find(m => m.lord === lord);
+  const ads = C.dasa.MD.flatMap(m => m.ads.map(a => ({...a, md: m.lord}))).filter(a => a.lord === lord && a.end > now).sort((a, b) => a.start - b.start);
+  const cur = ads.find(a => a.start <= now), nxt = ads.find(a => a.start > now);
+  let t = '';
+  if (md) t = md.start <= now && md.end > now ? `<b>Running now</b>: ${lord} main period ${yr(md.start)}–${yr(md.end)}. `
+    : md.end <= now ? `${lord} main period ran ${yr(md.start)}–${yr(md.end)} (age ${Math.max(0, age(md.start))}–${age(md.end)}). `
+    : `${lord} main period: ${yr(md.start)}–${yr(md.end)} (age ${age(md.start)}–${age(md.end)}). `;
+  if (cur) t += `<b>Active now</b> as the sub-period ${cur.md}–${lord} (until ${my(cur.end)}).`;
+  else if (nxt) t += `Next sub-period: ${nxt.md}–${lord}, ${my(nxt.start)} – ${my(nxt.end)}.`;
+  return t;
+}
 const LESSONS = [
 {id: 'what', t: 'What is Vedic astrology?', lvl: 'Start here', body: () => `
   <p>At the moment you were born, the Sun, the Moon and the planets were at particular places in the sky. A <b>birth chart</b> (kundali or jathakam) is simply a map of that sky, drawn from the exact place you were born.</p>
@@ -1334,6 +1510,27 @@ const LESSONS = [
     <li><b>Upachayas 3, 6, 10, 11</b>: houses that <i>grow with time</i>. Malefics do well here; results improve with age.</li>
   </ul>
   ${lnSimple('Kendra = strength, Trikona = luck, Dusthana = struggle, Upachaya = slow improvement.')}
+  ${C ? `<h4>Your 12 houses at a glance</h4><p>The sign in each house comes from your ascendant (${J.SIGNS[C.lagna]}). Read any placement as one sentence: <b>planet (who)</b> acts in the style of its <b>sign (how)</b> in this <b>area of life (where)</b>.</p>
+  <div class="hg-key">
+    <div class="hg good"><b>Kendras (1, 4, 7, 10)</b>: the pillars of life. Planets here are strong.</div>
+    <div class="hg good"><b>Trikonas (1, 5, 9)</b>: luck and grace. These are the best houses.</div>
+    <div class="hg bad"><b>Dusthanas (6, 8, 12)</b>: the difficult houses: illness, obstacles, loss.</div>
+    <div class="hg grow"><b>Upachayas (3, 6, 10, 11)</b>: houses that improve with time and effort. Hard planets do well here.</div>
+  </div>
+  <p class="note">Row colours: <span class="hg-sw good"></span> good house (kendra, trikona or 11th, the house of gains) · <span class="hg-sw bad"></span> difficult house (dusthana) · <span class="hg-sw mix"></span> mixed (2nd: money but also a maraka; 3rd: effort and courage).</p>
+  ${(HT = C._houseTable || (C._houseTable = J.houseTable(C)), '')}<div class="tablewrap"><table class="ln-t hg-t"><thead><tr><th>House</th><th>Area of life</th><th>Group</th><th>Your sign</th><th>Your planets there</th><th>House lord sits in</th></tr></thead><tbody>
+  ${Array.from({length: 12}, (_, i) => { const h = i + 1, sg = (C.lagna + i) % 12, lord = J.SIGN_LORD[sg], occ = J.PL.filter(b => C.P[b].sign === sg), lh = C.P[lord].house;
+    const tags = [[1, 4, 7, 10].includes(h) ? ['Kendra', 'good'] : null, [1, 5, 9].includes(h) ? ['Trikona', 'good'] : null, [6, 8, 12].includes(h) ? ['Dusthana', 'bad'] : null, [3, 6, 10, 11].includes(h) ? ['Upachaya', 'grow'] : null].filter(Boolean);
+    const cls = [6, 8, 12].includes(h) ? 'bad' : [2, 3].includes(h) ? 'mix' : 'good', lcls = [6, 8, 12].includes(lh) ? 'bad' : [1, 4, 5, 7, 9, 10, 11].includes(lh) ? 'good' : 'mix';
+    return `<tr class="hg-r ${cls}"><td><b>${h}</b></td><td>${HOUSE_AREA[h]}</td><td>${tags.map(([t, c]) => `<span class="hg-tag ${c}">${t}</span>`).join(' ') || '—'}</td><td>${J.SIGNS[sg]}</td><td>${occ.length ? occ.map(lnPl).join(', ') : '—'}</td><td>${lnPl(lord)} in the <span class="hg-tag ${lcls}">${J.ORD(lh)}</span></td></tr>
+      <tr class="hg-d ${cls}"><td></td><td colspan="5"><div class="hg-dg">
+        <div><span class="hg-k">Reading</span>${houseReadingLine(h)}</div>
+        <div><span class="hg-k">People · Body</span>${HOUSE_PEOPLE[h]} · <i>${HOUSE_BODY[h]}</i></div>
+        <div><span class="hg-k">Karaka · Strength</span>Natural karaka ${lnPl(J.HOUSE_KARAKA[h])} · App verdict: <span class="chip ${HT[h - 1].tone}">${HT[h - 1].verdict}</span></div>
+        <div><span class="hg-k">When it activates</span>${lordPeriodsLine(lord)}</div>
+      </div></td></tr>`; }).join('')}
+  </tbody></table></div>
+  <p class="note">The last column is coloured too: a house lord sitting in a good house protects that house’s matters; one sitting in the 6th, 8th or 12th weakens them. Under each house you get a one-line <b>reading</b> built from the columns, the <b>people and body part</b> it rules, its natural <b>karaka</b> with the app’s <b>strength verdict</b>, and <b>when it activates</b> (the dasa periods of its lord).</p>` : ''}
   ${lnMine(`<p>Planets in your angles: ${J.PL.filter(b => [1,4,7,10].includes(C.P[b].house)).map(lnPl).join(', ') || 'none'}. In your trines: ${J.PL.filter(b => [5,9].includes(C.P[b].house)).map(lnPl).join(', ') || 'none'}. In your dusthanas: ${J.PL.filter(b => [6,8,12].includes(C.P[b].house)).map(lnPl).join(', ') || 'none'}.</p>`)}
   ${lnTry('houses', 'Open your house-by-house table')}`,
   quiz: [['Which house shows career and status?', ['4th', '7th', '10th'], 2],
@@ -3217,6 +3414,7 @@ function sky2D(T) {
   for (let sg = 0; sg < 12; sg++) { const a0 = sg*30, a1 = a0 + 30, m = a0 + 15, h = (sg - LAG + 12) % 12 + 1, [sx, sy] = P(m, 271), [hx, hy] = P(m, 128);
     o += `<path d="${seg(240, 302, a0, a1)}" fill="${ELEM[sg % 4]}" fill-opacity="${h === 1 ? 0.6 : 0.32}" stroke="#9aa6c8" stroke-opacity=".5" data-sg2="${sg}" class="w2-hit"><title>${J.SIGNS[sg]}: click for its story</title></path>
       <path d="${seg(110, 240, a0, a1)}" fill="transparent" stroke="#9aa6c8" stroke-opacity=".25" ${d9 ? '' : `data-h2="${h}" class="w2-hit"`}><title>${J.ORD(h)} house${d9 ? (dv === 'd9' ? ' of the navamsa' : ' of the career chart') : ': click for its page'}</title></path>
+      ${(() => { const [wx, wy] = P(m, 178); return wmMark(sg, wx, wy, 96, true, (wx + 550)/1100); })()}
       <text x="${f(sx)}" y="${f(sy)}" transform="rotate(${f(rot(m))} ${f(sx)} ${f(sy)})" class="w2-sg">${J.SIGNS[sg]}</text>
       <text x="${f(hx)}" y="${f(hy)}" class="w2-h${h === 1 ? ' w2-h1' : ''}">${h}</text>`; }
   { const [lx, ly] = P(L0, 302); o += `<line x1="0" y1="0" x2="${f(lx)}" y2="${f(ly)}" stroke="#FFD27A" stroke-width="2"/>`; }
@@ -3244,7 +3442,7 @@ function sky2D(T) {
   const d = new Date(Date.now() + SKY.off*864e5);
   o += `<circle r="108" fill="#0d1530" stroke="#3a4a7a"/><text y="-30" class="w2-c1">${d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</text>
     <text y="6" class="w2-c2">${dv === 'd9' ? 'Navamsa D9 · Lagna ' + J.SIGNS[C.L.d9] : dv === 'd10' ? 'Dasamsa D10 · Lagna ' + J.SIGNS[C.L.d10] : 'Lagna ' + J.SIGNS[C.lagna]}</text><text y="34" class="w2-c2">Moon ${J.SIGNS[C.P.Moon.sign]} · ${J.NAKS[C.P.Moon.nak][0]}</text><text y="62" class="w2-c3">inside: birth · outside: transits</text>`;
-  box.innerHTML = `<svg viewBox="-550 -550 1100 1100" role="img" aria-label="2D chart wheel with nakshatras">${o}</svg>`;
+  box.innerHTML = `<svg viewBox="-550 -550 1100 1100" role="img" aria-label="2D chart wheel with nakshatras">${o}</svg>`; wmNav($('#skyWrap'));
 }
 function skyApplyMode() {
   const c = $('#skyWrap canvas'), b2 = $('#sky2d'), btn = $('#skyMode'); if (!b2) return;
@@ -3463,7 +3661,7 @@ function skyBuild(rows, range) {
     m.rotation.x = -Math.PI/2; return m; };
   const line = (a, b, col, op = 1) => new T3.Line(new T3.BufferGeometry().setFromPoints([a, b]), new T3.LineBasicMaterial({color: col, transparent: true, opacity: op}));
   // the RingGeometry runs counter-clockwise in its own plane; after rotating flat, check the direction matches ang()
-  const zones = [];
+  const zones = []; SKY.wm3 = []; wmNav(wrap);
   // sign ring with element colours, sign names and house numbers
   for (let s = 0; s < 12; s++) {
     const a0 = s*30, a1 = a0 + 30, h = (s - C.lagna + 12) % 12 + 1;
@@ -3472,6 +3670,7 @@ function skyBuild(rows, range) {
     world.add(line(pos(a0, 3.2), pos(a0, 12), 0x9aa6c8, 0.35));
     const lb = label(J.SIGNS[s], '#EEF1FA', 0.7); lb.position.copy(pos(a0 + 15, 10.8, 0.05)); world.add(lb);
     const hb = label(String(h), h === 1 ? '#FFD27A' : '#9FB0DA', h === 1 ? 1.1 : 0.85); hb.position.copy(pos(a0 + 15, 3.9, 0.05)); world.add(hb);
+    const wmS = wm3Sprite(s); wmS.position.copy(pos(a0 + 15, 6.7, 0.1)); world.add(wmS); SKY.wm3.push(wmS);
   }
   const lag = label('Lagna', '#FFD27A', 0.6); lag.position.copy(pos(L0, 12.9, 0.4)); world.add(lag); world.add(line(pos(L0, 0), pos(L0, 12.4), 0xFFD27A, 0.9));
   // nakshatra ring
@@ -4698,15 +4897,15 @@ function wireAdvanced() {
 function advShadbala() {
   const S = C._sb || (C._sb = J.shadbala(C)), PL7 = J.SEVEN;
   const f1 = x => x.toFixed(0), r2 = x => (x/60).toFixed(2);
-  const rows = PL7.map(b => { const x = S[b], ok = x.ratio >= 1;
-    return `<tr><td><b style="color:${advCol(b)}">${b}</b></td><td class="mono">${r2(x.sthana)}</td><td class="mono">${r2(x.dig)}</td><td class="mono">${r2(x.kala)}</td><td class="mono">${r2(x.cheshta)}</td><td class="mono">${r2(x.naisargika)}</td><td class="mono">${r2(x.drik)}</td>
-     <td class="mono"><b>${x.rupas.toFixed(2)}</b></td><td class="mono">${x.min}</td><td><div class="sbbar"><i style="width:${Math.min(100, x.ratio/1.6*100)}%" class="${ok ? 'ok' : 'lo'}"></i><em style="left:${100/1.6}%"></em></div><span class="mono">${x.ratio.toFixed(2)}×</span></td><td>${chip(ok ? (x.ratio >= 1.25 ? 'strong' : 'adequate') : 'below minimum', ok ? (x.ratio >= 1.25 ? 'good' : 'ok') : 'bad')}</td></tr>`; }).join('');
-  const rank = PL7.slice().sort((a, b) => S[a].rank - S[b].rank), weak = rank.filter(b => S[b].ratio < 1);
+  const rows = PL7.map(b => { const x = S[b], ok = x.ratio >= 0.995;
+    return `<tr><td><b style="color:${advCol(b)}">${b}</b><br>${chip(funcLbl(C.func[b]).replace('Functional ', '').replace('Functionally ', ''), funcCls(C.func[b]))}${C.func[b] === 'malefic' && ok ? ' <small class="muted">don’t strengthen</small>' : ''}</td><td class="mono">${r2(x.sthana)}</td><td class="mono">${r2(x.dig)}</td><td class="mono">${r2(x.kala)}</td><td class="mono">${r2(x.cheshta)}</td><td class="mono">${r2(x.naisargika)}</td><td class="mono">${r2(x.drik)}</td>
+     <td class="mono"><b>${x.rupas.toFixed(2)}</b></td><td class="mono">${x.min}</td><td><div class="sbbar"><i style="width:${Math.min(100, x.ratio/1.6*100)}%" class="${ok ? 'ok' : 'lo'}"></i><em style="left:${100/1.6}%"></em></div><span class="mono">${x.ratio.toFixed(2)}×</span></td><td>${chip(ok ? (x.ratio >= 1.25 ? 'strong' : x.ratio < 1.03 ? 'just at minimum' : 'adequate') : 'below minimum', ok ? (x.ratio >= 1.25 ? 'good' : x.ratio < 1.03 ? 'mixed' : 'ok') : 'bad')}</td></tr>`; }).join('');
+  const rank = PL7.slice().sort((a, b) => S[a].rank - S[b].rank), weak = rank.filter(b => S[b].ratio < 0.995);
   const fn = b => ({yogakaraka: 'your yogakaraka', benefic: 'a functional benefic for you', malefic: 'a functional malefic for you', neutral: 'neutral for you'}[C.func[b]] || '');
   const line = b => { const x = S[b], q = C.P[b]; return `<li><b style="color:${advCol(b)}">${b}</b> (${fn(b)}, rules your ${q.lordOf.map(J.ORD).join(' & ') || '—'}): ${x.rupas.toFixed(2)} rupas against ${x.min} needed. Best parts: ${['sthana', 'dig', 'kala', 'cheshta', 'drik'].sort((a, c) => x[c] - x[a]).slice(0, 2).map(k => SB_NAME[k]).join(' and ')}; weakest: ${SB_NAME[['sthana', 'dig', 'kala', 'cheshta'].sort((a, c) => x[a]/SB_MAX[a] - x[c]/SB_MAX[c])[0]]}.</li>`; };
   return `<div class="section"><h3>Shadbala: six-fold strength</h3>
    <p>Parashara (BPHS ch.27) measures each planet’s strength from six sources and compares the total with a minimum each planet needs. A planet above its minimum can deliver what it promises; one below it gives its results only with effort, and its dasa needs support.</p>
-   <div class="tablewrap"><table><thead><tr><th>Planet</th><th>Sthana<br><small>(position)</small> </th><th>Dig<br><small>(direction)</small> </th><th>Kala<br><small>(time)</small> </th><th>Cheshta<br><small>(motion)</small> </th><th>Naisargika<br><small>(natural)</small> </th><th>Drik<br><small>(aspects)</small> </th><th>Total<br><small>(rupas)</small> </th><th>Needed</th><th>Ratio</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="tablewrap"><table><thead><tr><th>Planet<br><small>(for your lagna)</small> </th><th>Sthana<br><small>(position)</small> </th><th>Dig<br><small>(direction)</small> </th><th>Kala<br><small>(time)</small> </th><th>Cheshta<br><small>(motion)</small> </th><th>Naisargika<br><small>(natural)</small> </th><th>Drik<br><small>(aspects)</small> </th><th>Total<br><small>(rupas)</small> </th><th>Needed</th><th>Ratio</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
    <p class="note">Values in rupas (1 rupa = 60 virupas). The bar’s line marks the minimum. Order of strength: ${rank.map(b => `${b} ${S[b].ratio.toFixed(2)}×`).join(' › ')}.</p></div>
   <div class="section"><h3>What it means for you</h3><ul>${rank.map(line).join('')}</ul>
    <p>${weak.length ? `<b>Below minimum: ${weak.join(', ')}.</b> These are the planets whose good promises need help, so their remedies (see the Remedies tab) matter most${weak.some(b => ['malefic'].includes(C.func[b])) ? `. A weak functional malefic (${weak.filter(b => C.func[b] === 'malefic').join(', ')}) is less able to harm, so do not strengthen it` : ''}.` : 'Every planet meets its minimum strength.'} The strongest planet, <b>${rank[0]}</b>, gives the clearest results in its dasa and antardasa.</p>
@@ -4949,7 +5148,7 @@ function boot() {
   if (store.get('jk-tref') === 'moon') tRef = 'moon';
   tAspOn = store.get('jk-tasp') === true; applyTAsp();
   if (store.get('jk-tips') === false) setTips(false);
-  const st = store.get('jk-style'); if (st === 'north' || st === 'south') { style = st; document.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', x.dataset.s === style)); }
+  style = 'south'; // South Indian style only (North removed at the user's request)
   const tb = store.get('jk-tab'); if (tb && document.querySelector(`#tabs [data-t="${tb}"]`)) { tab = tb; document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', x.dataset.t === tab)); }
   if (saved && saved.dt) {
     $('#nm').value = saved.nm || ''; $('#dt').value = saved.dt; $('#tm').value = saved.tm; $('#city').value = saved.city || '';
