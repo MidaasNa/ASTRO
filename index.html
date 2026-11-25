@@ -157,6 +157,28 @@ details.pl summary::-webkit-details-marker{display:none}
 .chip.mixed{background:var(--mixed-soft);color:var(--mixed)}
 .chip.ok{background:var(--panel-2);color:var(--indigo)}
 .chip.acc{background:var(--accent-soft);color:var(--accent)}
+.adv-seg{flex-wrap:wrap}
+.adv-two{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:18px;align-items:start;margin:12px 0}
+@media (max-width:720px){.adv-two{grid-template-columns:1fr}}
+.adv-two h4{margin:0 0 6px}
+.adv-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.btn.ghost{background:transparent;color:var(--indigo);border:1px solid var(--line);padding:6px 12px;font-weight:600}
+.btn.ghost.on{background:var(--indigo);color:var(--panel)}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,58px);border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:12px;background:var(--panel)}
+.mini .mc{border:1px solid var(--line);padding:3px 4px;line-height:1.35;overflow:hidden}
+.mini .mc.lg{background:var(--accent-soft)}
+.mini .ms{display:block;font-size:10px;color:var(--muted)}
+.mini .mctr{grid-row:2/4;grid-column:2/4;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;gap:3px}
+.mini .mctr span{font-size:11px;color:var(--muted)}
+.sbbar{position:relative;display:inline-block;width:90px;height:8px;background:var(--panel-2);border-radius:4px;vertical-align:middle;margin-right:6px}
+.sbbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.sbbar i.ok{background:var(--good)} .sbbar i.lo{background:var(--bad)}
+.sbbar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink,#333)}
+td.vgood{color:var(--good);font-weight:600} td.vbad{color:var(--bad);font-weight:600}
+tr.cur td{background:var(--accent-soft)}
+table.rect td.chg{background:var(--mixed-soft);font-weight:600}
+table.rect tr.best td{box-shadow:inset 0 2px 0 var(--good),inset 0 -2px 0 var(--good)}
+.sky-mur{display:block;margin-top:3px}
 
 /* yogas */
 .ycat{margin-bottom:24px}
@@ -493,6 +515,10 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <div class="f c2"><label for="tz">UTC offset (hours)</label><input id="tz" type="number" step="0.25" min="-12" max="14" required></div>
     <div class="f c3"><label for="yr">Dasa year length</label>
       <select id="yr"><option value="365.2425">Solar year, 365.24 days (most astrologers)</option><option value="360">Savana year, 360 days (the author’s preference)</option></select></div>
+    <div class="f c3"><label for="ayan">Ayanamsa</label>
+      <select id="ayan"><option value="lahiri">Lahiri / Chitrapaksha (the book’s choice)</option><option value="kp">Krishnamurti (KP)</option><option value="raman">B.V. Raman</option></select></div>
+    <div class="f c3"><label for="node">Rahu &amp; Ketu</label>
+      <select id="node"><option value="mean">Mean node (the book’s choice)</option><option value="true">True node</option></select></div>
     <div class="f c3"><label for="tzname">Time zone</label><input id="tzname" readonly placeholder="Set by the city you pick" tabindex="-1"></div>
     <div class="formfoot">
       <span class="hint" id="tzhint">The UTC offset is looked up for the birth date, including daylight saving and India’s 1942–45 war time. Check it against the birth certificate.</span>
@@ -553,6 +579,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <button role="tab" data-t="remedies" aria-selected="false">Remedies</button>
     <button role="tab" data-t="details" aria-selected="false">Chart details</button>
     <button role="tab" data-t="sky3d" aria-selected="false">3D sky</button>
+    <button role="tab" data-t="advanced" aria-selected="false">Advanced</button>
     <button role="tab" data-t="learn" aria-selected="false">Learn astrology</button>
   </nav>
   <section class="pane" id="pane"></section>
@@ -789,7 +816,7 @@ function computeChart(opt) {
   // opt: {utcMs, lat, lon, yearDays}
   const date = new Date(opt.utcMs);
   const time = AE.MakeTime(date);
-  const ay = ayanamsaLahiri(time.tt);
+  const ay = ayanamsa(time.tt);
   const T = time.tt/36525;
   const P = {};
   for (const b of SEVEN) {
@@ -798,7 +825,7 @@ function computeChart(opt) {
     let sp = norm(lB - lA + 180) - 180; // deg per 0.5 day
     P[b] = {lon: norm(l0 - ay), speed: sp*2, retro: b !== 'Sun' && b !== 'Moon' && sp < 0};
   }
-  const rahu = norm(meanNode(T) - ay);
+  const rahu = norm(nodeLon(T) - ay);
   P.Rahu = {lon: rahu, speed: -0.053, retro: true};
   P.Ketu = {lon: norm(rahu + 180), speed: -0.053, retro: true};
   const asc = norm(ascendant(time, opt.lat, opt.lon) - ay);
@@ -810,12 +837,14 @@ function computeChart(opt) {
     p.house = hFrom(lagna, p.sign);
     p.nak = Math.floor(p.lon/(360/27)); p.pada = Math.floor((p.lon % (360/27))/(360/108)) + 1;
     p.d9 = navamsaSign(p.lon); p.d10 = dasamsaSign(p.lon); p.d7 = saptamsaSign(p.lon); p.d4 = chaturthamsaSign(p.lon);
+    p.d2 = horaSign(p.lon); p.d3 = drekkanaSign(p.lon); p.d12 = dwadasamsaSign(p.lon); p.d24 = chaturvimsamsaSign(p.lon); p.d30 = trimsamsaSign(p.lon); p.d60 = shashtiamsaSign(p.lon); p.kp = kpLords(p.lon);
     p.vargottama = p.d9 === p.sign;
   }
   const L = {lon: asc, sign: lagna, deg: degIn(asc), nak: Math.floor(asc/(360/27)), pada: Math.floor((asc % (360/27))/(360/108)) + 1,
-             d9: navamsaSign(asc), d10: dasamsaSign(asc), d7: saptamsaSign(asc), d4: chaturthamsaSign(asc)};
+             d9: navamsaSign(asc), d10: dasamsaSign(asc), d7: saptamsaSign(asc), d4: chaturthamsaSign(asc),
+             d2: horaSign(asc), d3: drekkanaSign(asc), d12: dwadasamsaSign(asc), d24: chaturvimsamsaSign(asc), d30: trimsamsaSign(asc), d60: shashtiamsaSign(asc), kp: kpLords(asc)};
 
-  const C = {date, time, ay, P, L, lagna, lat: opt.lat, lon: opt.lon, yearDays: opt.yearDays || 365.2425};
+  const C = {date, time, ay, P, L, lagna, lat: opt.lat, lon: opt.lon, yearDays: opt.yearDays || 365.2425, opt: {...OPT}};
   // waxing / waning Moon
   const elong = norm(P.Moon.lon - P.Sun.lon);
   C.waxing = elong < 180;
@@ -1402,18 +1431,18 @@ function remedies(C, cur) {
 }
 
 function sidLon(b, when) {
-  const t = AE.MakeTime(when), ay = ayanamsaLahiri(t.tt);
-  if (b === 'Rahu' || b === 'Ketu') return norm(meanNode(t.tt/36525) - ay + (b === 'Ketu' ? 180 : 0));
+  const t = AE.MakeTime(when), ay = ayanamsa(t.tt);
+  if (b === 'Rahu' || b === 'Ketu') return norm(nodeLon(t.tt/36525) - ay + (b === 'Ketu' ? 180 : 0));
   return norm(tropLon(b, t) - ay);
 }
 // sidereal positions of all nine planets on any date (for the transit chart)
 function transitPositions(when) {
-  const t = AE.MakeTime(when), ay = ayanamsaLahiri(t.tt), out = {};
+  const t = AE.MakeTime(when), ay = ayanamsa(t.tt), out = {};
   for (const b of SEVEN) {
     const lA = tropLon(b, t.AddDays(-0.25)), lB = tropLon(b, t.AddDays(0.25));
     out[b] = {lon: norm(tropLon(b, t) - ay), retro: b !== 'Sun' && b !== 'Moon' && norm(lB - lA + 180) - 180 < 0};
   }
-  const r = norm(meanNode(t.tt/36525) - ay);
+  const r = norm(nodeLon(t.tt/36525) - ay);
   out.Rahu = {lon: r, retro: true}; out.Ketu = {lon: norm(r + 180), retro: true};
   for (const b of PL) { const p = out[b]; p.sign = signOf(p.lon); p.deg = degIn(p.lon); p.nak = Math.floor(p.lon/(360/27)); p.pada = Math.floor((p.lon % (360/27))/(360/108)) + 1; }
   return out;
@@ -1574,7 +1603,7 @@ function lifeEvents(C, opts = {}) {
     return t - afflict(b);
   };
   const tr = when => {
-    const t = AE.MakeTime(new Date(when)), ay = ayanamsaLahiri(t.tt);
+    const t = AE.MakeTime(new Date(when)), ay = ayanamsa(t.tt);
     return {Jupiter: signOf(tropLon('Jupiter', t) - ay), Saturn: signOf(tropLon('Saturn', t) - ay)};
   };
   for (const md of C.dasa.MD) for (const ad of md.ads) {
@@ -1898,8 +1927,239 @@ function houseTable(C) {
   return rows;
 }
 
+// ================= advanced: options, more vargas, shadbala, KP, yogini & chara dasa, varshaphal, rectification =================
+// --- ayanamsa and node options (Lahiri + mean node are the book's defaults)
+const OPT = {ayan: 'lahiri', node: 'mean'};
+const AYAN_OFF = {lahiri: 0, kp: -0.0975, raman: -1.4595}; // offsets from Lahiri in degrees (KP ~5′51″ less; B.V. Raman ~1°27′ less)
+function setOptions(o) { if (o && AYAN_OFF[o.ayan] !== undefined) OPT.ayan = o.ayan; if (o && (o.node === 'mean' || o.node === 'true')) OPT.node = o.node; return {...OPT}; }
+function ayanamsa(tt) { return ayanamsaLahiri(tt) + AYAN_OFF[OPT.ayan]; }
+function trueNodeCorr(T) { // Meeus ch.47: true node = mean node + periodic terms (good to ~0.5′)
+  const D = (297.8501921 + 445267.1114034*T)*R, M = (357.5291092 + 35999.0502909*T)*R, Mp = (134.9633964 + 477198.8675055*T)*R, F = (93.2720950 + 483202.0175233*T)*R;
+  return -1.4979*Math.sin(2*(D - F)) - 0.1500*Math.sin(M) - 0.1226*Math.sin(2*D) + 0.1176*Math.sin(2*F) - 0.0801*Math.sin(2*(F - Mp));
+}
+function nodeLon(T) { return norm(meanNode(T) + (OPT.node === 'true' ? trueNodeCorr(T) : 0)); }
+
+// --- more divisional charts (BPHS ch.6)
+function horaSign(lon) { const s = signOf(lon), first = degIn(lon) < 15; return (s % 2 === 0) === first ? 4 : 3; } // odd sign: Sun's hora (Leo) first
+function drekkanaSign(lon) { return (signOf(lon) + 4*Math.floor(degIn(lon)/10)) % 12; }
+function dwadasamsaSign(lon) { return (signOf(lon) + Math.floor(degIn(lon)/2.5)) % 12; }
+function chaturvimsamsaSign(lon) { const s = signOf(lon); return ((s % 2 === 0 ? 4 : 3) + Math.floor(degIn(lon)/1.25)) % 12; }
+function trimsamsaSign(lon) {
+  const s = signOf(lon), d = degIn(lon);
+  if (s % 2 === 0) return d < 5 ? 0 : d < 10 ? 10 : d < 18 ? 8 : d < 25 ? 2 : 6;   // odd: Mars, Saturn, Jupiter, Mercury, Venus
+  return d < 5 ? 1 : d < 12 ? 5 : d < 20 ? 11 : d < 25 ? 9 : 7;                     // even: Venus, Mercury, Jupiter, Saturn, Mars
+}
+function shashtiamsaSign(lon) { return (signOf(lon) + Math.floor(degIn(lon)*2)) % 12; }
+const VARGA_FN = {d1: signOf, d2: horaSign, d3: drekkanaSign, d4: lon => chaturthamsaSign(lon), d7: lon => saptamsaSign(lon), d9: lon => navamsaSign(lon), d10: lon => dasamsaSign(lon), d12: dwadasamsaSign, d24: chaturvimsamsaSign, d30: trimsamsaSign, d60: shashtiamsaSign};
+const VARGA_INFO = {
+  d1: ['Rasi', 'the body and the whole life'], d2: ['Hora', 'wealth'], d3: ['Drekkana', 'brothers, sisters, courage'], d4: ['Chaturthamsa', 'home, property, fortune'],
+  d7: ['Saptamsa', 'children and grandchildren'], d9: ['Navamsa', 'spouse, dharma, the inner strength of planets'], d10: ['Dasamsa', 'career and status'],
+  d12: ['Dwadasamsa', 'father and mother'], d24: ['Chaturvimsamsa', 'learning and education'], d30: ['Trimsamsa', 'misfortunes and illness'], d60: ['Shashtiamsa', 'past karma; needs an exact birth time']
+};
+function vargaChart(C, v) { // sign of lagna and each planet in varga v
+  const f = VARGA_FN[v], out = {L: f(C.L.lon), P: {}};
+  for (const b of PL) out.P[b] = f(C.P[b].lon);
+  return out;
+}
+// how many minutes of birth time move the varga lagna to the next sign (rough: lagna moves ~1° per 4 minutes)
+const VARGA_PARTS = {d1: 1, d2: 2, d3: 3, d4: 4, d7: 7, d9: 9, d10: 10, d12: 12, d24: 24, d30: 5, d60: 60};
+
+// --- Shadbala (BPHS ch.27), simplified; result in rupas (60 virupas = 1 rupa)
+const SB_MIN = {Sun: 6.5, Moon: 6, Mars: 5, Mercury: 7, Jupiter: 6.5, Venus: 5.5, Saturn: 5};
+const SB_NAISARGIKA = {Sun: 60, Moon: 51.43, Venus: 42.86, Jupiter: 34.29, Mercury: 25.71, Mars: 17.14, Saturn: 8.57};
+const SB_MEAN_SPEED = {Mars: 0.524, Mercury: 1.383, Jupiter: 0.083, Venus: 1.2, Saturn: 0.033};
+const angDist = (a, b) => Math.abs(norm(a - b + 180) - 180);
+function natRel(a, b) { if (a === b) return 'own'; const n = NAT[a]; return n.f.includes(b) ? 'friend' : n.e.includes(b) ? 'enemy' : 'neutral'; }
+function shadbala(C) {
+  const P = C.P, out = {};
+  const asc = C.L.lon, eps = 23.44*R;
+  const sunUp = [7, 8, 9, 10, 11, 12].includes(P.Sun.house); // whole-sign: houses 7–12 are above the horizon
+  const mc = norm(asc - 90); // approximate midheaven
+  const dayStrength = (180 - angDist(P.Sun.lon, mc))/3; // 60 at noon, 0 at midnight
+  const elong = angDist(P.Moon.lon, P.Sun.lon); // 0 new moon .. 180 full
+  for (const b of SEVEN) {
+    const p = P[b], c = {};
+    // 1. sthana bala
+    const debPt = norm(EXALT[b][0]*30 + EXALT[b][1] + 180);
+    c.uchcha = angDist(p.lon, debPt)/3;
+    let sv = 0;
+    for (const v of ['d1', 'd2', 'd3', 'd7', 'd9', 'd12', 'd30']) {
+      const s = VARGA_FN[v](p.lon);
+      if (v === 'd1' && (p.dignity === 'moolatrikona')) { sv += 45; continue; }
+      if (OWN[b].includes(s)) { sv += 30; continue; }
+      const r = natRel(b, SIGN_LORD[s]); sv += r === 'friend' ? 15 : r === 'neutral' ? 7.5 : 3.75;
+    }
+    c.saptavarga = sv;
+    const fem = b === 'Moon' || b === 'Venus';
+    c.ojhayugma = ((p.sign % 2 === 1) === fem ? 15 : 0) + ((p.d9 % 2 === 1) === fem ? 15 : 0);
+    c.kendradi = [1, 4, 7, 10].includes(p.house) ? 60 : [2, 5, 8, 11].includes(p.house) ? 30 : 15;
+    const dk = Math.floor(p.deg/10), sex = ['Sun', 'Mars', 'Jupiter'].includes(b) ? 0 : ['Mercury', 'Saturn'].includes(b) ? 1 : 2;
+    c.drekkana = dk === sex ? 15 : 0;
+    c.sthana = c.uchcha + c.saptavarga + c.ojhayugma + c.kendradi + c.drekkana;
+    // 2. dig bala: Jupiter & Mercury strongest in the 1st, Sun & Mars in the 10th, Saturn in the 7th, Moon & Venus in the 4th
+    const strongPt = {Jupiter: asc, Mercury: asc, Sun: mc, Mars: mc, Saturn: norm(asc + 180), Moon: norm(mc + 180), Venus: norm(mc + 180)}[b];
+    c.dig = (180 - angDist(p.lon, strongPt))/3;
+    // 3. kala bala: day/night, paksha, ayana
+    c.nathonnatha = b === 'Mercury' ? 60 : ['Sun', 'Jupiter', 'Venus'].includes(b) ? dayStrength : 60 - dayStrength;
+    const ben = C.natBenefic(b);
+    c.paksha = (ben ? elong/3 : 60 - elong/3)*(b === 'Moon' ? 2 : 1);
+    const trop = (p.lon + C.ay)*R, decl = Math.asin(Math.sin(eps)*Math.sin(trop))/R; // north positive
+    const k = b === 'Mercury' ? Math.abs(decl) : ['Moon', 'Saturn'].includes(b) ? -decl : decl;
+    c.ayana = (24 + k)/48*60*(b === 'Sun' ? 2 : 1);
+    c.kala = c.nathonnatha + c.paksha + c.ayana;
+    // 4. cheshta bala (Sun: its ayana; Moon: its paksha)
+    if (b === 'Sun') c.cheshta = c.ayana/2;
+    else if (b === 'Moon') c.cheshta = c.paksha/2;
+    else { const sp = Math.abs(p.speed), m = SB_MEAN_SPEED[b]; c.cheshta = p.retro ? 60 : sp < 0.3*m ? 45 : sp < m ? 30 : 15; }
+    // 5. naisargika
+    c.naisargika = SB_NAISARGIKA[b];
+    // 6. drik bala: a quarter of each full aspect, + for benefics, − for malefics
+    let dr = 0;
+    for (const a of SEVEN) if (a !== b && C.grahaAspects[p.sign].includes(a)) dr += (C.natBenefic(a) ? 15 : -15);
+    c.drik = dr;
+    const total = c.sthana + c.dig + c.kala + c.cheshta + c.naisargika + c.drik;
+    out[b] = {...c, total, rupas: total/60, min: SB_MIN[b], ratio: total/60/SB_MIN[b], sunUp};
+  }
+  const rank = SEVEN.slice().sort((a, b) => out[b].ratio - out[a].ratio);
+  rank.forEach((b, i) => out[b].rank = i + 1);
+  return out;
+}
+
+// --- KP: star lord, sub lord, sub-sub lord, and Placidus cusps
+function kpLords(lon) {
+  const span = 360/27, n = Math.floor(norm(lon)/span), star = NAKS[n][1];
+  let pos = (norm(lon) % span)/span*120; // position inside the star in "years" of 120
+  const chain = [star]; let start = VIM_ORDER.indexOf(star), len = 120;
+  for (let lvl = 0; lvl < 2; lvl++) {
+    for (let j = 0; j < 9; j++) {
+      const l = VIM_ORDER[(start + j) % 9], part = len*VIM_YEARS[l]/120;
+      if (pos < part || j === 8) { chain.push(l); start = VIM_ORDER.indexOf(l); len = part; break; }
+      pos -= part;
+    }
+  }
+  return {star: chain[0], sub: chain[1], subsub: chain[2], nak: NAKS[n][0]};
+}
+function placidusCusps(C) {
+  const time = C.time, phi = C.lat*R, eps = AE.e_tilt(time).tobl*R;
+  const ramc = norm(AE.SiderealTime(time)*15 + C.lon);
+  const raToLon = ra => norm(Math.atan2(Math.sin(ra*R), Math.cos(ra*R)*Math.cos(eps))/R);
+  const cusp = (f, above) => { // f = fraction of the semi-arc
+    let lam = norm(ramc + (above ? 30 : 120)), ra = 0;
+    for (let i = 0; i < 30; i++) {
+      const dec = Math.asin(Math.sin(eps)*Math.sin(lam*R));
+      let x = Math.tan(phi)*Math.tan(dec); x = Math.max(-1, Math.min(1, x));
+      const ad = Math.asin(x)/R, dsa = 90 + ad, nsa = 90 - ad;
+      ra = above ? ramc + f*dsa : ramc + 180 - f*nsa;
+      lam = raToLon(norm(ra));
+    }
+    return lam;
+  };
+  const t = [];
+  t[10] = raToLon(ramc); t[1] = norm(ascendant(time, C.lat, C.lon));
+  t[11] = cusp(1/3, true); t[12] = cusp(2/3, true); t[3] = cusp(1/3, false); t[2] = cusp(2/3, false);
+  t[4] = norm(t[10] + 180); t[5] = norm(t[11] + 180); t[6] = norm(t[12] + 180); t[7] = norm(t[1] + 180); t[8] = norm(t[2] + 180); t[9] = norm(t[3] + 180);
+  const out = [];
+  for (let h = 1; h <= 12; h++) { const lon = norm(t[h] - C.ay); out[h] = {lon, sign: signOf(lon), deg: degIn(lon), ...kpLords(lon)}; }
+  return out;
+}
+function kpHouseOf(cusps, lon) { // which Placidus house a longitude falls in
+  for (let h = 1; h <= 12; h++) { const a = cusps[h].lon, b = cusps[h % 12 + 1].lon; if (norm(lon - a) < norm(b - a)) return h; }
+  return 1;
+}
+function kpTable(C) {
+  const cusps = placidusCusps(C), planets = {};
+  for (const b of PL) planets[b] = {...kpLords(C.P[b].lon), house: kpHouseOf(cusps, C.P[b].lon)};
+  // significators of each house (KP 4 levels): planets in the star of occupants, occupants, planets in the star of the cusp-sign lord, the lord
+  const occ = h => PL.filter(b => planets[b].house === h);
+  const sig = {};
+  for (let h = 1; h <= 12; h++) {
+    const lord = SIGN_LORD[cusps[h].sign], o = occ(h);
+    const lvl1 = PL.filter(b => o.includes(planets[b].star)), lvl3 = PL.filter(b => planets[b].star === lord);
+    sig[h] = [...new Set([...lvl1, ...o, ...lvl3, lord])];
+  }
+  return {cusps, planets, sig};
+}
+
+// --- Yogini dasa (36-year cycle)
+const YOGINI = [['Mangala', 'Moon', 1], ['Pingala', 'Sun', 2], ['Dhanya', 'Jupiter', 3], ['Bhramari', 'Mars', 4], ['Bhadrika', 'Mercury', 5], ['Ulka', 'Saturn', 6], ['Siddha', 'Venus', 7], ['Sankata', 'Rahu', 8]];
+function yoginiDasa(C, years) {
+  const span = 360/27, n = Math.floor(C.P.Moon.lon/span), done = (C.P.Moon.lon % span)/span;
+  const first = (n + 1 + 3) % 8, i0 = (first + 7) % 8; // remainder 1 = Mangala ... 0 = Sankata
+  const yd = 365.2425*86400e3;
+  let start = C.date.getTime() - done*YOGINI[i0][2]*yd;
+  const out = [], until = C.date.getTime() + (years || 100)*yd;
+  for (let k = 0; start < until; k++) {
+    const y = YOGINI[(i0 + k) % 8], len = y[2]*yd, md = {name: y[0], lord: y[1], years: y[2], start: new Date(start), end: new Date(start + len), ads: []};
+    let as = start;
+    for (let j = 0; j < 8; j++) { const a = YOGINI[(i0 + k + j) % 8], al = len*a[2]/36; md.ads.push({name: a[0], lord: a[1], start: new Date(as), end: new Date(as + al)}); as += al; }
+    out.push(md); start += len;
+  }
+  return {MD: out, firstName: YOGINI[i0][0], balance: (1 - done)*YOGINI[i0][2]};
+}
+
+// --- Jaimini Chara dasa (K.N. Rao's method), main periods
+const SAVYA = [0, 1, 2, 6, 7, 8]; // Ar Ta Ge Li Sc Sg count forward; the other six count backward
+function charaDasa(C, years) {
+  const P = C.P, lag = C.lagna;
+  const dirSeq = SAVYA.includes((lag + 8) % 12) ? 1 : -1; // decided by the sign of the 9th house
+  const yrsOf = s => {
+    const lord = strongerLord(C, s), ls = P[lord].sign;
+    let n = SAVYA.includes(s) ? ((ls - s + 12) % 12) : ((s - ls + 12) % 12); // count to the lord, exclusive of the sign
+    let y = n === 0 ? 12 : n;
+    if (EXALT[lord] && EXALT[lord][0] === ls) y += 1;
+    else if (EXALT[lord] && (EXALT[lord][0] + 6) % 12 === ls) y -= 1;
+    return {lord, y: Math.max(1, Math.min(12, y))};
+  };
+  const yd = 365.2425*86400e3, until = C.date.getTime() + (years || 100)*yd, out = [];
+  let start = C.date.getTime();
+  for (let cyc = 0; start < until && cyc < 3; cyc++) for (let i = 0; i < 12 && start < until; i++) {
+    const s = (lag + dirSeq*i + 120) % 12, r = yrsOf(s), y = cyc === 0 ? r.y : 12 - r.y;
+    if (y <= 0) continue;
+    out.push({sign: s, house: hFrom(lag, s), lord: r.lord, years: y, start: new Date(start), end: new Date(start + y*yd), cycle: cyc + 1});
+    start += y*yd;
+  }
+  return {MD: out, dir: dirSeq};
+}
+
+// --- Varshaphal: the solar return chart for a given age
+function solarReturn(C, age) {
+  const natal = C.P.Sun.lon, birth = C.date.getTime();
+  let t = birth + age*365.2425*86400e3;
+  for (let i = 0; i < 8; i++) {
+    const s = sidLon('Sun', new Date(t)), d = norm(natal - s + 180) - 180;
+    t += d/0.9856*86400e3;
+    if (Math.abs(d) < 1e-6) break;
+  }
+  return new Date(t);
+}
+const TAJIKA_OK = d => [1, 3, 4, 5, 7, 9, 10, 11].includes(d); // Tajika aspects: conjunction, sextile 3/11, square 4/10, trine 5/9, opposition 7
+function varshaphal(C, age, lat, lon) {
+  const when = solarReturn(C, age);
+  const V = computeChart({utcMs: when.getTime(), lat: lat ?? C.lat, lon: lon ?? C.lon, yearDays: C.yearDays});
+  const munthaSign = (C.lagna + age) % 12, munthaHouse = hFrom(V.lagna, munthaSign), munthaLord = SIGN_LORD[munthaSign];
+  const dayBirth = [7, 8, 9, 10, 11, 12].includes(V.P.Sun.house);
+  const cand = [
+    ['Muntha lord', munthaLord], ['Birth-lagna lord', SIGN_LORD[C.lagna]], ['Year-lagna lord', SIGN_LORD[V.lagna]],
+    [dayBirth ? 'Day lord (Sun’s sign lord)' : 'Night lord (Moon’s sign lord)', SIGN_LORD[dayBirth ? V.P.Sun.sign : V.P.Moon.sign]]
+  ];
+  const sc = b => (DIG_SCORE[V.P[b].dignity] || 0) + ([1, 4, 7, 10].includes(V.P[b].house) ? 1 : [2, 5, 8, 11].includes(V.P[b].house) ? 0.5 : 0) - (V.P[b].combust ? 1 : 0) + (TAJIKA_OK(V.P[b].house) ? 1 : -2);
+  const yearLord = cand.map(x => x[1]).sort((a, b) => sc(b) - sc(a))[0];
+  return {when, V, age, munthaSign, munthaHouse, munthaLord, dayBirth, cand, yearLord, yearLordScore: sc(yearLord)};
+}
+
+// --- birth-time rectification helper: what changes inside a window of minutes
+function timeScan(opt, mins, step) {
+  const rows = [];
+  for (let m = -mins; m <= mins; m += step) {
+    const c = computeChart({...opt, utcMs: opt.utcMs + m*60e3});
+    rows.push({m, C: c, lag: c.lagna, lagDeg: c.L.deg, d9: c.L.d9, d10: c.L.d10, d7: VARGA_FN.d7(c.L.lon), d12: VARGA_FN.d12(c.L.lon), d60: VARGA_FN.d60(c.L.lon), moonNak: c.P.Moon.nak, moonPada: c.P.Moon.pada});
+  }
+  return rows;
+}
+
 const API = {SIGNS, SANSK, SAB, PL, PAB, SEVEN, SIGN_LORD, NAKS, PD, RASI, HOUSE, VIM_YEARS, ORD, fmtDeg, hFrom,
-  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar, chartChallenges, houseTable, HOUSE_KARAKA};
+  computeChart, lifeEvents, AREAS, planetReading, overview, currentDasa, dasaReading, remedies, transits, verdict, fmt, list, rasiAspects, strongerLord, NAT, transitPositions, TRANSIT, sidLon, moneyCalendar, chartChallenges, houseTable, HOUSE_KARAKA,
+  setOptions, OPT, VARGA_FN, VARGA_INFO, VARGA_PARTS, vargaChart, shadbala, SB_MIN, kpLords, kpTable, placidusCusps, YOGINI, yoginiDasa, charaDasa, solarReturn, varshaphal, timeScan, EXALT, OWN, DIG_SCORE, VIM_ORDER, natRel};
 if (typeof module !== 'undefined') module.exports = API; else root.Jyotish = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -2001,7 +2261,7 @@ function readForm() {
   const [y, mo, d] = dv.split('-').map(Number); const tp = tv.split(':').map(Number);
   if (y < 1800 || y > 2100) throw new Error('Choose a year between 1800 and 2100.');
   const utcMs = Date.UTC(y, mo - 1, d, tp[0], tp[1], tp[2] || 0) - tz*3600e3;
-  return {utcMs, lat, lon, tz, yearDays: parseFloat($('#yr').value), name: $('#nm').value.trim(), city: $('#city').value.trim(), dv, tv};
+  return {utcMs, lat, lon, tz, yearDays: parseFloat($('#yr').value), name: $('#nm').value.trim(), city: $('#city').value.trim(), dv, tv, ayan: $('#ayan').value, node: $('#node').value};
 }
 
 function cast(isExample) {
@@ -2009,15 +2269,18 @@ function cast(isExample) {
   let inp;
   try { inp = readForm(); } catch (e) { $('#err').textContent = e.message; $('#err').hidden = false; return; }
   if (!window.Astronomy) { $('#err').textContent = 'The astronomy library did not load. Check your connection and reload the page.'; $('#err').hidden = false; return; }
+  J.setOptions({ayan: inp.ayan, node: inp.node});
+  try { SKY.pc = null; SKY.ingKey = SKY.cbKey = SKY.rtKey = null; } catch (e) {}
   C = J.computeChart(inp); C.inp = inp;
   C.cur = J.currentDasa(C, new Date());
   C.events = J.lifeEvents(C, myevOpts());
   $('#examplebar').hidden = !isExample;
-  if (!isExample) store.set('jk-birth', {nm: inp.name, dt: inp.dv, tm: inp.tv, city: inp.city, lat: inp.lat, lon: inp.lon, tz: inp.tz, tzname: $('#tzname').value, yr: $('#yr').value});
+  if (!isExample) store.set('jk-birth', {nm: inp.name, dt: inp.dv, tm: inp.tv, city: inp.city, lat: inp.lat, lon: inp.lon, tz: inp.tz, tzname: $('#tzname').value, yr: $('#yr').value, ayan: $('#ayan').value, node: $('#node').value});
   renderTop(); renderChart(); renderNow(); renderTab();
 }
 $('#birth').addEventListener('submit', e => { e.preventDefault(); cast(false); });
 $('#yr').addEventListener('change', () => { if (C) cast($('#examplebar').hidden === false); });
+['#ayan', '#node'].forEach(id => $(id).addEventListener('change', () => { if (C) cast($('#examplebar').hidden === false); }));
 
 // ---------- chart drawing ----------
 const PCOL = {Sun:'--c-sun', Moon:'--c-moon', Mars:'--c-mars', Mercury:'--c-mercury', Jupiter:'--c-jupiter', Venus:'--c-venus', Saturn:'--c-saturn'};
@@ -4659,6 +4922,7 @@ function skyIngTxt(x) {
     return `your <b>${J.ORD(fl)} house</b> (${esc(H.n.toLowerCase())}: ${esc(H.sig)}), ${J.ORD(fm)} from your Moon. It ${SKY_PWORD[b]} these matters for ${SKY_PSPEED[b]}. Classical: <span class="${g ? 'sky-g' : 'sky-b'}">${g ? '✓' : '✗'}</span> ${esc(res)}.${SKY_AVT[b] ? ` Ashtakavarga: ${skyBinTxt(b, to)} there (SAV ${skyAV().sav[to]}).` : ''}${sat}${natal.length ? ` It joins your birth ${natal.join(', ')} there.` : ''}`; };
   const when = x.days === 0 ? '<b class="sky-today">today</b>' : x.days < 0 ? `${-x.days} day${x.days < -1 ? 's' : ''} ago` : `in ${x.days} day${x.days > 1 ? 's' : ''}`;
   let t = `<li><b style="color:${SKY_COL[x.b]}">${x.b}</b> ${x.retro ? (x.days < 0 ? 'moved back (retrograde)' : 'moves back (retrograde)') : x.days < 0 ? 'moved' : 'moves'} from ${J.SIGNS[x.from]} into <b>${J.SIGNS[x.to]}</b> on ${x.date.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})} (${when}): ${one(x.b, x.to)}`;
+  t += murthiTxt(x);
   if (x.b === 'Rahu') t += `<br><b style="color:${SKY_COL.Ketu}">Ketu</b> moves into <b>${J.SIGNS[(x.to + 6) % 12]}</b> at the same time: ${one('Ketu', (x.to + 6) % 12)}`;
   return t + '</li>';
 }
@@ -4675,6 +4939,7 @@ function skyInfo(d, T, R) {
    ${skyResultsHTML(d, T)}
    ${sat ? `<div class="sky-irow sky-sat">${sat}</div>` : ''}
    ${hits.length ? `<div class="sky-ih">Over your birth planets</div><ul>${hits.join('')}</ul>` : ''}
+   ${skyVedhaHTML(T)}
    ${(() => { const I = skyIngresses(d); return (I.near.length ? `<div class="sky-ih">Sign changes <span>(a week before to a month after)</span></div><ul class="sky-ing">${I.near.map(skyIngTxt).join('')}</ul>` : '')
      + (() => { const RT = skyRetro(d); return (RT.cur.length ? `<div class="sky-ih">Retrograde now</div><ul class="sky-ing">${RT.cur.map(x => skyRetroTxt(x, T, true)).join('')}</ul>` : '<div class="sky-ih">Retrograde now</div><div class="sky-hm">No planet is retrograde on this date (Rahu and Ketu always move backwards).</div>')
        + (RT.soon.length ? `<div class="sky-ih">Turning retrograde soon</div><ul class="sky-ing">${RT.soon.map(x => skyRetroTxt(x, T, false)).join('')}</ul>` : ''); })()
@@ -4864,7 +5129,7 @@ function skyBuild(rows, range) {
   SKY.raf = requestAnimationFrame(loop);
 }
 function renderTab() {
-  const f = {events: tEvents, money: tMoney, overview: tOverview, predict: tPredict, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn, sky3d: tSky3D}[tab];
+  const f = {events: tEvents, money: tMoney, overview: tOverview, predict: tPredict, houses: tHouses, planets: tPlanets, yogas: tYogas, aspects: tAspects, dasas: tDasas, transits: tTransits, remedies: tRemedies, details: tDetails, learn: tLearn, sky3d: tSky3D, advanced: tAdvanced}[tab];
   skyStop();
   try { $('#pane').innerHTML = f(); } catch (err) { console.error(err); $('#pane').innerHTML = `<p class="err">This tab hit an error (${esc(err.message)}). The rest of the app still works; please report it.</p>`; return; }
   if (tab === 'transits') initTransit();
@@ -4872,6 +5137,7 @@ function renderTab() {
   if (tab === 'events') wireMyEvents();
   if (tab === 'learn') wireLearn();
   if (tab === 'sky3d') initSky3D();
+  if (tab === 'advanced') wireAdvanced();
   enhanceTables();
   $('#pane').querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => { moneyMonths = +b.dataset.mm; renderTab(); }));
   $('#pane').querySelectorAll('[data-aspscope]').forEach(b => b.addEventListener('click', () => { aspScope = b.dataset.aspscope; renderTab(); }));
@@ -5799,6 +6065,35 @@ function remedyTable() {
    <div class="tablewrap"><table class="remtab"><thead><tr><th>Planet</th><th>Benefic / malefic for you</th><th>Strength</th><th>Strengthen it?</th><th>Remedy</th><th>Main gemstone</th><th>Alternatives</th><th>Should you wear it?</th></tr></thead><tbody>${rows}</tbody></table></div>
    ${m12}<p class="note">Wear one new stone at a time for a week or two and watch your sleep and mood. Ask for a lab certificate naming the mineral, because substitutes are often sold under the costlier stone’s name. There is no tested evidence that gemstones or rituals change outcomes; the habits help either way.</p></div>`;
 }
+// ---------- debilitated planets: the classical two-step approach (check cancellation, then propitiate) for the birth chart, navamsa and career chart ----------
+const GS_HOMA = {Sun: 'arka (Calotropis)', Moon: 'palasha', Mars: 'khadira (cutch)', Mercury: 'apamarga (prickly chaff)', Jupiter: 'ashvattha (peepal)', Venus: 'udumbara (cluster fig)', Saturn: 'shami', Rahu: 'durva grass', Ketu: 'kusha grass'};
+const GS_DANA = {Sun: 'wheat, jaggery, copper and red cloth', Moon: 'rice, milk, silver and white cloth', Mars: 'toor dal (red lentils), copper and red cloth', Mercury: 'moong dal, green vegetables and green cloth',
+  Jupiter: 'chana dal or turmeric, yellow cloth (and gold if you can)', Venus: 'rice, curd, white cloth and silver', Saturn: 'sesame seeds, sesame oil, iron and a black or blue cloth or blanket',
+  Rahu: 'urad dal (black gram), a blanket and mustard oil', Ketu: 'horse gram (kollu), a many-coloured blanket and sesame'};
+const GS_PRACT = {Sun: 'Daily Surya arghya; respect your father and seniors; avoid ego clashes.', Moon: 'Fixed sleep; care for your mother; calm routines.', Mars: 'Exercise; control anger; ride and work with tools carefully.',
+  Mercury: 'Document and show your work; double-check contracts; keep learning.', Jupiter: 'Respect teachers and elders; keep your word; avoid overconfidence.', Venus: 'Respect and time for your spouse; save before spending on comforts.',
+  Saturn: 'Punctuality and discipline; finish pending work; help workers and the elderly.', Rahu: 'Avoid shortcuts and deception; keep online and money dealings clean.', Ketu: 'Meditate; avoid quitting in anger; get unexplained health issues checked.'};
+function debilRemedyHTML() {
+  const charts = [['Birth chart (D1)', b => C.P[b].sign, C.lagna], ['Navamsa (D9)', b => C.P[b].d9, C.L.d9], ['Career chart (D10)', b => C.P[b].d10, C.L.d10]];
+  const kend = (sg, ref) => [0, 3, 6, 9].includes((sg - ref + 12) % 12);
+  const found = [];
+  for (const [name, sgOf, lag] of charts) for (const b of J.PL) { const ex = SKY_EXS[b], deb = (ex + 6) % 12; if (sgOf(b) !== deb) continue;
+    const node = ['Rahu', 'Ketu'].includes(b), moonS = sgOf('Moon');
+    let canc = null;
+    if (!node) { const dl = J.SIGN_LORD[deb], el = J.SIGN_LORD[ex];
+      for (const L of [...new Set([dl, el])]) { const s = sgOf(L); if (kend(s, lag) || kend(s, moonS)) { canc = `${L}, the ${L === dl ? 'lord of the sign it falls in' : 'lord of its exaltation sign'}, is in a kendra from the ${kend(s, lag) ? 'lagna' : 'Moon'}`; break; } } }
+    found.push({name, b, deb, canc, node, d1: name.startsWith('Birth')}); }
+  const rows = found.map(x => { const d = J.PD[x.b], f = C.func[x.b], harmful = f === 'malefic' || x.node;
+    return `<div class="rcard"><div class="rh"><span class="rn">${x.b}</span>${chip('Debilitated · ' + x.name, 'bad')}</div>
+      <p style="font-size:14px"><b>Step 1, cancellation (neecha bhanga):</b> ${x.node ? 'For Rahu and Ketu the classical rules are not applied; propitiate only.' : x.canc ? `<span class="sky-g" style="color:var(--good)">Cancelled</span>: ${esc(x.canc)}. Expect struggle first, then a rise.${x.d1 ? '' : ' Most astrologers apply this rule mainly to the birth chart, so treat it as a looser reading here.'}` : '<span style="color:var(--bad)">Not cancelled</span>: its matters need steady support.'}</p>
+      <dl><dt>Deity</dt><dd>${esc(d.deity)}</dd><dt>Japa</dt><dd>Its mantra (see the cards below), ${esc(d.count)} times in all, spread over weeks; learn the pronunciation from a priest</dd>
+      <dt>Homa</dt><dd>Fire offering with ${esc(GS_HOMA[x.b])} wood, by a priest if you do the full ritual</dd><dt>Dana</dt><dd>${esc(GS_DANA[x.b])}, on ${esc(d.day)} morning</dd>
+      <dt>Practical</dt><dd>${esc(GS_PRACT[x.b])}</dd><dt>Gemstone</dt><dd>${harmful ? `<b>Avoid</b> ${esc(d.gem.toLowerCase())}: ${x.b} is ${x.node ? 'a shadow planet' : 'a functional malefic for your lagna'}, so a gem would strengthen its harmful side too.` : `Only if a competent astrologer confirms it; ${x.b} is ${f} for you.`}</dd></dl></div>`; }).join('');
+  return `<div class="section"><h3>Debilitated planets: the classical remedy</h3>
+   <p class="lead">The classical texts handle a debilitated (neecha) planet in two steps. First, check whether its fall is cancelled (neecha bhanga, as in Phaladeepika): it is when the lord of the sign it falls in, or the lord of the sign where it would be exalted, sits in a kendra (1st, 4th, 7th or 10th) from the lagna or the Moon. Second, propitiate it (graha shanti, as in Brihat Parashara Hora Shastra): worship its deity, repeat its mantra, offer a homa with its sacred wood, and give its items in charity on its day. The texts warn against strengthening a planet that is harmful for your lagna with its gemstone.</p>
+   ${found.length ? `<div class="rgrid">${rows}</div>` : '<p class="note">No planet is debilitated in your birth chart, navamsa or career chart, so no debility remedy is needed.</p>'}
+   <p class="note">Checked in the birth chart (D1), the navamsa (D9) and the career chart (D10). Traditional and untested; the exact verse wording should be checked in a full translation of the texts.</p></div>`;
+}
 function tRemedies() {
   const R = J.remedies(C, C.cur);
   const cl = C.cur ? [C.cur.md.lord, C.cur.ad.lord] : [];
@@ -5806,6 +6101,7 @@ function tRemedies() {
   const mk = R.moksha;
   return `<p class="lead">Chapter 34: the birth chart fixes the basic pattern of life, but free will can change the details. There are four ways to please planets: wearing gemstones, good deeds, reciting mantras, and worshipping their deities. The book puts common-sense precautions first, such as driving carefully in a period that shows accidents.</p>
   ${remedyTable()}
+  ${debilRemedyHTML()}
   ${savingsHousePlan()}
   ${tradingAndLoans()}
   <div class="section"><h3>Gemstones that suit you</h3><p class="lead">Wear gems only for planets that are favourable in your chart (functional benefics and yogakarakas). A gem speeds up the good results a planet promises, and it can help a benefic that is badly placed to deliver.</p>
@@ -5934,12 +6230,273 @@ function nakTables() {
     <p class="note">Nakshatra themes and the "results of the star lord" rule come from general Jyotish tradition; the book lists only nakshatra names, lords and deities (Table 2). Sign-lord and navamsa readings follow the book (dispositors, ch.3 friendships, navamsa = inner self and skills).</p></div>`;
 }
 
+
+// ---------- Advanced tab: Shadbala, more vargas, KP, Yogini & Chara dasa, Varshaphal, birth-time check ----------
+const ADV = {sec: 'shadbala', varga: 'd9', age: null, win: 20, step: 2};
+const AYAN_NAME = {lahiri: 'Lahiri (Chitrapaksha)', kp: 'Krishnamurti (KP)', raman: 'B.V. Raman'};
+const ADV_SECS = [['shadbala', 'Shadbala'], ['vargas', 'Divisional charts'], ['kp', 'KP sub-lords'], ['dasa2', 'Yogini & Chara dasa'], ['varsha', 'Annual chart'], ['rectify', 'Birth-time check']];
+const advDate = d => d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+const advLocal = d => { const tz = C.inp ? C.inp.tz : 5.5; const x = new Date(d.getTime() + tz*3600e3); return x.toLocaleString('en-GB', {timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
+const vDig = (b, s) => J.EXALT[b][0] === s ? 'exalted' : (J.EXALT[b][0] + 6) % 12 === s ? 'debilitated' : J.OWN[b].includes(s) ? 'own sign' : '';
+const advCol = b => PCOL[b] ? `var(${PCOL[b]})` : b === 'Rahu' ? `var(${PCOL.Saturn})` : `var(${PCOL.Mars})`;
+const ADV_DIG = {exalted: 'exalted', moolatrikona: 'in its moolatrikona sign', own: 'in its own sign', 'great friend’s sign': 'in a great friend’s sign', friendly: 'in a friend’s sign', neutral: 'in a neutral sign', inimical: 'in an enemy’s sign', 'bitter enemy’s sign': 'in a bitter enemy’s sign', debilitated: 'debilitated'};
+const vDigMark = d => d === 'exalted' ? '▲' : d === 'debilitated' ? '▼' : d === 'own sign' ? '★' : '';
+// a small South-Indian chart: fixed signs, lagna marked
+const MINI_POS = {11: [1, 1], 0: [1, 2], 1: [1, 3], 2: [1, 4], 3: [2, 4], 4: [3, 4], 5: [4, 4], 6: [4, 3], 7: [4, 2], 8: [4, 1], 9: [3, 1], 10: [2, 1]};
+function miniChart(lag, P, title, sub) {
+  let h = `<div class="mini" role="img" aria-label="${esc(title)}: lagna ${J.SIGNS[lag]}">`;
+  for (let s = 0; s < 12; s++) {
+    const [r, c] = MINI_POS[s], here = J.PL.filter(b => P[b] === s);
+    h += `<div class="mc${s === lag ? ' lg' : ''}" style="grid-row:${r};grid-column:${c}"><span class="ms">${J.SAB[s]}${s === lag ? ' · Asc' : ''}</span>${here.map(b => `<b style="color:${advCol(b)}">${J.PAB[b]}${vDigMark(vDig(b, s))}</b>`).join(' ')}</div>`;
+  }
+  return h + `<div class="mctr"><b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div></div>`;
+}
+function tAdvanced() {
+  const f = {shadbala: advShadbala, vargas: advVargas, kp: advKP, dasa2: advDasa2, varsha: advVarsha, rectify: advRectify}[ADV.sec];
+  return `<div class="section"><div class="seg adv-seg" role="group" aria-label="Advanced section">${ADV_SECS.map(([k, n]) => `<button type="button" data-advsec="${k}" aria-pressed="${ADV.sec === k}">${n}</button>`).join('')}</div>
+   <p class="note">Settings used: ayanamsa <b>${AYAN_NAME[C.opt.ayan]}</b>, <b>${C.opt.node}</b> node (change them in the birth form above).</p></div>${f()}`;
+}
+function wireAdvanced() {
+  const p = $('#pane');
+  p.querySelectorAll('[data-advsec]').forEach(b => b.addEventListener('click', () => { ADV.sec = b.dataset.advsec; renderTab(); }));
+  p.querySelectorAll('[data-advv]').forEach(b => b.addEventListener('click', () => { ADV.varga = b.dataset.advv; renderTab(); }));
+  p.querySelectorAll('[data-advage]').forEach(b => b.addEventListener('click', () => { ADV.age = Math.max(0, advAge() + +b.dataset.advage); renderTab(); }));
+  p.querySelectorAll('[data-advwin]').forEach(b => b.addEventListener('click', () => { ADV.win = +b.dataset.advwin; ADV.step = ADV.win > 20 ? 3 : ADV.win > 10 ? 2 : 1; renderTab(); }));
+}
+
+// ---- 5. Shadbala
+function advShadbala() {
+  const S = C._sb || (C._sb = J.shadbala(C)), PL7 = J.SEVEN;
+  const f1 = x => x.toFixed(0), r2 = x => (x/60).toFixed(2);
+  const rows = PL7.map(b => { const x = S[b], ok = x.ratio >= 1;
+    return `<tr><td><b style="color:${advCol(b)}">${b}</b></td><td class="mono">${r2(x.sthana)}</td><td class="mono">${r2(x.dig)}</td><td class="mono">${r2(x.kala)}</td><td class="mono">${r2(x.cheshta)}</td><td class="mono">${r2(x.naisargika)}</td><td class="mono">${r2(x.drik)}</td>
+     <td class="mono"><b>${x.rupas.toFixed(2)}</b></td><td class="mono">${x.min}</td><td><div class="sbbar"><i style="width:${Math.min(100, x.ratio/1.6*100)}%" class="${ok ? 'ok' : 'lo'}"></i><em style="left:${100/1.6}%"></em></div><span class="mono">${x.ratio.toFixed(2)}×</span></td><td>${chip(ok ? (x.ratio >= 1.25 ? 'strong' : 'adequate') : 'below minimum', ok ? (x.ratio >= 1.25 ? 'good' : 'ok') : 'bad')}</td></tr>`; }).join('');
+  const rank = PL7.slice().sort((a, b) => S[a].rank - S[b].rank), weak = rank.filter(b => S[b].ratio < 1);
+  const fn = b => ({yogakaraka: 'your yogakaraka', benefic: 'a functional benefic for you', malefic: 'a functional malefic for you', neutral: 'neutral for you'}[C.func[b]] || '');
+  const line = b => { const x = S[b], q = C.P[b]; return `<li><b style="color:${advCol(b)}">${b}</b> (${fn(b)}, rules your ${q.lordOf.map(J.ORD).join(' & ') || '—'}): ${x.rupas.toFixed(2)} rupas against ${x.min} needed. Best parts: ${['sthana', 'dig', 'kala', 'cheshta', 'drik'].sort((a, c) => x[c] - x[a]).slice(0, 2).map(k => SB_NAME[k]).join(' and ')}; weakest: ${SB_NAME[['sthana', 'dig', 'kala', 'cheshta'].sort((a, c) => x[a]/SB_MAX[a] - x[c]/SB_MAX[c])[0]]}.</li>`; };
+  return `<div class="section"><h3>Shadbala: six-fold strength</h3>
+   <p>Parashara (BPHS ch.27) measures each planet’s strength from six sources and compares the total with a minimum each planet needs. A planet above its minimum can deliver what it promises; one below it gives its results only with effort, and its dasa needs support.</p>
+   <div class="tablewrap"><table><thead><tr><th>Planet</th><th>Sthana<br><small>(position)</small> </th><th>Dig<br><small>(direction)</small> </th><th>Kala<br><small>(time)</small> </th><th>Cheshta<br><small>(motion)</small> </th><th>Naisargika<br><small>(natural)</small> </th><th>Drik<br><small>(aspects)</small> </th><th>Total<br><small>(rupas)</small> </th><th>Needed</th><th>Ratio</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note">Values in rupas (1 rupa = 60 virupas). The bar’s line marks the minimum. Order of strength: ${rank.map(b => `${b} ${S[b].ratio.toFixed(2)}×`).join(' › ')}.</p></div>
+  <div class="section"><h3>What it means for you</h3><ul>${rank.map(line).join('')}</ul>
+   <p>${weak.length ? `<b>Below minimum: ${weak.join(', ')}.</b> These are the planets whose good promises need help, so their remedies (see the Remedies tab) matter most${weak.some(b => ['malefic'].includes(C.func[b])) ? `. A weak functional malefic (${weak.filter(b => C.func[b] === 'malefic').join(', ')}) is less able to harm, so do not strengthen it` : ''}.` : 'Every planet meets its minimum strength.'} The strongest planet, <b>${rank[0]}</b>, gives the clearest results in its dasa and antardasa.</p>
+   <p class="note">Simplified. Included: exaltation, the seven-varga dignity (by natural friendships), odd/even signs, angles, decanates, directional strength, day/night, lunar phase, declination (ayana), speed and retrogression, natural strength and aspects. Left out: the minor time strengths (tribhaga, year, month, day and hora lords) and planetary war. So totals can differ by up to about one rupa from software such as Jagannatha Hora; the order of strength is usually close.</p></div>`;
+}
+const SB_NAME = {sthana: 'position (sthana)', dig: 'direction (dig)', kala: 'time of birth (kala)', cheshta: 'motion (cheshta)', drik: 'aspects (drik)'};
+const SB_MAX = {sthana: 330, dig: 60, kala: 240, cheshta: 60};
+
+// ---- 6. divisional charts
+const VR_SPEC = {
+  d3: [[[3, 'younger brothers and sisters, courage'], [11, 'elder brothers and sisters']], ['Mars']],
+  d4: [[[4, 'home, land and property'], [9, 'fortune']], ['Mars', 'Moon']],
+  d7: [[[5, 'children'], [9, 'grandchildren, blessings']], ['Jupiter']],
+  d9: [[[7, 'spouse and marriage'], [9, 'dharma and luck'], [1, 'inner strength']], ['Venus', 'Jupiter']],
+  d10: [[[10, 'career and status'], [11, 'gains from work'], [6, 'service and competition']], ['Sun', 'Saturn']],
+  d12: [[[4, 'mother'], [9, 'father']], ['Moon', 'Sun']],
+  d24: [[[4, 'schooling'], [5, 'intelligence'], [9, 'higher studies and teachers']], ['Mercury', 'Jupiter']],
+  d30: [[[1, 'body and resistance'], [6, 'illness and enemies'], [8, 'accidents and chronic trouble']], ['Saturn', 'Mars']],
+  d60: [[[1, 'overall karma'], [9, 'merit from past lives'], [10, 'deeds in this life']], []]
+};
+const VARGA_ORDER = ['d2', 'd3', 'd4', 'd7', 'd9', 'd10', 'd12', 'd24', 'd30', 'd60'];
+function vargaWindow(v) { // minutes the birth time can move before this varga's lagna changes sign
+  if (!C._ascSpeed) { const c2 = J.computeChart({...C.inp, utcMs: C.inp.utcMs + 4*60e3}); C._ascSpeed = (((c2.L.lon - C.L.lon) % 360) + 360) % 360/4; }
+  const d = C.L.deg, sp = C._ascSpeed;
+  let lo, hi;
+  if (v === 'd30') { const B = C.lagna % 2 === 0 ? [0, 5, 10, 18, 25, 30] : [0, 5, 12, 20, 25, 30]; for (let i = 0; i < 5; i++) if (d >= B[i] && d < B[i + 1]) { lo = B[i]; hi = B[i + 1]; } }
+  else { const w = 30/J.VARGA_PARTS[v]; lo = Math.floor(d/w)*w; hi = lo + w; }
+  return [(d - lo)/sp, (hi - d)/sp];
+}
+function vargaHouse(vc, h, what) {
+  const L = vc.L, sg = (L + h - 1) % 12, lord = J.SIGN_LORD[sg], lh = J.hFrom(L, vc.P[lord]), ld = vDig(lord, vc.P[lord]);
+  const occ = J.PL.filter(b => vc.P[b] === sg), mal = h === 6 || h === 8 || (h === 1 && ADV.varga === 'd30');
+  let sc = 0;
+  sc += [1, 4, 7, 10, 5, 9].includes(lh) ? 1 : [6, 8, 12].includes(lh) ? -1 : 0;
+  sc += ld === 'exalted' ? 1.2 : ld === 'own sign' ? 0.8 : ld === 'debilitated' ? -1.2 : 0;
+  for (const b of occ) { const ben = C.natBenefic(b); sc += ben ? 0.7 : [3, 6, 11].includes(h) ? 0.3 : -0.6; const dg = vDig(b, sg); sc += dg === 'exalted' || dg === 'own sign' ? 0.4 : dg === 'debilitated' ? -0.5 : 0; }
+  const [v, cls] = sc >= 1.5 ? ['strong', 'good'] : sc >= 0.3 ? ['good', 'ok'] : sc >= -0.7 ? ['mixed', 'mixed'] : ['weak', 'bad'];
+  const word = mal && ADV.varga === 'd30' ? {strong: 'well protected', good: 'protected', mixed: 'some vulnerability', weak: 'vulnerable'}[v] : v;
+  return `<li><b>${J.ORD(h)} house</b> (${esc(what)}): ${J.SIGNS[sg]}. Its lord <b style="color:${advCol(lord)}">${lord}</b> sits in the ${J.ORD(lh)}${ld ? `, ${ld}` : ''}. ${occ.length ? `Occupied by ${occ.map(b => `<b style="color:${advCol(b)}">${b}</b>${vDig(b, sg) ? ` (${vDig(b, sg)})` : ''}`).join(', ')}.` : 'No planets there.'} ${chip(word, cls)}</li>`;
+}
+function advVargas() {
+  const v = ADV.varga, vc = J.vargaChart(C, v), [nm, sig] = J.VARGA_INFO[v], [back, fwd] = vargaWindow(v);
+  const seg = `<div class="seg" role="group" aria-label="Divisional chart">${VARGA_ORDER.map(k => `<button type="button" data-advv="${k}" aria-pressed="${v === k}">${k.toUpperCase()}</button>`).join('')}</div>`;
+  const safe = Math.min(back, fwd), sens = safe < 5 ? 'bad' : safe < 12 ? 'mixed' : 'good';
+  let body = '';
+  if (v === 'd2') {
+    const pref = {Sun: 4, Jupiter: 4, Mars: 4, Moon: 3, Venus: 3, Saturn: 3};
+    const inSun = J.SEVEN.filter(b => vc.P[b] === 4), inMoon = J.SEVEN.filter(b => vc.P[b] === 3), fav = J.SEVEN.filter(b => b === 'Mercury' || pref[b] === vc.P[b]);
+    body = `<ul><li><b>Sun’s hora (Leo):</b> ${inSun.join(', ') || 'none'}. Wealth through your own effort, authority, enterprise.</li><li><b>Moon’s hora (Cancer):</b> ${inMoon.join(', ') || 'none'}. Wealth through steady saving, family, the public, partners.</li>
+     <li>BPHS: Sun, Mars and Jupiter give wealth in the Sun’s hora; Moon, Venus and Saturn in the Moon’s hora; Mercury in either. <b>${fav.length} of 7</b> planets sit in their favourable hora (${fav.join(', ')}). ${fav.length >= 5 ? chip('good for wealth', 'good') : fav.length >= 3 ? chip('average', 'ok') : chip('effort needed', 'mixed')}</li></ul>`;
+  } else {
+    const [houses, kar] = VR_SPEC[v];
+    body = `<ul>${houses.map(([h, w]) => vargaHouse(vc, h, w)).join('')}${kar.map(b => { const s = vc.P[b], d = vDig(b, s), hh = J.hFrom(vc.L, s); return `<li>Karaka <b style="color:${advCol(b)}">${b}</b> is in ${J.SIGNS[s]}, the ${J.ORD(hh)} house of this chart${d ? `, ${d}` : ''}. ${d === 'exalted' || d === 'own sign' || [1, 4, 5, 7, 9, 10].includes(hh) ? chip('supports', 'good') : d === 'debilitated' || [6, 8, 12].includes(hh) ? chip('needs support', 'mixed') : chip('neutral', '')}</li>`; }).join('')}</ul>`;
+    if (v === 'd9') { const vg = J.PL.filter(b => C.P[b].vargottama); body += `<p>Vargottama (same sign in D1 and D9, so strong): ${vg.join(', ') || 'none'}.</p>`; }
+    if (v === 'd60') body = `<p class="err" style="display:block">D60 changes every ${fwd + back < 3 ? 'one to two' : 'two'} minutes of birth time. Trust it only with a birth time recorded to the minute; otherwise read the planets’ D60 signs, which are stable, and ignore the D60 lagna.</p>` + body;
+  }
+  // strength across all vargas
+  const cnt = b => { let g = 0, bd = 0; for (const k of ['d1', ...VARGA_ORDER]) { const d = vDig(b, k === 'd1' ? C.P[b].sign : J.VARGA_FN[k](C.P[b].lon)); if (d === 'exalted' || d === 'own sign') g++; if (d === 'debilitated') bd++; } return [g, bd]; };
+  const tbl = `<div class="tablewrap"><table><thead><tr><th>Planet</th>${['d1', ...VARGA_ORDER].map(k => `<th>${k.toUpperCase()}</th>`).join('')}<th>Good / bad</th></tr></thead><tbody>
+   <tr><td>Lagna</td>${['d1', ...VARGA_ORDER].map(k => `<td>${J.SAB[k === 'd1' ? C.lagna : J.VARGA_FN[k](C.L.lon)]}</td>`).join('')}<td></td></tr>
+   ${J.PL.map(b => { const [g, bd] = cnt(b); return `<tr><td><b style="color:${advCol(b)}">${b}</b></td>${['d1', ...VARGA_ORDER].map(k => { const s = k === 'd1' ? C.P[b].sign : J.VARGA_FN[k](C.P[b].lon), d = vDig(b, s); return `<td class="${d === 'debilitated' ? 'vbad' : d ? 'vgood' : ''}">${J.SAB[s]}${vDigMark(d)}</td>`; }).join('')}<td>${g} / ${bd}</td></tr>`; }).join('')}</tbody></table></div>`;
+  return `<div class="section"><h3>Divisional charts (vargas)</h3>${seg}
+   <div class="adv-two">${miniChart(vc.L, vc.P, v.toUpperCase() + ' ' + nm, sig)}
+    <div><h4>${v.toUpperCase()} ${nm}: ${esc(sig)}</h4>${body}
+     <p class="note">Birth-time sensitivity: this chart’s lagna stays in ${J.SIGNS[vc.L]} if the true birth time is between <b>${back.toFixed(0)} min earlier</b> and <b>${fwd.toFixed(0)} min later</b> than entered. ${chip(sens === 'good' ? 'reliable' : sens === 'mixed' ? 'check the time' : 'time-critical', sens)}</p></div></div></div>
+   <div class="section"><h3>Strength across the vargas</h3><p>A planet that is exalted (▲) or in its own sign (★) in many divisional charts gives steady results; one debilitated (▼) in several needs support.</p>${tbl}</div>`;
+}
+
+// ---- 8. KP
+const KP_MATTERS = [['Marriage', 7, [2, 7, 11], [1, 6, 10]], ['Career and job', 10, [2, 6, 10, 11], [5, 8, 12]], ['Wealth', 2, [2, 6, 11], [5, 8, 12]], ['Children', 5, [2, 5, 11], [1, 4, 10]],
+  ['Property and vehicles', 4, [4, 11, 12], [3, 5, 8]], ['Education', 4, [4, 9, 11], [3, 5, 8]], ['Foreign travel or settling abroad', 12, [3, 9, 12], [2, 4, 11]], ['Health and recovery', 1, [1, 5, 11], [6, 8, 12]]];
+function advKP() {
+  const K = C._kp || (C._kp = J.kpTable(C)), cus = K.cusps;
+  const ownH = b => { const o = []; for (let h = 1; h <= 12; h++) if (J.SIGN_LORD[cus[h].sign] === b || (b === 'Ketu' && cus[h].sign === 7) || (b === 'Rahu' && cus[h].sign === 10)) o.push(h); return o; };
+  const sigOf = b => { const st = K.planets[b].star, s = new Set([K.planets[st].house, ...ownH(st), K.planets[b].house, ...ownH(b)]);
+    if (b === 'Rahu' || b === 'Ketu') { const sl = J.SIGN_LORD[C.P[b].sign]; s.add(K.planets[sl].house); ownH(sl).forEach(h => s.add(h)); } return [...s].sort((a, c) => a - c); };
+  const fl = x => `${J.fmtDeg(x.deg)} ${J.SAB[x.sign]}`, pc = b => `<b style="color:${advCol(b)}">${b}</b>`;
+  const pr = J.PL.map(b => { const x = K.planets[b]; return `<tr><td>${pc(b)}</td><td class="mono">${fl(C.P[b])}</td><td>${x.nak}</td><td>${pc(x.star)}</td><td>${pc(x.sub)}</td><td>${pc(x.subsub)}</td><td>${x.house}</td><td>${C.P[b].house}</td><td>${sigOf(b).join(', ')}</td></tr>`; }).join('');
+  const cr = Array.from({length: 12}, (_, i) => i + 1).map(h => { const x = cus[h]; return `<tr><td>${h}</td><td class="mono">${fl(x)}</td><td>${pc(J.SIGN_LORD[x.sign])}</td><td>${pc(x.star)}</td><td>${pc(x.sub)}</td><td>${pc(x.subsub)}</td><td>${K.sig[h].map(pc).join(', ')}</td></tr>`; }).join('');
+  const mt = KP_MATTERS.map(([n, h, good, neg]) => { const csl = cus[h].sub, s = sigOf(csl), g = s.filter(x => good.includes(x)), bd = s.filter(x => neg.includes(x));
+    const [v, cls] = g.length && g.length > bd.length ? ['promised', 'good'] : g.length ? ['promised with obstacles', 'mixed'] : ['weak promise', 'bad'];
+    const tsc = b => sigOf(b).filter(x => good.includes(x)).length - 0.6*sigOf(b).filter(x => neg.includes(x)).length;
+    const timers = J.PL.filter(b => tsc(b) > 0).sort((a, c) => tsc(c) - tsc(a)).slice(0, 4);
+    return `<tr><td><b>${n}</b></td><td>${h}</td><td>${pc(csl)}</td><td>${s.join(', ')}</td><td>${good.join(', ')}</td><td>${chip(v, cls)}</td><td>${timers.map(pc).join(', ')}</td></tr>`; }).join('');
+  return `<div class="section"><h3>KP (Krishnamurti Paddhati) sub-lords</h3>
+   <p>KP splits each nakshatra into nine unequal <b>subs</b> in Vimshottari proportions, and each sub into nine <b>sub-subs</b>. The star lord shows the matter a planet brings; the sub lord decides whether it turns out well. KP uses Placidus house cusps, so a planet’s KP house can differ from its whole-sign house used in the rest of this app.</p>
+   ${C.opt.ayan !== 'kp' ? `<p class="note">For pure KP, choose the Krishnamurti ayanamsa in the birth form; you are using ${AYAN_NAME[C.opt.ayan]} (the difference is about ${C.opt.ayan === 'raman' ? '1.4°' : '6′'}, which can change a sub lord).</p>` : ''}
+   <h4>Planets</h4><div class="tablewrap"><table><thead><tr><th>Planet</th><th>Position</th><th>Nakshatra</th><th>Star lord</th><th>Sub lord</th><th>Sub-sub</th><th>KP house</th><th>Whole-sign</th><th>Signifies houses</th></tr></thead><tbody>${pr}</tbody></table></div>
+   <h4>House cusps (Placidus)</h4><div class="tablewrap"><table><thead><tr><th>Cusp</th><th>Position</th><th>Sign lord</th><th>Star lord</th><th>Sub lord</th><th>Sub-sub</th><th>Significators (strongest first)</th></tr></thead><tbody>${cr}</tbody></table></div></div>
+  <div class="section"><h3>What the cusp sub-lords promise</h3><p>The KP rule: a matter happens if the <b>sub lord of its cusp</b> signifies the supporting houses (through its star lord and itself). It happens in the dasa and bhukti of planets that signify those houses.</p>
+   <div class="tablewrap"><table><thead><tr><th>Matter</th><th>Cusp</th><th>Cusp sub lord</th><th>It signifies</th><th>Needs</th><th>Verdict</th><th>Strongest timing planets</th></tr></thead><tbody>${mt}</tbody></table></div>
+   <p class="note">A planet signifies the houses it occupies and owns, plus those its star lord occupies and owns; Rahu and Ketu also act for their sign lord. Sub lords change in minutes of birth time for the cusps (the lagna sub changes about every 5–15 minutes), so treat cusp verdicts as tentative unless the time is exact.</p></div>`;
+}
+
+// ---- 9. Yogini & Chara dasa
+const YOG_NATURE = {Mangala: ['good', 'auspicious: happiness, success, good news'], Pingala: ['mixed', 'heat and strain: health, authority and ego issues'], Dhanya: ['good', 'prosperity: wealth, grain, family growth'],
+  Bhramari: ['bad', 'wandering: travel, unrest, changes of place'], Bhadrika: ['good', 'gentle: friends, studies, good relations'], Ulka: ['bad', 'hardship: losses, overwork, worries'],
+  Siddha: ['good', 'accomplishment: success, comforts, fulfilment'], Sankata: ['bad', 'crisis: obstacles, danger, sudden trouble']};
+function advDasa2() {
+  const now = new Date(), Y = C._yog || (C._yog = J.yoginiDasa(C, 100)), CH = C._chara || (C._chara = J.charaDasa(C, 100)), HT = C._houseTable || (C._houseTable = J.houseTable(C));
+  const age = d => ((d - C.date)/31556952e3).toFixed(0);
+  const curY = Y.MD.find(m => m.start <= now && m.end > now), curYA = curY && curY.ads.find(a => a.start <= now && a.end > now);
+  const yRow = m => { const [t, nat] = YOG_NATURE[m.name], q = C.P[m.lord], cur = m === curY;
+    return `<tr class="${cur ? 'cur' : ''}"><td><b>${m.name}</b></td><td><b style="color:${advCol(m.lord)}">${m.lord}</b></td><td>${m.years}</td><td>${advDate(m.start)}</td><td>${advDate(m.end)}</td><td>${age(m.start)}–${age(m.end)}</td><td>${chip(t, t)} ${esc(nat)}. ${m.lord} is in your ${J.ORD(q.house)}${q.lordOf.length && !['Rahu', 'Ketu'].includes(m.lord) ? `, rules your ${q.lordOf.map(J.ORD).join(' & ')}` : ''}.</td></tr>`; };
+  const curC = CH.MD.find(m => m.start <= now && m.end > now);
+  const cRow = m => { const h = HT[m.house - 1], occ = J.PL.filter(b => C.P[b].sign === m.sign), cur = m === curC;
+    return `<tr class="${cur ? 'cur' : ''}"><td><b>${J.SIGNS[m.sign]}</b></td><td>${m.house}</td><td><b style="color:${advCol(m.lord)}">${m.lord}</b></td><td>${m.years}</td><td>${advDate(m.start)}</td><td>${age(m.start)}–${age(m.end)}</td><td>${esc(J.HOUSE[m.house].n)}: ${esc(J.HOUSE[m.house].sig)}${occ.length ? `. Holds ${occ.join(', ')}` : ''}. ${chip(h.verdict, h.tone)}</td></tr>`; };
+  return `<div class="section"><h3>Yogini dasa</h3>
+   <p>A 36-year cycle of eight yoginis, counted from the Moon’s nakshatra (${J.NAKS[C.P.Moon.nak][0]}). Astrologers use it to confirm Vimshottari: when both systems point to the same kind of period, the result is much more certain.</p>
+   ${curY ? `<p><b>Now:</b> ${curY.name} (${curY.lord}) until ${advDate(curY.end)}${curYA ? `, sub-period <b>${curYA.name}</b> (${curYA.lord}) until ${advDate(curYA.end)}` : ''}. ${esc(YOG_NATURE[curY.name][1])}.${C.cur ? ` Vimshottari: ${C.cur.md.lord}–${C.cur.ad.lord}.` : ''}</p>` : ''}
+   <div class="tablewrap"><table><thead><tr><th>Yogini</th><th>Lord</th><th>Years</th><th>From</th><th>To</th><th>Age</th><th>Nature for you</th></tr></thead><tbody>${Y.MD.filter(m => m.end > C.date).slice(0, 14).map(yRow).join('')}</tbody></table></div>
+   ${curY ? `<h4>Sub-periods of ${curY.name}</h4><div class="tablewrap"><table><thead><tr><th>Sub-period</th><th>Lord</th><th>From</th><th>To</th><th>Nature</th></tr></thead><tbody>${curY.ads.map(a => `<tr class="${a === curYA ? 'cur' : ''}"><td>${a.name}</td><td>${a.lord}</td><td>${advDate(a.start)}</td><td>${advDate(a.end)}</td><td>${chip(YOG_NATURE[a.name][0], YOG_NATURE[a.name][0])} ${esc(YOG_NATURE[a.name][1])}</td></tr>`).join('')}</tbody></table></div>` : ''}</div>
+  <div class="section"><h3>Jaimini Chara dasa</h3>
+   <p>A sign-based dasa (K.N. Rao’s method): each sign runs for 1 to 12 years, counted from the sign to its lord. It shows which <b>area of life</b> (house) is in focus. Your sequence runs ${CH.dir > 0 ? 'forward through the zodiac' : 'backward through the zodiac'}, because your 9th house is ${J.SIGNS[(C.lagna + 8) % 12]}.</p>
+   ${curC ? `<p><b>Now:</b> ${J.SIGNS[curC.sign]} dasa (your ${J.ORD(curC.house)} house, ${esc(J.HOUSE[curC.house].n.toLowerCase())}) until ${advDate(curC.end)}.</p>` : ''}
+   <div class="tablewrap"><table><thead><tr><th>Sign</th><th>House</th><th>Lord</th><th>Years</th><th>From</th><th>Age</th><th>Focus</th></tr></thead><tbody>${CH.MD.map(cRow).join('')}</tbody></table></div>
+   <p class="note">Main periods only. Scorpio and Aquarius use the stronger of their two lords; a lord in exaltation adds a year and in debilitation takes one away. Second-cycle periods are 12 minus the first. The verdict chips are the natal strength of that house, from the Houses tab.</p></div>`;
+}
+
+// ---- 10. Varshaphal (Tajika annual chart)
+const MUNTHA = {1: 'health, confidence and new starts favoured', 2: 'family harmony and money gains', 3: 'courage, short travel and success by effort', 4: 'domestic worries; take care of property and mother', 5: 'children, studies and creative work favoured', 6: 'illness, debts or disputes; guard health and avoid quarrels',
+  7: 'partnership strain or travel; care in marriage and contracts', 8: 'obstacles and sudden events; protect health and money', 9: 'luck, religion, father and long journeys favoured', 10: 'career rise, recognition and authority', 11: 'gains, wishes fulfilled, friends help', 12: 'expenses, losses and travel; good for spiritual work'};
+const MUNTHA_GOOD = [1, 2, 3, 5, 9, 10, 11];
+function advAge() {
+  if (ADV.age !== null) return ADV.age;
+  const now = Date.now(); let a = Math.floor((now - C.date)/31556952e3);
+  if (J.solarReturn(C, a) > now) a--; return Math.max(0, a);
+}
+function advVarsha() {
+  const age = advAge(), key = age + '|' + C.opt.ayan, VR = (C._vr && C._vr.key === key) ? C._vr.v : (C._vr = {key, v: J.varshaphal(C, age)}).v, V = VR.V;
+  const vp = {}; for (const b of J.PL) vp[b] = V.P[b].sign;
+  const yl = VR.yearLord, yq = V.P[yl], ydg = yq.dignity, ygood = (J.DIG_SCORE[ydg] || 0) >= 1 && ![6, 8, 12].includes(yq.house) && !yq.combust, ybad = (J.DIG_SCORE[ydg] || 0) < 0 || [6, 8, 12].includes(yq.house);
+  const ll = J.SIGN_LORD[V.lagna], lq = V.P[ll];
+  const benK = J.PL.filter(b => C.natBenefic(b) && [1, 4, 7, 10].includes(V.P[b].house)), malD = J.PL.filter(b => !C.natBenefic(b) && [3, 6, 11].includes(V.P[b].house)), malK = J.PL.filter(b => !C.natBenefic(b) && [1, 4, 7, 10, 8].includes(V.P[b].house) && !['Rahu', 'Ketu'].includes(b));
+  const mg = MUNTHA_GOOD.includes(VR.munthaHouse);
+  let score = (mg ? 1 : -1) + (ygood ? 1 : ybad ? -1 : 0) + benK.length*0.5 + malD.length*0.3 - malK.length*0.4 + ([6, 8, 12].includes(lq.house) ? -0.7 : 0.3);
+  const [vv, vc] = score >= 2 ? ['a strong year', 'good'] : score >= 0.5 ? ['a good year with effort', 'ok'] : score >= -0.8 ? ['a mixed year', 'mixed'] : ['a demanding year', 'bad'];
+  const rows = J.PL.map(b => { const q = V.P[b]; return `<tr><td><b style="color:${advCol(b)}">${b}</b>${q.retro && !['Rahu', 'Ketu'].includes(b) ? ' ℞' : ''}</td><td class="mono">${J.fmtDeg(q.deg)} ${J.SAB[q.sign]}</td><td>${q.house}</td><td>${C.P[b].house}</td><td>${ADV_DIG[q.dignity] || q.dignity}</td></tr>`; }).join('');
+  return `<div class="section"><h3>Annual chart (Varshaphal) for age ${age}</h3>
+   <div class="adv-nav"><button type="button" class="btn ghost" data-advage="-1">‹ Previous year</button> <b>Year ${age + 1} of life</b> <button type="button" class="btn ghost" data-advage="1">Next year ›</button></div>
+   <p>The Tajika system casts a chart for the moment the Sun returns to its exact birth position each year. That year’s chart runs from <b>${advLocal(VR.when)}</b> to the next return.</p>
+   <div class="adv-two">${miniChart(V.lagna, vp, 'Varsha ' + (C.date.getFullYear() + age), 'from ' + advDate(VR.when))}
+    <div><ul>
+     <li><b>Year lagna:</b> ${J.SIGNS[V.lagna]}, the ${J.ORD(J.hFrom(C.lagna, V.lagna))} sign from your birth lagna. Its lord ${ll} is in the ${J.ORD(lq.house)} of the year chart${[6, 8, 12].includes(lq.house) ? ' (a weak spot: the year needs more effort)' : ''}.</li>
+     <li><b>Muntha</b> (the progressed lagna, one sign a year): ${J.SIGNS[VR.munthaSign]}, the <b>${J.ORD(VR.munthaHouse)} house</b> of the year chart: ${MUNTHA[VR.munthaHouse]}. ${chip(mg ? 'favourable' : 'difficult', mg ? 'good' : 'bad')} Its lord is ${VR.munthaLord}.</li>
+     <li><b>Year lord (Varshesha):</b> <b style="color:${advCol(yl)}">${yl}</b>, chosen from the office-bearers (${VR.cand.map(([n, b]) => `${n}: ${b}`).join('; ')}) as the strongest that aspects the year lagna. It is ${ADV_DIG[ydg] || ydg}, in the ${J.ORD(yq.house)} house${yq.combust ? ', and combust (close to the Sun)' : ''}. ${chip(ygood ? 'strong year lord' : ybad ? 'weak year lord' : 'average year lord', ygood ? 'good' : ybad ? 'bad' : 'ok')}</li>
+     ${benK.length ? `<li>Benefics in angles: ${benK.join(', ')}: support and protection.</li>` : ''}
+     ${malD.length ? `<li>Malefics in the 3rd, 6th or 11th: ${malD.join(', ')}: they help you win.</li>` : ''}
+     ${malK.length ? `<li>Malefics in angles or the 8th: ${malK.join(', ')}: friction in those houses’ matters.</li>` : ''}
+     <li>The year’s Moon is in the ${J.ORD(V.P.Moon.house)} house: the mind dwells on ${esc(J.HOUSE[V.P.Moon.house].sig)}.</li>
+    </ul><p><b>Overall: ${vv}.</b> ${chip(vv, vc)}</p></div></div>
+   <div class="tablewrap"><table><thead><tr><th>Planet</th><th>Position</th><th>Year-chart house</th><th>Birth-chart house</th><th>Dignity</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note">Simplified Tajika: the year lord is chosen from four office-bearers (the Tri-rashi lord is left out), and Sahams and Tajika yogas are not computed. The chart uses the birthplace; strictly it should use where you are on that birthday (this changes only the year lagna, not the planets). Read the annual chart together with the running dasa: it shows how the dasa’s promise plays out in that year.</p></div>`;
+}
+
+// ---- 12. birth-time check (rectification helper)
+function myevCheckWith(x, evs) {
+  const k = MYEV_KINDS[x.kind]; if (!k || !k[1]) return null;
+  const s = myevStart(x), e = myevEnd(x), areas = k[1] === 'career' ? ['career', 'job'] : k[1] === 'job' ? ['job', 'career'] : [k[1]];
+  return evs.filter(p => p.start <= e && p.end >= s).some(p => p.themes.some(t => areas.includes(t.area) && t.good === k[2]));
+}
+function advRectify() {
+  const win = ADV.win, step = ADV.step, key = win + '|' + step + '|' + C.opt.ayan + C.opt.node;
+  const rows = (C._ts && C._ts.key === key) ? C._ts.rows : (C._ts = {key, rows: J.timeScan(C.inp, win, step)}).rows;
+  const L = myEvents().filter(x => MYEV_KINDS[x.kind] && MYEV_KINDS[x.kind][1]), opts = myevOpts();
+  if (L.length) for (const r of rows) if (r.score === undefined) { const evs = J.lifeEvents(r.C, opts); r.score = L.filter(x => myevCheckWith(x, evs)).length; }
+  let best = L.length ? Math.max(...rows.map(r => r.score)) : null; if (best !== null && Math.min(...rows.map(r => r.score)) === best) best = null;
+  const tm = m => { const t = new Date(C.inp.utcMs + C.inp.tz*3600e3 + m*60e3); return t.toISOString().slice(11, 16); };
+  const cols = [['lag', 'Lagna', r => `${J.SIGNS[r.lag]} ${r.lagDeg.toFixed(1)}°`, r => r.lag], ['d9', 'D9 lagna', r => J.SIGNS[r.d9], r => r.d9], ['d10', 'D10 lagna', r => J.SIGNS[r.d10], r => r.d10],
+    ['d7', 'D7 lagna', r => J.SIGNS[r.d7], r => r.d7], ['d12', 'D12 lagna', r => J.SIGNS[r.d12], r => r.d12], ['moon', 'Moon', r => `${J.NAKS[r.moonNak][0]} ${r.moonPada}`, r => r.moonNak*4 + r.moonPada]];
+  const body = rows.map((r, i) => `<tr class="${r.m === 0 ? 'cur' : ''}${best !== null && r.score === best ? ' best' : ''}"><td class="mono">${r.m > 0 ? '+' : ''}${r.m} min</td><td class="mono">${tm(r.m)}</td>${cols.map(([, , f, k]) => `<td class="${i && k(rows[i - 1]) !== k(r) ? 'chg' : ''}">${f(r)}</td>`).join('')}${L.length ? `<td class="mono">${r.score}/${L.length}</td>` : ''}</tr>`).join('');
+  const segs = (k, f) => { const out = []; for (const r of rows) { const v = k(r); if (!out.length || out[out.length - 1].v !== v) out.push({v, a: r.m, b: r.m, lbl: f(r)}); else out[out.length - 1].b = r.m; } return out; };
+  const sum = cols.map(([id, n, f, k]) => { const s = segs(k, r => f(r).replace(/ [\d.]+°$/, '')); return s.length === 1 ? `<li><b>${n}</b>: ${s[0].lbl} throughout. ${chip('safe', 'good')}</li>` : `<li><b>${n}</b>: ${s.map(x => `${x.lbl} (${x.a > 0 ? '+' : ''}${x.a} to ${x.b > 0 ? '+' : ''}${x.b} min)`).join(' → ')}. ${chip('changes', 'mixed')}</li>`; }).join('');
+  return `<div class="section"><h3>Birth-time check</h3>
+   <p>If the birth time is uncertain (for example ±10 minutes), this shows which parts of the chart stay the same and which change inside that window. Parts that never change are safe to rely on; parts that change need the time confirmed (hospital record, the doctor’s note for a caesarean) or are judged from life events.</p>
+   <div class="adv-nav">Window: ${[10, 20, 30].map(w => `<button type="button" class="btn ghost${win === w ? ' on' : ''}" data-advwin="${w}">±${w} min</button>`).join(' ')}</div>
+   <h4>Summary</h4><ul>${sum}</ul>
+   <div class="tablewrap"><table class="rect"><thead><tr><th>Shift</th><th>Time</th>${cols.map(c => `<th>${c[1]}</th>`).join('')}${L.length ? '<th>Events matched</th>' : ''}</tr></thead><tbody>${body}</tbody></table></div>
+   <p class="note">Shaded cells change from the row above. ${L.length ? `The last column counts how many of the ${L.length} life events you logged (Life events tab) fall in a period whose prediction matches them; ${best === null ? 'every time in this window matches equally well, so the events cannot decide between them' : 'the <b>best-matching rows are outlined</b>'}. Use this as a hint, not proof: many events are needed before the count means much.` : 'Log real life events in the Life events tab (dates of studies, jobs, marriage, health problems) and this table will also score each time against them.'} Dasa dates shift by about ${Math.abs((rows[rows.length - 1].C.dasa.MD[1].start - rows[0].C.dasa.MD[1].start)/864e5/(rows.length - 1)).toFixed(0)} days per ${step}-minute step, which matters little.</p></div>`;
+}
+
+// ---------- Gochara vedha (Phaladeepika ch.26): a good transit is blocked when another planet sits in its vedha house (counted from the birth Moon)
+const VEDHA = {
+  Sun: {3: 9, 6: 12, 10: 4, 11: 5}, Moon: {1: 5, 3: 9, 6: 12, 7: 2, 10: 4, 11: 8}, Mars: {3: 12, 6: 9, 11: 5}, Mercury: {2: 5, 4: 3, 6: 9, 8: 1, 10: 8, 11: 12},
+  Jupiter: {2: 12, 5: 4, 7: 3, 9: 10, 11: 8}, Venus: {1: 8, 2: 7, 3: 1, 4: 10, 5: 9, 8: 5, 9: 11, 11: 6, 12: 3}, Saturn: {3: 12, 6: 9, 11: 5}, Rahu: {3: 12, 6: 9, 11: 5}, Ketu: {3: 12, 6: 9, 11: 5}};
+const VEDHA_FREE = (a, b) => [a, b].sort().join() === 'Saturn,Sun' || [a, b].sort().join() === 'Mercury,Moon'; // father and son do not obstruct each other
+function gocharaVedha(T) {
+  const fm = b => (T[b].sign - C.P.Moon.sign + 12) % 12 + 1, out = [];
+  for (const b of J.PL) {
+    const h = fm(b), V = VEDHA[b], others = J.PL.filter(x => x !== b && !VEDHA_FREE(b, x) && !(b === 'Rahu' && x === 'Ketu') && !(b === 'Ketu' && x === 'Rahu'));
+    if (V[h] !== undefined) { const by = others.filter(x => fm(x) === V[h]); out.push({b, h, good: true, by, vh: V[h]}); }
+    else { const g = Object.keys(V).find(k => V[k] === h); const by = g ? others.filter(x => fm(x) === +g) : []; out.push({b, h, good: false, by, vh: g ? +g : null}); }
+  }
+  return out;
+}
+function skyVedhaHTML(T) {
+  const V = gocharaVedha(T), pc = b => `<b style="color:${SKY_COL[b]}">${b}</b>`;
+  const blocked = V.filter(x => x.good && x.by.length), saved = V.filter(x => !x.good && x.by.length), clean = V.filter(x => x.good && !x.by.length);
+  const li = [];
+  for (const x of blocked) li.push(`<li>${pc(x.b)} is in a good house (${J.ORD(x.h)} from your Moon), but ${x.by.map(pc).join(' and ')} in the ${J.ORD(x.vh)} <b>blocks</b> it (vedha): its good results are held back until that planet moves.</li>`);
+  for (const x of saved) li.push(`<li>${pc(x.b)} is in a difficult house (${J.ORD(x.h)} from your Moon), but ${x.by.map(pc).join(' and ')} in the ${J.ORD(x.vh)} <b>cancels the harm</b> (vipareeta vedha).</li>`);
+  return `<div class="sky-ih">Gochara vedha <span>(Phaladeepika: obstruction of transits)</span></div>${li.length ? `<ul>${li.join('')}</ul>` : '<div class="sky-hm">No transit is obstructed on this date.</div>'}<div class="sky-hm">Working freely: ${clean.length ? clean.map(x => pc(x.b)).join(', ') : 'none'}. Sun and Saturn, and Moon and Mercury, never obstruct each other.</div>`;
+}
+// Tamil peyarchi murthi: the Moon's sign at the moment of a slow planet's sign change, counted from the birth Moon
+const MURTHI = {1: ['Gold (Thanga)', 'mixed: gains come with expenses and strain', 'sky-g'], 6: ['Gold (Thanga)', 'mixed: gains come with expenses and strain', 'sky-g'], 11: ['Gold (Thanga)', 'mixed: gains come with expenses and strain', 'sky-g'],
+  2: ['Silver (Velli)', 'the best: happiness, gains and success', 'sky-g'], 5: ['Silver (Velli)', 'the best: happiness, gains and success', 'sky-g'], 9: ['Silver (Velli)', 'the best: happiness, gains and success', 'sky-g'],
+  3: ['Copper (Thamira)', 'good: steady progress and help from others', 'sky-g'], 7: ['Copper (Thamira)', 'good: steady progress and help from others', 'sky-g'], 10: ['Copper (Thamira)', 'good: steady progress and help from others', 'sky-g'],
+  4: ['Iron (Irumbu)', 'difficult: hard work, losses and worry', 'sky-b'], 8: ['Iron (Irumbu)', 'difficult: hard work, losses and worry', 'sky-b'], 12: ['Iron (Irumbu)', 'difficult: hard work, losses and worry', 'sky-b']};
+function murthiTxt(x) {
+  if (!['Jupiter', 'Saturn', 'Rahu'].includes(x.b)) return '';
+  const ms = skyPos(x.date).Moon.sign, n = (ms - C.P.Moon.sign + 12) % 12 + 1, [m, t, cls] = MURTHI[n];
+  return ` <span class="sky-mur">Murthi: <b class="${cls}">${m}</b>. The Moon is in ${J.SIGNS[ms]} at the change, ${J.ORD(n)} from your Moon: ${t}.</span>`;
+}
+
 function tDetails() {
   const P = C.P, pc = C.panchanga;
   return `<div class="section"><h3>Planetary positions</h3><div class="tablewrap"><table><thead><tr><th>Body</th><th>Longitude</th><th>Sign</th><th>House</th><th>Nakshatra</th><th>Navamsa</th><th>D-10</th><th>Dignity</th></tr></thead><tbody>
    <tr><td>Lagna</td><td class="mono">${C.L.lon.toFixed(2)}°</td><td class="mono">${J.fmtDeg(C.L.deg)} ${J.SAB[C.lagna]}</td><td>1</td><td>${J.NAKS[C.L.nak][0]} ${C.L.pada}</td><td>${J.SIGNS[C.L.d9]}</td><td>${J.SIGNS[C.L.d10]}</td><td>—</td></tr>
    ${J.PL.map(b => { const p = P[b]; return `<tr><td>${b}${p.retro && b !== 'Rahu' && b !== 'Ketu' ? ' (R)' : ''}</td><td class="mono">${p.lon.toFixed(2)}°</td><td class="mono">${J.fmtDeg(p.deg)} ${J.SAB[p.sign]}</td><td>${p.house}</td><td>${J.NAKS[p.nak][0]} ${p.pada}</td><td>${J.SIGNS[p.d9]}${p.vargottama ? ' ★' : ''}</td><td>${J.SIGNS[p.d10]}</td><td>${p.dignity}</td></tr>`; }).join('')}
-   </tbody></table></div><p class="note">★ vargottama. Ayanamsa (Lahiri): ${J.fmtDeg(C.ay)}. Moon is ${C.waxing ? 'waxing' : 'waning'}.</p></div>
+   </tbody></table></div><p class="note">★ vargottama. Ayanamsa: ${AYAN_NAME[C.opt.ayan]}, ${J.fmtDeg(C.ay)}. Rahu and Ketu: ${C.opt.node} node. Moon is ${C.waxing ? 'waxing' : 'waning'}.</p></div>
   <div class="section"><h3>Panchanga at birth</h3><div class="kv">
    <div><div class="k">Vaara</div><div class="v">${pc.weekday}</div><div class="s">lord ${pc.weekdayLord}${pc.hora ? ` · ${pc.hora} hora` : ''}</div></div>
    <div><div class="k">Tithi</div><div class="v">${pc.tithi}</div><div class="s">${pc.paksha} · lord ${pc.tithiLord}</div></div>
@@ -5966,7 +6523,7 @@ function boot() {
   const tb = store.get('jk-tab'); if (tb && document.querySelector(`#tabs [data-t="${tb}"]`)) { tab = tb; document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', x.dataset.t === tab)); }
   if (saved && saved.dt) {
     $('#nm').value = saved.nm || ''; $('#dt').value = saved.dt; $('#tm').value = saved.tm; $('#city').value = saved.city || '';
-    $('#lat').value = saved.lat; $('#lon').value = saved.lon; $('#tz').value = saved.tz; $('#tzname').value = saved.tzname || ''; if (saved.yr) $('#yr').value = saved.yr;
+    $('#lat').value = saved.lat; $('#lon').value = saved.lon; $('#tz').value = saved.tz; $('#tzname').value = saved.tzname || ''; if (saved.yr) $('#yr').value = saved.yr; if (saved.ayan) $('#ayan').value = saved.ayan; if (saved.node) $('#node').value = saved.node;
     cast(false);
   } else {
     $('#nm').value = ''; $('#dt').value = '1990-08-15'; $('#tm').value = '06:30:00'; $('#city').value = 'New Delhi, India';
