@@ -200,6 +200,22 @@ details.pl summary::-webkit-details-marker{display:none}
 .hg-t tr.hg-r td:first-child{border-left:4px solid transparent} .hg-t tr.hg-r.good td:first-child{border-left-color:var(--good)} .hg-t tr.hg-r.bad td:first-child{border-left-color:var(--bad)} .hg-t tr.hg-r.mix td:first-child{border-left-color:var(--mixed)}
 .hg-tag{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap}
 .hg-tag.good{background:var(--good);color:#fff} .hg-tag.bad{background:var(--bad);color:#fff} .hg-tag.grow,.hg-tag.mix{background:var(--mixed);color:#fff}
+.aspguide{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.ag-rules{font-size:13.5px} .ag-rules ul{margin:4px 0 6px 18px;padding:0}
+.ag-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0} .ag-pick span{font-size:12.5px;color:var(--muted);margin-right:2px}
+.ag-chip,.ag-mini{border:1.5px solid var(--pc,var(--line));background:transparent;color:var(--ink,inherit);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600;cursor:pointer}
+.ag-mini{padding:1px 8px;font-size:12px}
+.ag-chip.on,.ag-chip:hover,.ag-mini:hover{background:var(--pc);color:#fff}
+.ag-detail{background:var(--panel-2);border-radius:8px;padding:6px 10px;margin:6px 0;font-size:13.5px} .ag-detail ul{margin:2px 0 4px 18px;padding:0}
+.ag-t tr.ag-r.good td{background:var(--good-soft)} .ag-t tr.ag-r.bad td{background:var(--bad-soft)} .ag-t tr.ag-r.mix td{background:var(--mixed-soft)}
+.chartbox.asp-focus .asp path{opacity:0 !important}
+.chartbox.asp-focus .asp path.foc{opacity:.95 !important;stroke-width:2.6}
+.chartbox.asp-focus .hz.asp-tgt{stroke:var(--accent) !important;stroke-width:3 !important;fill-opacity:calc(var(--tint) * 2.6) !important}
+.chartbox.asp-focus .hz.asp-src{stroke:var(--indigo) !important;stroke-width:3 !important;stroke-dasharray:5 3}
+.chartbox svg .asp-lbl{font-size:10.5px;font-weight:800;paint-order:stroke;stroke:var(--panel);stroke-width:3px;pointer-events:none;font-family:var(--body)}
+.chartcard.big{position:fixed;inset:0;z-index:90;margin:0;border-radius:0;overflow:auto;background:var(--bg,#f6f4ef);padding:14px max(14px,calc((100vw - 1100px)/2))}
+.chartcard.big .chartbox{width:min(calc(100% - 34px),calc(100vh - 150px));margin-left:auto;margin-right:auto}
+body.chart-big-open{overflow:hidden}
 .chip.acc{background:var(--accent-soft);color:var(--accent)}
 .adv-seg{flex-wrap:wrap}
 .adv-two{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:18px;align-items:start;margin:12px 0}
@@ -580,9 +596,10 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
           <button type="button" data-v="d9" aria-pressed="false">Navamsa D-9</button>
           <button type="button" data-v="d10" aria-pressed="false">Dasamsa D-10</button>
         </div>
-        <div class="togs"><button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
+        <div class="togs"><button type="button" class="asptoggle" id="aspguidebtn" aria-pressed="false" title="Learn how aspects work: pick a planet to see which houses it looks at">Aspect guide</button><button type="button" class="asptoggle" data-bigchart title="Show this chart large">⤢ Enlarge</button><button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
       </div>
       <div class="chartbox" id="chartbox"></div>
+      <div class="aspguide" id="aspguide" hidden></div>
       <div class="chartlegend" id="chartlegend" aria-label="House owners"></div>
       <p class="hint" id="chartnote" style="margin-top:8px"></p>
     </div>
@@ -591,6 +608,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
         <div><div class="eyebrow">Planets now · transits</div><div class="nowdate" id="nowdate"></div></div>
         <div class="togs">
           <div class="seg" role="group" aria-label="Count houses from"><button type="button" data-nref="lagna" aria-pressed="true">From lagna</button><button type="button" data-nref="moon" aria-pressed="false">From Moon</button></div>
+          <button type="button" class="asptoggle" data-bigchart title="Show this chart large">⤢ Enlarge</button>
           <button type="button" class="asptoggle" data-taspt aria-pressed="false" title="Show every full aspect of the planets now">Aspects</button>
           <button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button>
         </div>
@@ -998,7 +1016,7 @@ function renderLegend() {
   }).join('') + `<span class="lg note muted"><b style="color:var(--good)">▲</b>&nbsp;exalted (solid green) · <b style="color:var(--indigo)">★</b>&nbsp;own sign (dashed, planet colour) · <b style="color:var(--bad)">▼</b>&nbsp;debilitated (dotted red)</span>`;
 }
 function renderChart() {
-  $('#chartbox').innerHTML = (style === 'south' ? southSVG() : northSVG()) + '<div class="charttip" id="charttip" role="tooltip" hidden></div>'; wmApply($('#chartbox'));
+  $('#chartbox').innerHTML = (style === 'south' ? southSVG() : northSVG()) + '<div class="charttip" id="charttip" role="tooltip" hidden></div>'; wmApply($('#chartbox')); aspGuideRender();
   renderLegend();
   $('#chartnote').textContent = {d1:'Rasi chart: existence at the physical level.', d9:'Navamsa: marriage and spouse, dharma, basic skills and the inner self.', d10:'Dasamsa: career, activities and achievements in society.'}[view] + ' Each house is tinted in the colour of the planet that owns it; inner borders mark exalted (▲), own-sign (★) and debilitated (▼) planets; the outlined box is the lagna. Hover over or tap a house for details and to see the aspects landing on it; press Aspects to show them all. R = retrograde.';
 }
@@ -1113,6 +1131,58 @@ function wmTurn(dir) {
   });
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-wmturn]'); if (b) { e.stopPropagation(); wmTurn(+b.dataset.wmturn); } });
+
+// ---------- Aspect guide: pick a planet and see which houses it looks at, and why ----------
+let aspGuideOn = false, aspFocus = null;
+const ASP_WORD = {3: '3rd', 4: '4th', 5: '5th', 7: '7th', 8: '8th', 9: '9th', 10: '10th'};
+function aspGuideRender() {
+  const box = $('#aspguide'), cb = $('#chartbox'); if (!box || !cb || !C) return;
+  box.hidden = !aspGuideOn; $('#aspguidebtn').setAttribute('aria-pressed', aspGuideOn);
+  cb.classList.toggle('asp-focus', aspGuideOn && !!aspFocus);
+  cb.querySelectorAll('.asp-lbl').forEach(x => x.remove()); cb.querySelectorAll('.asp-tgt,.asp-src').forEach(x => x.classList.remove('asp-tgt', 'asp-src'));
+  cb.querySelectorAll('.asp path').forEach(x => x.classList.toggle('foc', aspGuideOn && x.dataset.from === aspFocus));
+  if (!aspGuideOn) return;
+  const key = VIEW_KEY(), lag = view === 'd1' ? C.lagna : C.L[view], sg = b => C.P[b][key], hOf = s => J.hFrom(lag, s);
+  const offs = b => ASP_OFF[b] || [7], ben = b => C.natBenefic(b), area = h => HOUSE_SHORT[h];
+  // labels on the chart for the focused planet
+  if (aspFocus) {
+    const svg = cb.querySelector('svg'), NS = 'http://www.w3.org/2000/svg';
+    const src = svg && svg.querySelector(`.hz[data-s="${sg(aspFocus)}"]`); if (src) src.classList.add('asp-src');
+    for (const o of offs(aspFocus)) { const t = (sg(aspFocus) + o - 1) % 12, el = svg && svg.querySelector(`.hz[data-s="${t}"]`); if (!el) continue; el.classList.add('asp-tgt');
+      let x, y; if (el.tagName.toLowerCase() === 'rect') { x = +el.getAttribute('x') + 5; y = +el.getAttribute('y') + +el.getAttribute('height') - 6; }
+      else { const pts = el.getAttribute('points').trim().split(/\s+/).map(q => q.split(',').map(Number)); x = pts.reduce((a, q) => a + q[0], 0)/pts.length - 16; y = pts.reduce((a, q) => a + q[1], 0)/pts.length + 22; }
+      const tx = document.createElementNS(NS, 'text'); tx.setAttribute('class', 'asp-lbl'); tx.setAttribute('x', x); tx.setAttribute('y', y); tx.setAttribute('style', `fill:var(${PCOL[aspFocus]})`);
+      tx.textContent = `${J.PAB[aspFocus]} ${ASP_WORD[o]}`; svg.appendChild(tx); }
+  }
+  const chips = J.SEVEN.map(b => `<button type="button" class="ag-chip${aspFocus === b ? ' on' : ''}" data-agp="${b}" style="--pc:var(${PCOL[b]})">${b}</button>`).join('');
+  let detail = '';
+  if (aspFocus) {
+    const b = aspFocus, hs = hOf(sg(b));
+    detail = `<div class="ag-detail"><p><b style="color:var(${PCOL[b]})">${b}</b> sits in your <b>${J.ORD(hs)} house</b> (${J.SIGNS[sg(b)]}). Count that house as 1 and move forward:</p><ul>
+      ${offs(b).map(o => { const t = (sg(b) + o - 1) % 12, h = hOf(t), occ = J.PL.filter(x => sg(x) === t);
+        return `<li><b>${ASP_WORD[o]} aspect</b>: ${J.ORD(hs)} + ${o - 1} = your <b>${J.ORD(h)} house</b> (${J.SIGNS[t]}: ${area(h)})${occ.length ? `, where it also hits <b>${occ.join(', ')}</b>` : ''}.</li>`; }).join('')}
+      </ul><p>${ben(b) ? `${b} is a natural <span class="tipben">benefic</span>: its gaze <b>protects and helps</b> the houses and planets it looks at.` : `${b} is a natural <span class="tipmal">malefic</span>: its gaze brings <b>pressure, effort or conflict</b> to the houses it looks at (in the 3rd, 6th, 10th and 11th that pressure helps you win).`}
+      ${C.func[b] ? ` For your lagna it is ${({yogakaraka: 'your yogakaraka (best planet)', benefic: 'a functional benefic', malefic: 'a functional malefic', neutral: 'functionally neutral'})[C.func[b]]}, and it carries its houses (${C.P[b].lordOf.map(J.ORD).join(' & ')}) into the houses it looks at.` : ''}</p></div>`;
+  }
+  // who looks at each house
+  const rows = Array.from({length: 12}, (_, i) => { const h = i + 1, t = (lag + i) % 12, by = J.SEVEN.filter(b => offs(b).some(o => (sg(b) + o - 1) % 12 === t));
+    const nb = by.filter(ben).length, nm = by.length - nb, cls = !by.length ? '' : nb > nm ? 'good' : nm > nb ? 'bad' : 'mix';
+    return `<tr class="ag-r ${cls}"><td><b>${h}</b></td><td>${area(h)}</td><td>${by.length ? by.map(b => `<button type="button" class="ag-mini" data-agp="${b}" style="--pc:var(${PCOL[b]})">${b}</button> <small>${ASP_WORD[offs(b).find(o => (sg(b) + o - 1) % 12 === t)]}</small>`).join(' ') : '<span class="muted">none</span>'}</td></tr>`; }).join('');
+  box.innerHTML = `<div class="ag-rules"><b>How aspects work.</b> A planet does not only act where it sits; it also <b>looks at</b> (aspects) other houses and the planets in them.
+      <ul><li>Every planet looks at the <b>7th house</b> from itself, straight across the chart.</li><li><b>Mars</b> also looks at the <b>4th and 8th</b>; <b>Jupiter</b> at the <b>5th and 9th</b>; <b>Saturn</b> at the <b>3rd and 10th</b>.</li><li>Count from the planet’s own house as 1. <b>Benefics</b> (Jupiter, Venus, waxing Moon, Mercury) help what they look at; <b>malefics</b> (Saturn, Mars, Sun, Rahu, Ketu) pressure it.</li></ul></div>
+    <div class="ag-pick"><span>Pick a planet:</span>${chips}${aspFocus ? '<button type="button" class="ag-chip" data-agp="">Clear</button>' : ''}</div>
+    ${detail || '<p class="muted" style="margin:6px 0">Tap a planet to see its arrows and which houses it looks at.</p>'}
+    <h4 style="margin:12px 0 4px">Who looks at each of your houses${view !== 'd1' ? ` (${view.toUpperCase()} chart)` : ''}</h4>
+    <div class="tablewrap"><table class="ln-t ag-t"><thead><tr><th>House</th><th>Area of life</th><th>Looked at by</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="note">Green rows: more benefics than malefics look at that house (protected). Red rows: more malefics (pressured). Rahu and Ketu are left out, as in the book.</p>`;
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('#aspguidebtn')) { aspGuideOn = !aspGuideOn; if (!aspGuideOn) aspFocus = null; aspGuideRender(); return; }
+  const c = e.target.closest('[data-agp]'); if (c) { aspFocus = c.dataset.agp && c.dataset.agp !== aspFocus ? c.dataset.agp : null; aspGuideRender(); return; }
+  const g = e.target.closest('[data-bigchart]'); if (g) { const card = g.closest('.chartcard'); const on = !card.classList.contains('big'); document.querySelectorAll('.chartcard.big').forEach(x => x.classList.remove('big'));
+    card.classList.toggle('big', on); document.body.classList.toggle('chart-big-open', on); document.querySelectorAll('[data-bigchart]').forEach(x => x.textContent = x.closest('.chartcard.big') ? '✕ Close' : '⤢ Enlarge'); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.chartcard.big')) { document.querySelectorAll('.chartcard.big').forEach(x => x.classList.remove('big')); document.body.classList.remove('chart-big-open'); document.querySelectorAll('[data-bigchart]').forEach(x => x.textContent = '⤢ Enlarge'); } });
 
 let tipsOn = true;
 function setTips(on) { tipsOn = on; store.set('jk-tips', on); document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', on)); if (!on) document.querySelectorAll('.charttip').forEach(t => t.hidden = true); }
