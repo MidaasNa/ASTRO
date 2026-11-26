@@ -184,6 +184,13 @@ details.pl summary::-webkit-details-marker{display:none}
 .hg-k{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
 .hg-t tr.hg-d.good td{background:var(--good-soft)} .hg-t tr.hg-d.bad td{background:var(--bad-soft)} .hg-t tr.hg-d.mix td{background:var(--mixed-soft)}
 .hg-t tr.hg-d.good td:first-child{border-left:4px solid var(--good)} .hg-t tr.hg-d.bad td:first-child{border-left:4px solid var(--bad)} .hg-t tr.hg-d.mix td:first-child{border-left:4px solid var(--mixed)}
+.ly-t td{vertical-align:top}
+.ly-n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:700;color:#fff;margin-right:7px;vertical-align:1px}
+.ly-t tr.ly-a td{background:var(--good-soft)} .ly-t tr.ly-a .ly-n{background:var(--good)}
+.ly-t tr.ly-b td{background:var(--accent-soft)} .ly-t tr.ly-b .ly-n{background:var(--accent)}
+.ly-t tr.ly-c td{background:var(--mixed-soft)} .ly-t tr.ly-c .ly-n{background:var(--mixed)}
+.ly-t tr.ly-d td{background:var(--panel-2)} .ly-t tr.ly-d .ly-n{background:var(--indigo)}
+.hbtab tr.hb-top td{background:var(--good-soft)}
 .hg-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin:10px 0}
 .hg{padding:8px 11px;border-radius:8px;border-left:4px solid;font-size:13.5px}
 .hg.good{background:var(--good-soft);border-color:var(--good)} .hg.bad{background:var(--bad-soft);border-color:var(--bad)} .hg.grow{background:var(--mixed-soft);border-color:var(--mixed)}
@@ -1460,6 +1467,30 @@ function lordPeriodsLine(lord) {
   else if (nxt) t += `Next sub-period: ${nxt.md}–${lord}, ${my(nxt.start)} – ${my(nxt.end)}.`;
   return t;
 }
+function layersTable() {
+  const ex = (() => { if (!C) return {}; const ll = J.SIGN_LORD[C.lagna], q = C.P[ll], T = J.transitPositions(new Date()), sh = (T.Saturn.sign - C.lagna + 12) % 12 + 1;
+    const DW = {exalted: 'exalted, so it gives easily', moolatrikona: 'in its moolatrikona sign, so it gives easily', own: 'in its own sign, so it gives strongly', debilitated: 'debilitated, so it gives with struggle'};
+    return {
+      alpha: `Your lagna lord ${ll} (who) in ${J.SIGNS[q.sign]} (how) in your ${J.ORD(q.house)} house (where).`,
+      themes: `Your ${J.ORD(q.house)} house = ${HOUSE_AREA[q.house].toLowerCase()}. Your 7th = marriage; your 10th = career.`,
+      lords: `${ll} rules your ${q.lordOf.map(J.ORD).join(' and ')} and carries ${q.lordOf.length > 1 ? 'both' : 'it'} to your ${J.ORD(q.house)}.`,
+      strength: `${ll} is ${DW[q.dignity] || 'in a ' + q.dignity + ' sign, so it gives moderately'}.`,
+      dasa: C.cur ? `Now: ${C.cur.md.lord} main period, ${C.cur.ad.lord} sub-period (until ${C.cur.ad.end.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'})}).` : '',
+      transit: `Saturn is moving through your ${J.ORD(sh)} house (${HOUSE_SHORT[sh]}) now.`,
+      combine: C.cur ? `${C.cur.ad.lord}’s sub-period plus Saturn in your ${J.ORD(sh)}: read both together.` : ''}; })();
+  const L = [
+    ['1', 'Alphabet: planets, signs, houses', 'Who acts, how, and where?', 'A planet is the actor, its sign the style, its house the area of life.', ex.alpha, 'planets', 'a'],
+    ['2', 'House themes', 'What does each house mean in life?', 'The 12 houses: their areas of life, people and body parts, and the groups (kendra, trikona, dusthana, upachaya). Green houses are good, red are difficult.', ex.themes, 'houses', 'a'],
+    ['3', 'Lordship', 'Which planet carries which house?', 'Every house has a lord. The lord takes that house’s matters to wherever it sits.', ex.lords, 'lords', 'b'],
+    ['4', 'Strength (dignity)', 'How easily does it deliver?', 'Exalted or own sign: easily. Enemy sign or debilitated: with struggle or delay.', ex.strength, 'dignity', 'b'],
+    ['5', 'Dasa (timing)', 'When does the door open?', 'A planet gives its results in its own main period and sub-periods, filtered by your age.', ex.dasa, 'dasa', 'c'],
+    ['6', 'Transit (trigger)', 'Which month?', 'Where planets move now, read the same way as birth placements: who, how, where.', ex.transit, 'transit', 'c'],
+    ['7', 'Putting it together', 'Do the layers agree?', 'Birth promise + strength + dasa + transit. One layer alone is a guess; when they agree it is a prediction.', ex.combine, 'method', 'd']];
+  return `<div class="tablewrap"><table class="ln-t ly-t"><thead><tr><th>Layer</th><th>The question it answers</th><th>What you learn</th><th>${C ? 'In your chart' : 'Example'}</th><th></th></tr></thead><tbody>
+    ${L.map(r => `<tr class="ly-${r[6]}"><td><span class="ly-n">${r[0]}</span><b>${r[1]}</b></td><td><b>${r[2]}</b></td><td>${r[3]}</td><td>${r[4] || '—'}</td><td><button type="button" class="szbtn" data-lesson="${r[5]}">Open lesson →</button></td></tr>`).join('')}
+  </tbody></table></div>
+  <p class="note">Layers 1–2 tell you <b>what</b> a chart talks about; 3–4 tell you <b>how well</b>; 5–6 tell you <b>when</b>; 7 is the skill of combining them.</p>`;
+}
 const LESSONS = [
 {id: 'what', t: 'What is Vedic astrology?', lvl: 'Start here', body: () => `
   <p>At the moment you were born, the Sun, the Moon and the planets were at particular places in the sky. A <b>birth chart</b> (kundali or jathakam) is simply a map of that sky, drawn from the exact place you were born.</p>
@@ -1478,6 +1509,13 @@ const LESSONS = [
   quiz: [['A birth chart is a map of…', ['your palm lines', 'the sky at your time and place of birth', 'your family tree'], 1],
          ['In the “actor / costume / stage” picture, the houses are…', ['the actors', 'the costumes', 'the stages (areas of life)'], 2]]},
 
+{id: 'layers', t: 'The layers of chart reading', lvl: 'Start here', body: () => `
+  <p>Reading a chart is like peeling layers. Each layer answers <b>one question</b>, and each needs the one before it. Learn them in this order; every row links to its lesson.</p>
+  ${layersTable()}
+  ${lnSimple('Alphabet + house themes tell you WHAT; lordship and strength tell you HOW WELL; dasa tells you WHEN; transit tells you WHICH MONTH. A prediction needs all of them to agree.')}`,
+  quiz: [['Which layer tells you WHEN something happens?', ['Strength', 'Dasa', 'House themes'], 1],
+         ['A planet sits in your 7th house. Which layer tells you that this is about marriage?', ['House themes', 'Transit', 'Lordship'], 0],
+         ['Which layer narrows a prediction down to the month?', ['Dasa', 'Transit', 'Alphabet'], 1]]},
 {id: 'signs', t: 'The 12 signs (rasis)', lvl: 'Basics', body: () => `
   <p>The sky is divided into 12 equal slices of 30° each, called signs. Each sign has an <b>element</b> (fire, earth, air, water), a <b>quality</b> (movable, fixed, dual) and a <b>ruling planet</b> (its owner, or lord).</p>
   ${lnTable(['#', 'Sign', 'Element', 'Quality', 'Owner', 'Personality in one line'], J.SIGNS.map((s, i) => [i + 1, `<b>${s}</b><br><span class="muted">${J.SANSK[i]}</span>`, J.RASI[i].el, J.RASI[i].q, lnPl(J.SIGN_LORD[i]), SIGN_EASY[i]]))}
@@ -1510,6 +1548,7 @@ const LESSONS = [
     <li><b>Upachayas 3, 6, 10, 11</b>: houses that <i>grow with time</i>. Malefics do well here; results improve with age.</li>
   </ul>
   ${lnSimple('Kendra = strength, Trikona = luck, Dusthana = struggle, Upachaya = slow improvement.')}
+  <p class="note">This is <b>layer 2 (house themes)</b> of <a href="#" data-lesson="layers">the layers of chart reading</a>.</p>
   ${C ? `<h4>Your 12 houses at a glance</h4><p>The sign in each house comes from your ascendant (${J.SIGNS[C.lagna]}). Read any placement as one sentence: <b>planet (who)</b> acts in the style of its <b>sign (how)</b> in this <b>area of life (where)</b>.</p>
   <div class="hg-key">
     <div class="hg good"><b>Kendras (1, 4, 7, 10)</b>: the pillars of life. Planets here are strong.</div>
@@ -4256,6 +4295,86 @@ function bodyMap() {
    <h4 style="margin:14px 0 6px">Planets and body parts</h4><div class="tablewrap"><table class="remtab bodytab"><thead><tr><th>Planet</th><th>Body parts</th><th>Tissue (dhatu)</th><th>Typical problems when afflicted</th><th>Strength in your chart</th><th>For you</th></tr></thead><tbody>${plRows}</tbody></table></div>
    ${run.length ? `<p class="note">You are running ${run[0]}–${run[1]} now, so the body areas of ${run.join(' and ')} deserve extra attention in this period.</p>` : ''}</div>`;
 }
+// ---------- Career windows: periods of planets linked to the 10th house, triggered by Jupiter (and Saturn) on the 10th ----------
+function careerTimeline() {
+  if (C._careerTL) return C._careerTL;
+  const now = new Date(), end = new Date(now.getTime() + 15*365.25*864e5), yr = 365.2425*864e5, s10 = (C.lagna + 9) % 12, l10 = J.SIGN_LORD[s10], s11 = (C.lagna + 10) % 12, l11 = J.SIGN_LORD[s11];
+  const fmtM = d => d.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'});
+  const occ = J.PL.filter(b => C.P[b].sign === s10);
+  const link = {}, wt = {}; const add = (b, why, w) => { (link[b] = link[b] || []).push(why); wt[b] = Math.max(wt[b] || 0, w); };
+  add(l10, 'lord of your 10th (career)', 1); occ.forEach(b => add(b, 'sits in your 10th', 1));
+  add('Sun', 'karaka of status and authority', 0.75); add('Saturn', 'karaka of work and service', 0.75);
+  if (l11 !== l10) add(l11, 'lord of your 11th (gains, salary)', 0.75);
+  (C.grahaAspects[s10] || []).forEach(b => add(b, 'aspects your 10th at birth', 0.75));
+  const ads = C.dasa.MD.flatMap(m => m.ads.map(a => ({md: m.lord, ad: a.lord, start: a.start, end: a.end}))).filter(a => a.end > now && a.start < end);
+  const rows = [];
+  for (const a of ads) {
+    const wm = wt[a.md] || 0, wa = a.ad === a.md ? 0 : (wt[a.ad] || 0); if (!wm && !wa) continue;
+    const st = a.start > now ? a.start : now;
+    const jr = []; let open = null, satOn = false, node = false;
+    for (let t = st.getTime(); t < a.end.getTime(); t += 10*864e5) { const T = J.transitPositions(new Date(t)), d = (s10 - T.Jupiter.sign + 12) % 12, ds = (s10 - T.Saturn.sign + 12) % 12;
+      if ([0, 4, 6, 8].includes(d)) { const inside = d === 0; if (!open || open.inside !== inside) { open = {a: new Date(t), b: new Date(t), inside}; jr.push(open); } else open.b = new Date(t); } else open = null;
+      if ([0, 2, 6, 9].includes(ds)) satOn = true;
+      if (T.Rahu.sign === s10 || T.Ketu.sign === s10) node = true; }
+    let sc = wm + (a.ad === a.md ? wm : wa) + (jr.some(x => x.inside) ? 1 : jr.length ? 0.5 : 0) + (jr.length && satOn ? 1 : 0);
+    if (sc < 1.75) continue;
+    const why = [];
+    if (wm) why.push(`${a.md}: ${link[a.md].join(', ')}`);
+    if (wa) why.push(`${a.ad}: ${link[a.ad].join(', ')}`);
+    if (jr.length && satOn) why.push('double transit: Jupiter and Saturn both on your 10th');
+    const kind = node || satOn && !jr.length || [a.md, a.ad].some(b => b === 'Rahu' || b === 'Ketu') ? 'Job change or new role; sudden turns'
+      : [a.md, a.ad].includes('Sun') || jr.some(x => x.inside) ? 'Promotion, recognition, a raise'
+      : [a.md, a.ad].includes(l11) ? 'Salary growth and gains from work' : 'Steady progress and bigger responsibility';
+    const jtxt = jr.length ? jr.map(x => `${x.inside ? '<b>in</b> your 10th' : 'aspects your 10th'} ${fmtM(x.a)} – ${fmtM(new Date(x.b.getTime() + 10*864e5))}`).join('; ') : '—';
+    const r = sc >= 3 ? ['★★★ Strongest', 'good'] : sc >= 2.5 ? ['★★ Good', 'ok'] : ['★ Possible', 'mixed'];
+    rows.push(`<tr class="${sc >= 3 ? 'hb-top' : ''}"><td><b>${a.md}–${a.ad}</b></td><td class="mono" style="white-space:nowrap">${fmtM(st)} – ${fmtM(a.end)}</td><td>${Math.floor((st - C.date)/yr)}–${Math.floor((a.end - C.date)/yr)}</td><td>${why.join('; ')}</td><td>${kind}</td><td>${jtxt}</td><td>${chip(r[0], r[1])}</td></tr>`);
+  }
+  const lq = C.P[l10], dus = [6, 8, 12].includes(lq.house), strongL = ['exalted', 'own', 'moolatrikona'].includes(lq.dignity);
+  const promise = `Your 10th house (career, status) is ${J.SIGNS[s10]}. Its lord ${l10} sits in your ${J.ORD(lq.house)}${dus ? ', a difficult house: <b>career rises through struggle, and changes come often</b>' : [1, 4, 5, 7, 9, 10, 11].includes(lq.house) ? ', a good house: career is supported' : ''}${strongL ? ' and is strong' : lq.dignity === 'debilitated' ? ' but is debilitated' : ''}. ${occ.length ? `${occ.join(', ')} ${occ.length > 1 ? 'sit' : 'sits'} in your 10th${occ.some(b => b === 'Rahu') ? ' (Rahu: an ambitious, unconventional career, often in technology or with foreign links, with sudden changes)' : ''}.` : 'No planet sits in your 10th.'} Your 11th lord (gains, salary) is ${l11}.`;
+  return C._careerTL = `<div class="pr-phases"><h3>Career windows</h3>
+   <p class="lead">${promise}</p>
+   <p>Career moves come in the sub-periods of planets linked to your 10th house (its lord, the planets in it or aspecting it, the karakas Sun and Saturn, and your 11th lord for salary). A window is strongest when both period lords are linked and transiting <b>Jupiter</b> sits in or aspects your 10th; with <b>Saturn</b> also on your 10th it is a <b>double transit</b>, the classic sign of a big career event. Next 15 years:</p>
+   ${rows.length ? `<div class="tablewrap"><table class="remtab rectab hbtab"><thead><tr><th>Period</th><th>Dates</th><th>Age</th><th>Why</th><th>Likely kind</th><th>Jupiter on your 10th (trigger months)</th><th>Rating</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>` : '<p class="muted">No strong window in the next 15 years.</p>'}
+   <p class="note">“Likely kind” is a hint: Sun periods and Jupiter in the 10th lean to promotion and recognition; Rahu, Ketu or Saturn crossing the 10th lean to a change of job or role; the 11th lord leans to salary. Use the windows to time your requests, applications and moves.</p></div>`;
+}
+// ---------- House-buying windows: periods of planets linked to the 4th house, triggered by Jupiter on the 4th ----------
+function houseBuyTimeline() {
+  if (C._houseTL) return C._houseTL;
+  const now = new Date(), end = new Date(now.getTime() + 15*365.25*864e5), yr = 365.2425*864e5, s4 = (C.lagna + 3) % 12, l4 = J.SIGN_LORD[s4];
+  const fmtM = d => d.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'});
+  const occ = J.PL.filter(b => C.P[b].sign === s4), marsAsp = [3, 6, 7].some(o => (C.P.Mars.sign + o) % 12 === s4), marsIn = C.P.Mars.sign === s4;
+  const link = {}; const add = (b, w) => { link[b] = link[b] || []; link[b].push(w); };
+  add(l4, `lord of your 4th`); occ.forEach(b => add(b, `sits in your 4th`)); add('Mars', marsAsp ? 'karaka of land, aspects your 4th' : marsIn ? 'karaka of land, in your 4th' : 'karaka of land');
+  const isNode = b => b === 'Rahu' || b === 'Ketu';
+  const ads = C.dasa.MD.flatMap(m => m.ads.map(a => ({md: m.lord, ad: a.lord, start: a.start, end: a.end}))).filter(a => a.end > now && a.start < end);
+  const rows = [];
+  for (const a of ads) {
+    const mdL = !!link[a.md], adL = !!link[a.ad]; if (!mdL && !adL) continue;
+    const st = a.start > now ? a.start : now;
+    // Jupiter in the 4th sign, or aspecting it (5th, 7th or 9th from Jupiter)
+    const jr = []; let open = null;
+    for (let t = st.getTime(); t < a.end.getTime(); t += 10*864e5) { const T = J.transitPositions(new Date(t)), d = (s4 - T.Jupiter.sign + 12) % 12;
+      if ([0, 4, 6, 8].includes(d)) { const inside = d === 0; if (!open || open.inside !== inside) { open = {a: new Date(t), b: new Date(t), inside}; jr.push(open); } else open.b = new Date(t); } else open = null; }
+    const both = mdL && adL && a.md !== a.ad ? true : mdL && adL;
+    let stars = (mdL ? 1 : 0) + (adL ? 1 : 0) + (jr.some(x => x.inside) ? 1 : jr.length ? 0.5 : 0);
+    if (isNode(a.ad) || isNode(a.md)) stars -= 0.5;
+    if (stars < 2) continue;
+    const why = [];
+    if (mdL) why.push(`${a.md}: ${link[a.md].join(', ')}`);
+    if (adL && a.ad !== a.md) why.push(`${a.ad}: ${link[a.ad].join(', ')}`);
+    if (isNode(a.ad)) why.push(`${a.ad} gives property with disturbance or disputes; check papers carefully`);
+    const jtxt = jr.length ? jr.map(x => `${x.inside ? '<b>in</b> your 4th' : 'aspects your 4th'} ${fmtM(x.a)} – ${fmtM(new Date(x.b.getTime() + 10*864e5))}`).join('; ') : '—';
+    const r = stars >= 2.75 ? ['★★★ Strongest', 'good'] : stars >= 2.25 ? ['★★ Good', 'ok'] : ['★ Possible', 'mixed'];
+    rows.push(`<tr class="${stars >= 2.75 ? 'hb-top' : ''}"><td><b>${a.md}–${a.ad}</b></td><td class="mono" style="white-space:nowrap">${fmtM(st)} – ${fmtM(a.end)}</td><td>${Math.floor((st - C.date)/yr)}–${Math.floor((a.end - C.date)/yr)}</td><td>${why.join('; ')}</td><td>${jtxt}</td><td>${chip(r[0], r[1])}</td></tr>`);
+  }
+  const lq = C.P[l4], dus = [6, 8, 12].includes(lq.house), strongL = ['exalted', 'own', 'moolatrikona'].includes(lq.dignity);
+  const promise = `Your 4th house (home, land, property) is ${J.SIGNS[s4]}. Its lord ${l4} sits in your ${J.ORD(lq.house)}${dus ? ', a difficult house: <b>expect property to come with a loan or a big expense</b>' : strongL ? ' in strength: property comes smoothly' : ''}. ${occ.length ? `${occ.join(', ')} ${occ.length > 1 ? 'sit' : 'sits'} in your 4th${occ.some(b => b === 'Jupiter' || b === 'Venus') ? ', which supports the promise' : ''}.` : 'No planet sits in your 4th.'} Mars, the karaka of land, ${['exalted', 'own', 'moolatrikona'].includes(C.P.Mars.dignity) ? 'is strong and ' : ''}${marsAsp ? '<b>aspects your 4th</b>: a strong property signature' : marsIn ? 'sits in your 4th' : 'does not touch your 4th'}.`;
+  return C._houseTL = `<div class="pr-phases"><h3>House-buying windows</h3>
+   <p class="lead">${promise}</p>
+   <p>A house comes in the sub-periods of planets linked to your 4th house (its lord, the planets in it, and Mars, the karaka of land). The window is strongest when <b>both</b> period lords are linked and transiting <b>Jupiter</b> sits in or aspects your 4th at the same time. Next 15 years:</p>
+   ${rows.length ? `<div class="tablewrap"><table class="remtab rectab hbtab"><thead><tr><th>Period</th><th>Dates</th><th>Age</th><th>Why</th><th>Jupiter on your 4th (trigger months)</th><th>Rating</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>` : '<p class="muted">No strong window in the next 15 years.</p>'}
+   <p class="note">Rahu and Ketu periods are marked down a little: they can give property, but often with disputes or paperwork trouble. The chart shows when conditions favour a purchase; whether a house is affordable then is a money decision for your budget and loan options.</p></div>`;
+}
 // ---------- Recognition timeline: sub-periods ahead scored for career recognition (Sun / 10th lord periods, career themes, Jupiter on the 10th) ----------
 function recognitionTimeline() {
   if (C._recTL) return C._recTL;
@@ -4301,6 +4420,8 @@ function tPredict() {
   return `<p class="lead">A forecast for each area of life. <b>What your chart promises</b> comes from the strength of the relevant houses, their lords, the natural significator planets and yogas (the same rules as the Houses and Planets tabs). <b>When</b> comes from your dasa timeline, the method that matched 9 of 13 of your logged life events. These are tendencies to plan with, not certainties; effort, choices and circumstances still decide outcomes.</p>
   <div class="pr-phases"><h3>Life phases ahead</h3><div class="tablewrap"><table class="pr-phtab"><thead><tr><th>Period</th><th>Years</th><th>Age</th><th>Sub-periods</th><th>Theme</th></tr></thead><tbody>${phases}</tbody></table></div></div>
   ${recognitionTimeline()}
+  ${careerTimeline()}
+  ${houseBuyTimeline()}
   <div class="pr-grid">${cards.join('')}</div>
   ${bodyMap()}
   <p class="note" style="margin-top:14px">Ratings combine house strength (the lord’s placement and dignity, occupants and aspects), the significator planets and yogas. “Needs effort” means the area develops with effort or delays, not that it is denied. Timing windows show only Medium or High confidence sub-periods. Remedies follow chapter 34 of the book (Remedies tab has the mantras and details).</p>`;
