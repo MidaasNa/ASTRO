@@ -200,6 +200,23 @@ details.pl summary::-webkit-details-marker{display:none}
 .hg-t tr.hg-r td:first-child{border-left:4px solid transparent} .hg-t tr.hg-r.good td:first-child{border-left-color:var(--good)} .hg-t tr.hg-r.bad td:first-child{border-left-color:var(--bad)} .hg-t tr.hg-r.mix td:first-child{border-left-color:var(--mixed)}
 .hg-tag{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap}
 .hg-tag.good{background:var(--good);color:#fff} .hg-tag.bad{background:var(--bad);color:#fff} .hg-tag.grow,.hg-tag.mix{background:var(--mixed);color:#fff}
+.relb{display:inline-block;min-width:20px;text-align:center;font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;color:#fff;vertical-align:1px}
+.relb.sm{font-size:10px;padding:0 5px;min-width:16px}
+.relb.rx{background:#1e7a46} .relb.ro{background:#2f9e5b} .relb.rf{background:#7cbf6a} .relb.rn{background:#9aa0ad} .relb.re{background:#d9573f} .relb.rd{background:#9b1c1c}
+.trel-key{display:none !important} body.trel-on .trel-key{display:flex !important;margin-top:8px}
+.teff-key{display:none !important} body.teff-on .teff-key{display:flex !important;margin-top:8px}
+body.teff-on .trel-key{display:none !important}
+.rel-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;margin:6px 0}
+.rel-t tr.rel-r.rx td,.rel-t tr.rel-r.ro td,.rel-t tr.rel-r.rf td{background:var(--good-soft)} .rel-t tr.rel-r.re td,.rel-t tr.rel-r.rd td{background:var(--bad-soft)}
+.chartbox svg .relsvg text{font-size:8.5px;font-weight:800;fill:#fff;font-family:var(--body)}
+.chartbox svg .relsvg.rx rect{fill:#1e7a46} .chartbox svg .relsvg.ro rect{fill:#2f9e5b} .chartbox svg .relsvg.rf rect{fill:#7cbf6a} .chartbox svg .relsvg.rn rect{fill:#9aa0ad} .chartbox svg .relsvg.re rect{fill:#d9573f} .chartbox svg .relsvg.rd rect{fill:#9b1c1c}
+.sky2d svg .relsvg text{font-size:13px;font-weight:800;fill:#fff;font-family:var(--body)}
+.sky2d svg .relsvg.rx rect{fill:#1e7a46} .sky2d svg .relsvg.ro rect{fill:#2f9e5b} .sky2d svg .relsvg.rf rect{fill:#5fae4e} .sky2d svg .relsvg.rn rect{fill:#7d8494} .sky2d svg .relsvg.re rect{fill:#d9573f} .sky2d svg .relsvg.rd rect{fill:#9b1c1c}
+.relb.ef-gp{background:#1e7a46} .relb.ef-g{background:#5fae4e} .relb.ef-gm{background:#c98a16} .relb.ef-np{background:#5b9bd5} .relb.ef-n{background:#9aa0ad} .relb.ef-nm{background:#e08a5a} .relb.ef-mp{background:#3b6fb6} .relb.ef-m{background:#7d6f8a} .relb.ef-mm{background:#b3261e}
+.chartbox svg .relsvg.ef-gp rect{fill:#1e7a46} .chartbox svg .relsvg.ef-g rect{fill:#5fae4e} .chartbox svg .relsvg.ef-gm rect{fill:#c98a16} .chartbox svg .relsvg.ef-np rect{fill:#5b9bd5} .chartbox svg .relsvg.ef-n rect{fill:#9aa0ad} .chartbox svg .relsvg.ef-nm rect{fill:#e08a5a} .chartbox svg .relsvg.ef-mp rect{fill:#3b6fb6} .chartbox svg .relsvg.ef-m rect{fill:#7d6f8a} .chartbox svg .relsvg.ef-mm rect{fill:#b3261e}
+.ef-mx td.ef-cell{vertical-align:top;font-size:12.5px} .ef-mx th{font-size:12.5px;vertical-align:top;text-align:left}
+.ef-mx td.ef-gp,.ef-mx td.ef-g,.ef-t tr.ef-gp td,.ef-t tr.ef-g td{background:var(--good-soft)} .ef-mx td.ef-gm,.ef-mx td.ef-nm,.ef-t tr.ef-gm td,.ef-t tr.ef-nm td{background:var(--mixed-soft)} .ef-mx td.ef-mm,.ef-t tr.ef-mm td{background:var(--bad-soft)} .ef-mx td.ef-mp,.ef-mx td.ef-np,.ef-t tr.ef-mp td,.ef-t tr.ef-np td{background:var(--accent-soft)}
+.sky2d svg .relsvg.ef-gp rect{fill:#1e7a46} .sky2d svg .relsvg.ef-g rect{fill:#5fae4e} .sky2d svg .relsvg.ef-gm rect{fill:#c98a16} .sky2d svg .relsvg.ef-np rect{fill:#5b9bd5} .sky2d svg .relsvg.ef-n rect{fill:#7d8494} .sky2d svg .relsvg.ef-nm rect{fill:#e08a5a} .sky2d svg .relsvg.ef-mp rect{fill:#3b6fb6} .sky2d svg .relsvg.ef-m rect{fill:#7d6f8a} .sky2d svg .relsvg.ef-mm rect{fill:#b3261e}
 .aspguide{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .ag-rules{font-size:13.5px} .ag-rules ul{margin:4px 0 6px 18px;padding:0}
 .ag-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0} .ag-pick span{font-size:12.5px;color:var(--muted);margin-right:2px}
@@ -596,10 +613,12 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
           <button type="button" data-v="d9" aria-pressed="false">Navamsa D-9</button>
           <button type="button" data-v="d10" aria-pressed="false">Dasamsa D-10</button>
         </div>
-        <div class="togs"><button type="button" class="asptoggle" id="aspguidebtn" aria-pressed="false" title="Learn how aspects work: pick a planet to see which houses it looks at">Aspect guide</button><button type="button" class="asptoggle" data-bigchart title="Show this chart large">⤢ Enlarge</button><button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
+        <div class="togs"><button type="button" class="asptoggle" id="aspguidebtn" aria-pressed="false" title="Learn how aspects work: pick a planet to see which houses it looks at">Aspect guide</button><button type="button" class="asptoggle" id="relguidebtn" aria-pressed="false" title="Show whether each planet sits in a friend's, neutral or enemy's sign">Friends &amp; enemies</button><button type="button" class="asptoggle" id="effguidebtn" aria-pressed="false" title="Good or bad planet x comfortable or uncomfortable sign = its likely effect">Planet effect</button><button type="button" class="asptoggle" data-bigchart title="Show this chart large">⤢ Enlarge</button><button type="button" class="asptoggle" id="asptoggle" aria-pressed="false" title="Show every full aspect (graha drishti) as an arrow">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
       </div>
       <div class="chartbox" id="chartbox"></div>
       <div class="aspguide" id="aspguide" hidden></div>
+      <div class="aspguide" id="relguide" hidden></div>
+      <div class="aspguide" id="effguide" hidden></div>
       <div class="chartlegend" id="chartlegend" aria-label="House owners"></div>
       <p class="hint" id="chartnote" style="margin-top:8px"></p>
     </div>
@@ -609,11 +628,14 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
         <div class="togs">
           <div class="seg" role="group" aria-label="Count houses from"><button type="button" data-nref="lagna" aria-pressed="true">From lagna</button><button type="button" data-nref="moon" aria-pressed="false">From Moon</button></div>
           <button type="button" class="asptoggle" data-bigchart title="Show this chart large">⤢ Enlarge</button>
+          <button type="button" class="asptoggle" data-trel aria-pressed="false" title="Show whether each moving planet sits in a friend's, neutral or enemy's sign">Friends &amp; enemies</button><button type="button" class="asptoggle" data-teff aria-pressed="false" title="Good or bad planet for your lagna x comfortable or uncomfortable sign it is moving through">Planet effect</button>
           <button type="button" class="asptoggle" data-taspt aria-pressed="false" title="Show every full aspect of the planets now">Aspects</button>
           <button type="button" class="asptoggle" data-tiptoggle aria-pressed="true" title="Show or hide the details box when you hover over or tap a house">Tooltips</button>
         </div>
       </div>
       <div class="chartbox" id="nowbox"></div>
+      <div class="rel-key trel-key" id="nowrelkey"></div>
+      <div class="rel-key teff-key" id="noweffkey"></div>
       <p class="hint" style="margin-top:8px">Where the planets are today. Grey n: marks your natal planets. Aspects shows every full aspect of the transiting planets as an arrow. Hover over or tap a house for the transit result and any transit over your natal planets. <a href="#" id="nowmore">Transit details and other dates →</a></p>
     </div>
     <div class="facts">
@@ -822,6 +844,8 @@ function southSVG() {
       const col = two ? i % 2 : 0, row = two ? Math.floor(i/2) : i;
       const tx = two ? x + 8 + col*46 : x + 10, ty = y + 32 + row*(two ? 15 : 17);
       g += `<text x="${tx}" y="${ty}" font-size="${two ? 12 : 13.5}" fill="var(--ink)" font-family="var(--mono)">${tokenHTML(t, !two)}</text>`;
+      if ((relOn || effOn) && C) { const r = relSit(t.b), c = effOn ? effOf(t.b) : (REL_CAT[r] || ['N', 'rn']), bx = two ? tx + 33 : x + S - 26, w = c[0].length > 2 ? 22 : c[0].length > 1 ? 18 : 13;
+        g += `<g class="relsvg ${c[1]}" pointer-events="none"><rect x="${bx}" y="${ty - 10}" width="${w}" height="12" rx="6"/><text x="${bx + w/2}" y="${ty - 1}" text-anchor="middle">${c[0]}</text></g>`; }
       pos[t.b] = [tx + (two ? 10 : 12), ty - 4.5];
     });
   }
@@ -1016,7 +1040,7 @@ function renderLegend() {
   }).join('') + `<span class="lg note muted"><b style="color:var(--good)">▲</b>&nbsp;exalted (solid green) · <b style="color:var(--indigo)">★</b>&nbsp;own sign (dashed, planet colour) · <b style="color:var(--bad)">▼</b>&nbsp;debilitated (dotted red)</span>`;
 }
 function renderChart() {
-  $('#chartbox').innerHTML = (style === 'south' ? southSVG() : northSVG()) + '<div class="charttip" id="charttip" role="tooltip" hidden></div>'; wmApply($('#chartbox')); aspGuideRender();
+  $('#chartbox').innerHTML = (style === 'south' ? southSVG() : northSVG()) + '<div class="charttip" id="charttip" role="tooltip" hidden></div>'; wmApply($('#chartbox')); aspGuideRender(); relGuideRender(); effGuideRender();
   renderLegend();
   $('#chartnote').textContent = {d1:'Rasi chart: existence at the physical level.', d9:'Navamsa: marriage and spouse, dharma, basic skills and the inner self.', d10:'Dasamsa: career, activities and achievements in society.'}[view] + ' Each house is tinted in the colour of the planet that owns it; inner borders mark exalted (▲), own-sign (★) and debilitated (▼) planets; the outlined box is the lagna. Hover over or tap a house for details and to see the aspects landing on it; press Aspects to show them all. R = retrograde.';
 }
@@ -1184,6 +1208,101 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.chartcard.big')) { document.querySelectorAll('.chartcard.big').forEach(x => x.classList.remove('big')); document.body.classList.remove('chart-big-open'); document.querySelectorAll('[data-bigchart]').forEach(x => x.textContent = '⤢ Enlarge'); } });
 
+// ---------- Friends & enemies layer: is each planet a guest of a friend, a neutral or an enemy? ----------
+let relOn = false;
+const REL_CAT = {exalted: ['Ex', 'rx', 'exalted (best)'], moolatrikona: ['Own', 'ro', 'own (moolatrikona) sign'], own: ['Own', 'ro', 'own sign'], 'great friend’s sign': ['F+', 'rf', 'great friend’s sign'], friendly: ['F', 'rf', 'friend’s sign'],
+  friend: ['F', 'rf', 'friend’s sign'], neutral: ['N', 'rn', 'neutral sign'], inimical: ['E', 're', 'enemy’s sign'], enemy: ['E', 're', 'enemy’s sign'], 'bitter enemy’s sign': ['E+', 're', 'bitter enemy’s sign'], debilitated: ['Deb', 'rd', 'debilitated (weakest)']};
+function relSit(b) { // relationship of planet b with the lord of the sign it sits in (current view)
+  const key = VIEW_KEY(), s = C.P[b][key];
+  if (view === 'd1' && !['Rahu', 'Ketu'].includes(b)) return C.P[b].dignity;
+  if (J.EXALT[b][0] === s) return 'exalted'; if ((J.EXALT[b][0] + 6) % 12 === s) return 'debilitated'; if (J.OWN[b].includes(s)) return 'own';
+  if (['Rahu', 'Ketu'].includes(b)) return 'neutral';
+  return J.natRel(b, J.SIGN_LORD[s]);
+}
+const relBadge = (r, small) => { const c = REL_CAT[r] || ['N', 'rn', r]; return `<span class="relb ${c[1]}${small ? ' sm' : ''}" title="${c[2]}">${c[0]}</span>`; };
+function relGuideRender() {
+  const box = $('#relguide'); if (!box || !C) return;
+  box.hidden = !relOn; $('#relguidebtn').setAttribute('aria-pressed', relOn); if (!relOn) return;
+  const key = VIEW_KEY(), lag = view === 'd1' ? C.lagna : C.L[view], sg = b => C.P[b][key], offs = b => ASP_OFF[b] || [7];
+  const nat = J.SEVEN.map(b => `<tr><td><b style="color:var(${PCOL[b]})">${b}</b></td><td>${J.NAT[b].f.join(', ') || '—'}</td><td>${J.NAT[b].n.join(', ') || '—'}</td><td>${J.NAT[b].e.join(', ') || '—'}</td></tr>`).join('');
+  const rows = J.PL.map(b => { const s = sg(b), lord = J.SIGN_LORD[s], r = relSit(b), h = J.hFrom(lag, s);
+    const asp = ['Rahu', 'Ketu'].includes(b) ? '<span class="muted">no aspects in this book</span>' : offs(b).map(o => { const t = (s + o - 1) % 12, tl = J.SIGN_LORD[t];
+      const rr = tl === b ? 'own' : J.natRel(b, tl); return `${J.ORD(o)} → ${J.SIGNS[t]} (H${J.hFrom(lag, t)}, lord ${tl}) ${relBadge(rr, true)}`; }).join('<br>');
+    const cls = REL_CAT[r] ? REL_CAT[r][1] : 'rn';
+    return `<tr class="rel-r ${cls}"><td><b style="color:var(${PCOL[b] || '--muted'})">${b}</b></td><td>${J.SIGNS[s]} (H${h})</td><td>${lord}</td><td>${relBadge(r)} ${(REL_CAT[r] || [0, 0, r])[2]}</td><td>${asp}</td></tr>`; }).join('');
+  box.innerHTML = `<div class="ag-rules"><b>Friends and enemies.</b> Every sign has a lord. A planet sitting in a sign is a <b>guest</b> of that lord:
+     <ul><li><b>Own sign</b> or <b>exalted</b>: at home or honoured, so it gives its results <b>easily</b>.</li><li><b>Friend’s sign</b>: a welcome guest, so results come <b>comfortably</b>.</li><li><b>Neutral sign</b>: an ordinary guest, so results are <b>moderate</b>.</li><li><b>Enemy’s sign</b> or <b>debilitated</b>: an unwelcome guest, so results come <b>with struggle or delay</b>.</li></ul>
+     The same test works for <b>aspects</b>: a planet looking into a friend’s sign is received warmly; into an enemy’s sign, its gaze causes friction. The badges are now on the chart beside each planet.</div>
+    <div class="rel-key">${['exalted', 'own', 'friendly', 'neutral', 'inimical', 'debilitated'].map(r => `<span>${relBadge(r)} ${REL_CAT[r][2]}</span>`).join('')}</div>
+    <h4 style="margin:12px 0 4px">Your planets${view !== 'd1' ? ` (${view.toUpperCase()} chart)` : ''}</h4>
+    <div class="tablewrap"><table class="ln-t rel-t"><thead><tr><th>Planet</th><th>Sits in</th><th>Host (sign lord)</th><th>Relationship</th><th>Its aspects land in</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h4 style="margin:12px 0 4px">Natural friendships (Parashara)</h4>
+    <div class="tablewrap"><table class="ln-t"><thead><tr><th>Planet</th><th>Friends</th><th>Neutral</th><th>Enemies</th></tr></thead><tbody>${nat}</tbody></table></div>
+    <p class="note">${view === 'd1' ? 'For the planets sitting in D1, the app uses the full (compound) relationship, which adds temporary friendship from the chart (planets 2–4 or 10–12 signs apart become temporary friends), so a natural neutral can show as F or E. ' : ''}Aspects use the natural friendships in the second table. Rahu and Ketu use only exaltation, debilitation and own sign.</p>`;
+}
+document.addEventListener('click', e => { if (e.target.closest('#relguidebtn')) { relOn = !relOn; renderChart(); } });
+
+// ---------- Friends & enemies layer on the transit charts ----------
+let tRelOn = store.get('jk-trel') === true;
+function trRel(b, T) { const s = T[b].sign;
+  if (J.EXALT[b][0] === s) return 'exalted'; if ((J.EXALT[b][0] + 6) % 12 === s) return 'debilitated'; if (J.OWN[b].includes(s)) return 'own';
+  if (b === 'Rahu' || b === 'Ketu') return 'neutral'; return J.natRel(b, J.SIGN_LORD[s]); }
+function applyTRel() {
+  document.querySelectorAll('[data-trel]').forEach(x => x.setAttribute('aria-pressed', tRelOn)); document.body.classList.toggle('trel-on', tRelOn);
+  const k = $('#nowrelkey'); if (k && !k.innerHTML) k.innerHTML = ['exalted', 'own', 'friendly', 'neutral', 'inimical', 'debilitated'].map(r => `<span>${relBadge(r)} ${REL_CAT[r][2]}</span>`).join('') + '<span class="muted">· natural friendships with the sign lord</span>';
+}
+document.addEventListener('click', e => { if (!e.target.closest('[data-trel]')) return; tRelOn = !tRelOn; store.set('jk-trel', tRelOn); applyTRel();
+  try { renderNow(); } catch (err) {} if (tab === 'transits') try { renderTransitChart(); } catch (err) {} });
+
+// ---------- Planet effect layer: good or bad planet (for this lagna) x comfortable or uncomfortable sign ----------
+let effOn = false;
+const COMFORT = r => ['exalted', 'moolatrikona', 'own', 'great friend’s sign', 'friendly', 'friend'].includes(r) ? 'c' : ['inimical', 'enemy', 'bitter enemy’s sign', 'debilitated'].includes(r) ? 'u' : 'n';
+const NATURE = b => ['Rahu', 'Ketu'].includes(b) ? 'm' : ({yogakaraka: 'g', benefic: 'g', malefic: 'm', neutral: 'n'})[C.func[b]] || 'n';
+const EFF = {
+  gc: ['G+', 'ef-gp', 'Best', 'A good planet in a comfortable sign: gives its good results fully and on time.'],
+  gn: ['G', 'ef-g', 'Good', 'A good planet in a neutral sign: good results, moderate in size.'],
+  gu: ['G−', 'ef-gm', 'Good but held back', 'A good planet in an uncomfortable sign: the good is promised, but comes late, partly, or only with struggle.'],
+  nc: ['N+', 'ef-np', 'Leans good', 'A neutral planet in a comfortable sign: helpful; it leans towards good results.'],
+  nn: ['N', 'ef-n', 'Mixed', 'A neutral planet in a neutral sign: mixed; depends on the house and dasa.'],
+  nu: ['N−', 'ef-nm', 'Leans difficult', 'A neutral planet in an uncomfortable sign: it leans towards difficulty.'],
+  mc: ['M+', 'ef-mp', 'Controlled', 'A bad planet in a comfortable sign: its harm is limited and disciplined; it can even protect the house it sits in, and gives the matters of its houses with effort.'],
+  mn: ['M', 'ef-m', 'Some trouble', 'A bad planet in a neutral sign: its difficult side shows, moderately.'],
+  mu: ['M−', 'ef-mm', 'Most troublesome', 'A bad planet in an uncomfortable sign: frustrated, it brings losses, conflict, delay or illness to the houses it rules, sits in and looks at.']};
+const effOf = b => EFF[NATURE(b) + COMFORT(relSit(b))];
+function effGuideRender() {
+  const box = $('#effguide'); if (!box || !C) return;
+  box.hidden = !effOn; $('#effguidebtn').setAttribute('aria-pressed', effOn); if (!effOn) return;
+  const key = VIEW_KEY(), lag = view === 'd1' ? C.lagna : C.L[view], sg = b => C.P[b][key], offs = b => ASP_OFF[b] || [7];
+  const natW = {g: 'good planet', n: 'neutral planet', m: 'bad planet'}, comW = {c: 'comfortable sign', n: 'neutral sign', u: 'uncomfortable sign'};
+  const cell = k => `<td class="ef-cell ${EFF[k][1]}"><span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> <b>${EFF[k][2]}</b><br><small>${EFF[k][3]}</small></td>`;
+  const matrix = `<div class="tablewrap"><table class="ln-t ef-mx"><thead><tr><th></th><th>Comfortable sign<br><small>own, exalted, friend’s</small></th><th>Neutral sign</th><th>Uncomfortable sign<br><small>enemy’s, debilitated</small></th></tr></thead><tbody>
+    <tr><th>Good planet<br><small>benefic for your lagna</small></th>${cell('gc')}${cell('gn')}${cell('gu')}</tr>
+    <tr><th>Neutral planet</th>${cell('nc')}${cell('nn')}${cell('nu')}</tr>
+    <tr><th>Bad planet<br><small>malefic for your lagna, Rahu, Ketu</small></th>${cell('mc')}${cell('mn')}${cell('mu')}</tr></tbody></table></div>`;
+  const rows = J.PL.map(b => { const e = effOf(b), nat = NATURE(b), r = relSit(b), s = sg(b), h = J.hFrom(lag, s);
+    const rules = C.P[b].lordOf.filter(x => x).map(J.ORD), looks = ['Rahu', 'Ketu'].includes(b) ? [] : offs(b).map(o => J.ORD(J.hFrom(lag, (s + o - 1) % 12)));
+    const fn = ['Rahu', 'Ketu'].includes(b) ? 'shadow planet (treated as bad)' : ({yogakaraka: 'yogakaraka (best)', benefic: 'functional benefic', malefic: 'functional malefic', neutral: 'functionally neutral'})[C.func[b]];
+    return `<tr class="ef-r ${e[1]}"><td><b style="color:var(${PCOL[b] || '--muted'})">${b}</b></td><td>${fn}</td><td>${(REL_CAT[r] || [0, 0, r])[2]}</td><td><span class="relb ${e[1]}">${e[0]}</span> <b>${e[2]}</b></td><td>Rules ${rules.length ? rules.join(' & ') : '—'} · sits in ${J.ORD(h)}${looks.length ? ' · looks at ' + looks.join(', ') : ''}</td></tr>`; }).join('');
+  box.innerHTML = `<div class="ag-rules"><b>Planet effect = what kind of planet × how comfortable it is.</b> Two questions decide how a planet behaves in your chart:
+     <ul><li><b>Is it a good or bad planet for your lagna?</b> (functional nature: lords of trines are good, lords of 3, 6, 11 and some others are bad; Rahu and Ketu count as bad.)</li><li><b>Is it comfortable where it sits?</b> (own, exalted or friend’s sign = comfortable; enemy’s sign or debilitated = uncomfortable.)</li></ul>
+     A good planet that is comfortable gives the most; a bad planet that is uncomfortable harms the most. A bad planet that is comfortable is <b>controlled</b>, and a good planet that is uncomfortable is <b>held back</b>. The badges on the chart now show each planet’s box below.</div>
+    ${matrix}
+    <h4 style="margin:12px 0 4px">Your planets${view !== 'd1' ? ` (${view.toUpperCase()} chart)` : ''}</h4>
+    <div class="tablewrap"><table class="ln-t ef-t"><thead><tr><th>Planet</th><th>Good or bad for you</th><th>Comfort</th><th>Effect</th><th>Where the effect lands</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="note">“Where the effect lands”: a planet’s effect shows in the houses it <b>rules</b>, the house it <b>sits in</b> and the houses it <b>looks at</b>, most strongly during its dasa and sub-periods. This is a first-level reading; aspects from other planets, conjunctions and the dasa can strengthen or soften it.</p>`;
+}
+document.addEventListener('click', e => { if (e.target.closest('#effguidebtn')) { effOn = !effOn; renderChart(); } });
+
+// ---------- Planet effect layer on the transit charts: nature for your lagna x comfort of the sign it moves through ----------
+let tEffOn = store.get('jk-teff') === true;
+const tEffOf = (b, T) => EFF[NATURE(b) + COMFORT(trRel(b, T))];
+function applyTEff() {
+  document.querySelectorAll('[data-teff]').forEach(x => x.setAttribute('aria-pressed', tEffOn)); document.body.classList.toggle('teff-on', tEffOn);
+  const k = $('#noweffkey'); if (k && !k.innerHTML) k.innerHTML = ['gc', 'gn', 'gu', 'nc', 'nn', 'nu', 'mc', 'mn', 'mu'].map(x => `<span><span class="relb ${EFF[x][1]}">${EFF[x][0]}</span> ${EFF[x][2]}</span>`).join('') + '<span class="muted">· good/bad for your lagna × comfort of the sign it is moving through</span>';
+}
+document.addEventListener('click', e => { if (!e.target.closest('[data-teff]')) return; tEffOn = !tEffOn; store.set('jk-teff', tEffOn); applyTEff();
+  try { renderNow(); } catch (err) {} if (tab === 'transits') try { renderTransitChart(); } catch (err) {} });
+
 let tipsOn = true;
 function setTips(on) { tipsOn = on; store.set('jk-tips', on); document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', on)); if (!on) document.querySelectorAll('.charttip').forEach(t => t.hidden = true); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-tiptoggle]'); if (b) setTips(!tipsOn); });
@@ -1243,6 +1362,8 @@ function transitSVG(T, date, idp) {
         const col = two ? i % 2 : 0, row = two ? Math.floor(i/2) : i;
         const tx = two ? x + 8 + col*46 : x + 10, ty = y + 31 + row*(two ? 14 : 16);
         g += `<text x="${tx}" y="${ty}" font-size="${two ? 12 : 13}" fill="var(--ink)" font-weight="600" font-family="var(--mono)">${tok(b)}${two ? '' : `<tspan font-size="0.78em" fill="var(--muted)" font-weight="400"> ${Math.floor(T[b].deg)}°</tspan>`}</text>`;
+        if (tRelOn || tEffOn) { const r = trRel(b, T), c = tEffOn ? [...tEffOf(b, T).slice(0, 2), tEffOf(b, T)[2] + ' (' + (REL_CAT[r] || [0, 0, r])[2] + ')'] : (REL_CAT[r] || ['N', 'rn', r]), bx = two ? tx + 33 : x + S - 26, w = c[0].length > 2 ? 22 : c[0].length > 1 ? 18 : 13;
+          g += `<g class="relsvg ${c[1]}" pointer-events="none"><title>${b} in ${J.SIGNS[T[b].sign]}: ${c[2]}</title><rect x="${bx}" y="${ty - 10}" width="${w}" height="12" rx="6"/><text x="${bx + w/2}" y="${ty - 1}" text-anchor="middle">${c[0]}</text></g>`; }
         pos[b] = [tx + (two ? 10 : 12), ty - 4.5];
       });
       target[s] = [x + 50, y + 62];
@@ -2096,7 +2217,7 @@ function wireLearn() {
 }
 
 // ---------- 3D sky: the zodiac wheel with signs, 27 nakshatras, houses, birth planets and moving transits (three.js, loaded on first use) ----------
-const SKY = {chart2d: 'd1', mode: (() => { try { return localStorage.getItem('jk-skymode') || '3d'; } catch (err) { return '3d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true}};
+const SKY = {chart2d: 'd1', mode: (() => { try { return localStorage.getItem('jk-skymode') || '3d'; } catch (err) { return '3d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true, rel: (() => { try { return JSON.parse(localStorage.getItem('jk-skyrel')) === true; } catch (e) { return false; } })(), eff: (() => { try { return JSON.parse(localStorage.getItem('jk-skyeff')) === true; } catch (e) { return false; } })()}};
 // Navagraha mandala tradition: each graha has its own shape (pitha) and colour
 const SKY_COL = {Sun: '#F2552C', Moon: '#F2F3F7', Mars: '#D7263D', Mercury: '#2FB560', Jupiter: '#F7C531', Venus: '#FFF1D6', Saturn: '#4C63D9', Rahu: '#8E889E', Ketu: '#E08A3C'};
 const SKY_SHAPE = {Sun: 'Sun', Moon: 'crescent Moon', Mars: 'sword', Mercury: 'brain', Jupiter: 'praying hands', Venus: 'car', Saturn: 'crow', Rahu: 'bodiless head', Ketu: 'headless body'};
@@ -3532,8 +3653,14 @@ function sky2D(T) {
     ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((Pos[x].lon - Pos[b].lon + 540) % 360) - 180) < 9).length; }); return b => base + lv[b]*step; };
   const rn = stack(NP, 205, -36);
   const tl = (() => { const ord = J.PL.slice().sort((a, b) => T[a].lon - T[b].lon), lv = {}; ord.forEach((b, i) => { lv[b] = ord.slice(0, i).filter(x => Math.abs(((T[x].lon - T[b].lon + 540) % 360) - 180) < 9).length; }); return lv; })();
+  const relIn = (b, sg, natal) => { if (natal && dv === 'd1' && !['Rahu', 'Ketu'].includes(b)) return C.P[b].dignity;
+    if (J.EXALT[b][0] === sg) return 'exalted'; if ((J.EXALT[b][0] + 6) % 12 === sg) return 'debilitated'; if (J.OWN[b].includes(sg)) return 'own';
+    return ['Rahu', 'Ketu'].includes(b) ? 'neutral' : J.natRel(b, J.SIGN_LORD[sg]); };
+  const relTag = (b, x, y, natal, lon) => { if (!SKY.show.rel && !SKY.show.eff) return ''; const sg = Math.floor((((lon % 360) + 360) % 360)/30), r = relIn(b, sg, natal), rc = REL_CAT[r] || ['N', 'rn', r];
+    const c = SKY.show.eff ? (e => [e[0], e[1], `${e[2]} (${rc[2]})`])(EFF[NATURE(b) + COMFORT(r)]) : rc, w = c[0].length > 2 ? 34 : c[0].length > 1 ? 28 : 20;
+    return `<g class="relsvg ${c[1]}" pointer-events="none"><title>${natal ? 'Birth' : 'Transit'} ${b} in ${J.SIGNS[sg]}: ${c[2]}</title><rect x="${f(x + 10)}" y="${f(y + 8)}" width="${w}" height="17" rx="8.5" stroke="#070b18" stroke-width="1.5"/><text x="${f(x + 10 + w/2)}" y="${f(y + 21)}" text-anchor="middle">${c[0]}</text></g>`; };
   for (const b of J.PL) { const [x, y] = P(NP[b].lon, rn(b));
-    o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]} · D9 ${J.SIGNS[C.P[b].d9]} · D10 ${J.SIGNS[C.P[b].d10]}</title></image>`; }
+    o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]} · D9 ${J.SIGNS[C.P[b].d9]} · D10 ${J.SIGNS[C.P[b].d10]}</title></image>${relTag(b, x, y, true, NP[b].lon)}`; }
   // spread transit icons so close planets never overlap: group neighbours closer than 6.5° and fan each group out evenly
   const spread = (() => { const gap = 6.5, ord = J.PL.slice().sort((x, y) => TT[x].lon - TT[y].lon);
     // start the circle at the widest empty gap so no group wraps across 0°
@@ -3547,7 +3674,7 @@ function sky2D(T) {
     const out = {}; for (const G of groups) G.m.forEach((x, i) => out[x] = base + G.c + (i - (G.m.length - 1)/2)*gap); return out; })();
   for (const b of J.PL) { const ang = spread[b], [x, y] = P(ang, 506);
     o += `<circle cx="${f(x)}" cy="${f(y)}" r="23" fill="#0b1226" stroke="#fff" stroke-width="2"/><image href="${skyIconURL(b)}" x="${f(x - 19)}" y="${f(y - 19)}" width="38" height="38" data-tr2="${b}" class="w2-hit"><title>Transit ${b}${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}: ${J.SIGNS[T[b].sign]} ${J.fmtDeg(T[b].deg)}, ${J.NAKS[T[b].nak][0]}</title></image>
-      ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}`; }
+      ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}${relTag(b, x, y, false, TT[b].lon)}`; }
   const d = new Date(Date.now() + SKY.off*864e5);
   o += `<circle r="108" fill="#0d1530" stroke="#3a4a7a"/><text y="-30" class="w2-c1">${d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}</text>
     <text y="6" class="w2-c2">${dv === 'd9' ? 'Navamsa D9 · Lagna ' + J.SIGNS[C.L.d9] : dv === 'd10' ? 'Dasamsa D10 · Lagna ' + J.SIGNS[C.L.d10] : 'Lagna ' + J.SIGNS[C.lagna]}</text><text y="34" class="w2-c2">Moon ${J.SIGNS[C.P.Moon.sign]} · ${J.NAKS[C.P.Moon.nak][0]}</text><text y="62" class="w2-c3">inside: birth · outside: transits</text>`;
@@ -3565,6 +3692,8 @@ function tSky3D() {
   <div class="sky-bar">
     <label class="sky-chk"><input type="checkbox" data-sky="natal" ${SKY.show.natal ? 'checked' : ''}> Birth planets</label>
     <label class="sky-chk"><input type="checkbox" data-sky="transit" ${SKY.show.transit ? 'checked' : ''}> Transits</label>
+    <label class="sky-chk" title="2D wheel: badges showing whether each planet sits in a friend's, neutral or enemy's sign"><input type="checkbox" data-sky="rel" ${SKY.show.rel ? 'checked' : ''}> Friends &amp; enemies</label>
+    <label class="sky-chk" title="2D wheel: good or bad planet for your lagna x comfort of its sign"><input type="checkbox" data-sky="eff" ${SKY.show.eff ? 'checked' : ''}> Planet effect</label>
     <label class="sky-chk"><input type="checkbox" data-sky="naks" ${SKY.show.naks ? 'checked' : ''}> Nakshatras</label>
     <label class="sky-chk"><input type="checkbox" data-sky="asp" ${SKY.show.asp ? 'checked' : ''}> Aspects</label>
     <span class="sky-sp"></span>
@@ -3715,7 +3844,7 @@ function initSky3D() {
     return T;
   };
   rows();
-  $('#pane').querySelectorAll('[data-sky]').forEach(c => c.addEventListener('change', () => { SKY.show[c.dataset.sky] = c.checked; if (SKY.apply) SKY.apply(); }));
+  $('#pane').querySelectorAll('[data-sky]').forEach(c => c.addEventListener('change', () => { SKY.show[c.dataset.sky] = c.checked; if (c.dataset.sky === 'rel' || c.dataset.sky === 'eff') { store.set(c.dataset.sky === 'rel' ? 'jk-skyrel' : 'jk-skyeff', c.checked); if (SKY.mode !== '2d') { SKY.mode = '2d'; try { localStorage.setItem('jk-skymode', '2d'); } catch (e) {} } skyApplyMode(); return; } if (SKY.apply) SKY.apply(); }));
   const range = $('#skyRange');
   range.addEventListener('input', () => { SKY.off = +range.value; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
   $('#skyToday').addEventListener('click', () => { SKY.off = 0; range.value = 0; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
@@ -4687,11 +4816,12 @@ function tTransits() {
     <div class="chartcard">
       <div class="chartctl">
         <div class="tdatebox"><label for="tdate" class="eyebrow">Date</label><input type="date" id="tdate"><button type="button" class="asptoggle" id="ttoday">Today</button></div>
-        <div class="togs"><button type="button" class="asptoggle" id="tasptoggle" aria-pressed="false" title="Show every full aspect of the transiting planets">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="${tipsOn}" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
+        <div class="togs"><button type="button" class="asptoggle" data-trel aria-pressed="false" title="Show whether each moving planet sits in a friend's, neutral or enemy's sign">Friends &amp; enemies</button><button type="button" class="asptoggle" data-teff aria-pressed="false" title="Good or bad planet for your lagna x comfortable or uncomfortable sign it is moving through">Planet effect</button><button type="button" class="asptoggle" id="tasptoggle" aria-pressed="false" title="Show every full aspect of the transiting planets">Aspects</button><button type="button" class="asptoggle" data-tiptoggle aria-pressed="${tipsOn}" title="Show or hide the details box when you hover over or tap a house">Tooltips</button></div>
         <div class="seg" role="group" aria-label="Count houses from"><button type="button" data-tref="lagna" aria-pressed="true">From lagna</button><button type="button" data-tref="moon" aria-pressed="false">From Moon</button></div>
       </div>
       <div class="chartbox" id="tchartbox"></div>
-      <p class="hint" style="margin-top:8px">Hover over or tap a house for the transit details and the book's result, and to highlight the aspects landing on it. Turn Tooltips off to see the arrows unobstructed. R = retrograde. The outlined box is the house you count from. Chart style follows the South/North switch above.</p>
+      <div class="rel-key teff-key">${['gc', 'gn', 'gu', 'nc', 'nn', 'nu', 'mc', 'mn', 'mu'].map(k => `<span><span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> ${EFF[k][2]}</span>`).join('')}</div><div class="rel-key trel-key">${['exalted', 'own', 'friendly', 'neutral', 'inimical', 'debilitated'].map(r => `<span>${relBadge(r)} ${REL_CAT[r][2]}</span>`).join('')}</div>
+      <p class="hint" style="margin-top:8px">Hover over or tap a house for the transit details and the book's result, and to highlight the aspects landing on it. Turn Tooltips off to see the arrows unobstructed. R = retrograde. The outlined box is the house you count from.</p>
     </div>
     <div class="tside">
       <h3>Planets on this date</h3>
@@ -5337,7 +5467,7 @@ function boot() {
   const saved = store.get('jk-birth');
   showAsp = store.get('jk-asp') === true; applyAspToggle();
   if (store.get('jk-tref') === 'moon') tRef = 'moon';
-  tAspOn = store.get('jk-tasp') === true; applyTAsp();
+  tAspOn = store.get('jk-tasp') === true; applyTAsp(); applyTRel(); applyTEff();
   if (store.get('jk-tips') === false) setTips(false);
   style = 'south'; // South Indian style only (North removed at the user's request)
   const tb = store.get('jk-tab'); if (tb && document.querySelector(`#tabs [data-t="${tb}"]`)) { tab = tb; document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-selected', x.dataset.t === tab)); }
