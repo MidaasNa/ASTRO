@@ -237,6 +237,11 @@ body.teff-on .trel-key{display:none !important}
 .pf-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;padding:10px;border-radius:8px;background:var(--panel-2);font-size:13.5px}
 .pf-form input,.pf-form select{margin-left:4px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font:inherit}
 .pf-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.evd{font-size:15px;margin-right:2px;cursor:help}
+.evd-key{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;margin:6px 0 10px}
+.nd-t td{vertical-align:top;font-size:13px} .nd-t tr.nd-on td{background:var(--accent-soft)}
+.nd-now{min-width:110px} .nd-pl{display:inline-flex;align-items:center;gap:5px;margin:0 8px 4px 0;font-size:12.5px;line-height:1.15}
+.nd-ic{border-radius:50%;background:#0b1226;padding:2px;flex:none}
 .aspguide{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .ag-rules{font-size:13.5px} .ag-rules ul{margin:4px 0 6px 18px;padding:0}
 .ag-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0} .ag-pick span{font-size:12.5px;color:var(--muted);margin-right:2px}
@@ -3413,6 +3418,54 @@ function effMatrixHTML() {
     <tr><th>Lord of only 6th, 8th or 12th<br><small>kettavan</small></th>${cell('dc')}${cell('dn')}${cell('du')}</tr></tbody></table></div>
     <p class="note">Last row, extra case: a kettavan sitting in another of the 6th, 8th or 12th gives <span class="relb ${EFF.dy[1]}">${EFF.dy[0]}</span> <b>${EFF.dy[2]}</b>: ${EFF.dy[3]}</p>`;
 }
+// ---------- Nakshatra reference: documented associations, with an evidence marker on every claim ----------
+const EVD = {S: ['🌞', 'Seasonal: real, because the Sun’s position is the season'], C: ['🎉', 'Cultural: a documented festival or custom'], K: ['📜', 'Classical claim: written in the texts, not tested'], D: ['🛒', 'Real demand effect: people act on the belief'], T: ['🧪', 'Tested against data']};
+const ev = k => `<span class="evd" title="${EVD[k][1]}">${EVD[k][0]}</span>`;
+const NAK_DOC = [
+ ['Light / swift', 'Medicine, travel, quick starts', `${ev('C')}${ev('S')} Sun enters Aries here: Tamil Puthandu (~14 Apr)`],
+ ['Fierce', 'Endings, hard tasks', `${ev('S')} Sun’s last pada starts Agni Nakshatram (~4 May) · ${ev('C')} Kodungallur Bharani`],
+ ['Mixed', 'Fire rites, cutting tasks', `${ev('C')} Karthigai Deepam · ${ev('S')} Kathiri veyil, peak summer heat in Tamil Nadu`],
+ ['Fixed', 'Sowing, building, agriculture', `${ev('C')} Gokulashtami (Krishna’s star) · ${ev('K')} Shakata bheda famine omen`],
+ ['Soft', 'Arts, travel, romance', `${ev('C')} Gives its name to the month Margashirsha (Margazhi)`],
+ ['Sharp', 'Breaking, research', `${ev('C')} Arudra Darshanam (Nataraja) · ${ev('S')} Sun’s entry (~22 Jun) used for monsoon forecasting`],
+ ['Movable', 'Renewal, travel', `${ev('C')} Rama Navami (Rama’s birth star)`],
+ ['Light / swift', 'Almost everything except marriage', `${ev('C')} Thai Poosam · ${ev('D')} Pushya days are gold and property buying days`],
+ ['Sharp', 'Naga worship, cunning tasks', `${ev('K')} Ashlesha–Magha gandanta junction at its end`],
+ ['Fierce', 'Ancestor rites, authority', `${ev('C')} Masi Magam`],
+ ['Fierce', 'Rest, pleasure, arts', '—'],
+ ['Fixed', 'Marriage, contracts', `${ev('C')} Panguni Uthiram (divine weddings)`],
+ ['Light / swift', 'Crafts, trade, healing', '—'],
+ ['Soft', 'Design, jewellery, building', `${ev('C')} Chitra Pournami (Madurai Chithirai festival)`],
+ ['Movable', 'Trade, travel', `${ev('C')} Folklore: “Swati rain” turns into pearls · ${ev('S')} Sun here during Tamil Nadu’s north-east monsoon`],
+ ['Mixed', 'Goal-driven work', `${ev('C')} Vaikasi Visakam (Murugan), Buddha Purnima`],
+ ['Soft', 'Friendship, groups', '—'],
+ ['Sharp', 'Authority, protection', `${ev('K')} Jyeshtha–Mula gandanta at its end`],
+ ['Sharp', 'Uprooting, research', `${ev('C')} Hanuman Jayanti (Margazhi Moolam, Tamil Nadu)`],
+ ['Fierce', 'Water work, victory', '—'],
+ ['Fixed', 'Lasting foundations', '—'],
+ ['Movable', 'Learning, listening', `${ev('C')} Onam (Thiruvonam)`],
+ ['Movable', 'Music, wealth', `${ev('C')} Starts Dhanishta Panchakam: 5 stars avoided for roofing and some rites`],
+ ['Movable', 'Healing (“100 physicians”)', '—'],
+ ['Fierce', 'Penance, intensity', '—'],
+ ['Fixed', 'Stability, depth', '—'],
+ ['Soft', 'Journeys, protection', `${ev('K')} Revati–Ashwini gandanta at its end`]];
+const COMBO_DOC = [
+ ['Sun in late Bharani to early Rohini (~4–28 May)', 'Agni Nakshatram / Kathiri: peak heat', 'Weather, people', `${ev('S')} Real: the hottest stretch in Tamil Nadu, because it is that season`],
+ ['Sun enters Ardra (~22 Jun)', 'Strength of the year’s monsoon', 'Rain, crops, grain prices', `${ev('S')} Timing matches the monsoon season · ${ev('K')} forecasting from the chart is untested`],
+ ['Sun in Swati (Oct–Nov)', '“Swati rain” makes pearls', 'Pearls, crops', `${ev('S')} The season is real (north-east monsoon); the pearl story is folklore`],
+ ['Pushya + Thursday (Guru Pushya), Akshaya Tritiya', 'Best days to buy gold and property', 'Gold demand', `${ev('D')} Real effect on Indian jewellery sales because millions follow the custom; no effect on world gold prices`],
+ ['Saturn, Mars or Rahu crossing “Rohini’s cart” (Shakata bheda)', 'Drought, famine', 'Grain, people', `${ev('K')} Brihat Samhita; rare and untested`],
+ ['Eclipse in your birth star', 'Personal difficulty; shanti recommended', 'Individuals', `${ev('C')} Widely practised · ${ev('K')} effect untested`],
+ ['Moon in a gandanta junction at birth', 'Sensitive birth, needing care', 'Individuals', `${ev('K')} Classical`],
+ ['Rahu or Ketu in Ardra (e.g. 2020)', 'Pandemics, upheaval', 'World', `${ev('K')} A modern popular claim, picked after the event; untested`],
+ ['Jupiter weak, Mars trigger, eclipses, Rahu in Capricorn', 'Stock-market crashes', 'Shares, gold', `${ev('T')} Tested in this app on 1928–2026 S&P 500 data: no predictive effect`],
+ ['The Moon’s daily nakshatra (Muhurta rules)', 'Good or bad days for actions', 'People’s activities', `${ev('C')} Documented practice (Muhurta Chintamani) · ${ev('K')} outcomes untested`]];
+function nakDocNow() {
+  const T = J.transitPositions(new Date()), by = Array.from({length: 27}, () => []);
+  for (const b of J.PL) by[T[b].nak].push({b, pada: T[b].pada, r: T[b].retro && !['Rahu', 'Ketu'].includes(b)});
+  return by;
+}
+const plIcon = (b, sz = 22) => `<img class="nd-ic" src="${skyIconURL(b)}" width="${sz}" height="${sz}" alt="${b}" title="${b}">`;
 const LESSONS = [
 {id: 'what', t: 'What is Vedic astrology?', lvl: 'Start here', body: () => `
   <p>At the moment you were born, the Sun, the Moon and the planets were at particular places in the sky. A <b>birth chart</b> (kundali or jathakam) is simply a map of that sky, drawn from the exact place you were born.</p>
@@ -3624,6 +3677,23 @@ const LESSONS = [
   quiz: [['How many nakshatras are there?', ['12', '27', '9'], 1],
          ['Your birth star (janma nakshatra) is the nakshatra of your…', ['Sun', 'lagna', 'Moon'], 2]]},
 
+{id: 'nakdoc', t: 'Nakshatras and their documented effects', lvl: 'Core skill', body: () => { const now = nakDocNow(), d = new Date();
+  return `
+  <p>What each nakshatra is traditionally linked to on the world, on people and on goods, with an honest marker on every claim:</p>
+  <div class="evd-key">${Object.values(EVD).map(x => `<span><span class="evd">${x[0]}</span> ${x[1]}</span>`).join('')}</div>
+  <h4>The 27 nakshatras, with the planets in them now <small class="muted">(${d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'})}, ${d.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'})})</small></h4>
+  <div class="tablewrap"><table class="ln-t nd-t"><thead><tr><th>#</th><th>Nakshatra</th><th>Planets there now</th><th>Lord</th><th>Deity</th><th>Nature</th><th>Traditionally good for</th><th>Documented associations</th></tr></thead><tbody>
+  ${J.NAKS.map((n, i) => { const span0 = i*40/3, sg = Math.floor(span0/30), a = span0 % 30, b2 = (span0 + 40/3), sg2 = Math.floor((b2 - 0.001)/30), bdeg = b2 - sg2*30;
+    const fm = x => { const m = Math.round(x*60); return `${Math.floor(m/60)}°${String(m % 60).padStart(2, '0')}′`; };
+    const here = now[i];
+    return `<tr class="${here.length ? 'nd-on' : ''}"><td>${i + 1}</td><td><b>${n[0]}</b><br><small class="muted">${fm(a)} ${J.SAB[sg]} – ${fm(bdeg)} ${J.SAB[sg2]}</small></td>
+      <td class="nd-now">${here.map(x => `<span class="nd-pl">${plIcon(x.b)}<span>${x.b}${x.r ? ' ℞' : ''}<br><small>pada ${x.pada}</small></span></span>`).join('') || ''}</td>
+      <td>${lnPl(n[1])}</td><td>${(typeof NAK_DEITY !== 'undefined' && NAK_DEITY[i]) ? (Array.isArray(NAK_DEITY[i]) ? NAK_DEITY[i][0] : NAK_DEITY[i]) : n[2]}</td><td>${NAK_DOC[i][0]}</td><td>${NAK_DOC[i][1]}</td><td>${NAK_DOC[i][2]}</td></tr>`; }).join('')}
+  </tbody></table></div>
+  <h4>Planet and nakshatra combinations</h4>
+  <div class="tablewrap"><table class="ln-t"><thead><tr><th>Combination</th><th>Claimed effect</th><th>On</th><th>Evidence</th></tr></thead><tbody>
+  ${COMBO_DOC.map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody></table></div>
+  ${lnSimple('Seasonal effects are real because the Sun’s place is the calendar. Festivals and gold-buying days are real because people follow them. Effects of planets on world events and prices are written in the texts but have not been shown to work, and the market signatures failed when tested.')}`; }},
 {id: 'yogas', t: 'Yogas: special combinations', lvl: 'Going deeper', body: () => `
   <p>A <b>yoga</b> is a named combination of planets that produces a specific result. A few famous ones:</p>
   <ul class="ln-list">
@@ -5388,7 +5458,8 @@ function sky2D(T) {
   const ELEM = ['#E4572E', '#7FA35A', '#5DA9E9', '#3B6FB6'];
   let o = `<circle r="540" fill="#070b18"/><circle r="330" fill="#0b1226"/>`;
   // nakshatra picture band and name ring
-  for (let n = 0; n < 27; n++) { const a0 = n*40/3, a1 = a0 + 40/3, m = a0 + 20/3, [x, y] = P(m, 402), [tx, ty] = P(m, 316);
+  if (!SKY.show.naks) o += `<circle r="472" fill="#0b1226" stroke="#3a4a7a"/><circle r="302" fill="#0b1226" stroke="#3a4a7a"/>`;
+  else for (let n = 0; n < 27; n++) { const a0 = n*40/3, a1 = a0 + 40/3, m = a0 + 20/3, [x, y] = P(m, 402), [tx, ty] = P(m, 316);
     o += `<path d="${seg(330, 472, a0, a1)}" fill="${n % 2 ? '#101833' : '#0b1226'}" stroke="#3a4a7a" stroke-width="1" data-nk2="${n}" class="w2-hit"><title>${J.NAKS[n][0]}</title></path>
       ${d9 ? '' : `<image href="${skyNakURL(n)}" x="${f(x - 34)}" y="${f(y - 54)}" width="68" height="109" pointer-events="none"/>`}
       <path d="${seg(302, 330, a0, a1)}" fill="${n % 2 ? '#2b3a6b' : '#1c2747'}" stroke="#3a4a7a" stroke-width="1" data-nk2="${n}" class="w2-hit"><title>${J.NAKS[n][0]}</title></path>
@@ -5412,7 +5483,7 @@ function sky2D(T) {
   const relTag = (b, x, y, natal, lon) => { if (!SKY.show.rel && !SKY.show.eff) return ''; const sg = Math.floor((((lon % 360) + 360) % 360)/30), r = relIn(b, sg, natal), rc = REL_CAT[r] || ['N', 'rn', r];
     const c = SKY.show.eff ? (e => [e[0], e[1], `${e[2]} (${rc[2]})`])(effFor(b, r, natal ? (sg - (dv === 'd9' ? C.L.d9 : dv === 'd10' ? C.L.d10 : C.lagna) + 12) % 12 + 1 : 0)) : rc, w = c[0].length > 2 ? 34 : c[0].length > 1 ? 28 : 20;
     return `<g class="relsvg ${c[1]}" pointer-events="none"><title>${natal ? 'Birth' : 'Transit'} ${b} in ${J.SIGNS[sg]}: ${c[2]}</title><rect x="${f(x + 10)}" y="${f(y + 8)}" width="${w}" height="17" rx="8.5" stroke="#070b18" stroke-width="1.5"/><text x="${f(x + 10 + w/2)}" y="${f(y + 21)}" text-anchor="middle">${c[0]}</text></g>`; };
-  for (const b of J.PL) { const [x, y] = P(NP[b].lon, rn(b));
+  if (SKY.show.natal) for (const b of J.PL) { const [x, y] = P(NP[b].lon, rn(b));
     o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]} · D9 ${J.SIGNS[C.P[b].d9]} · D10 ${J.SIGNS[C.P[b].d10]}</title></image>${relTag(b, x, y, true, NP[b].lon)}`; }
   // spread transit icons so close planets never overlap: group neighbours closer than 6.5° and fan each group out evenly
   const spread = (() => { const gap = 6.5, ord = J.PL.slice().sort((x, y) => TT[x].lon - TT[y].lon);
@@ -5425,7 +5496,15 @@ function sky2D(T) {
         if (bStart - aEnd < gap) { const m = A.m.concat(B.m), c = (A.c*A.m.length + B.c*B.m.length)/m.length; groups.splice(i, 2, {m, c}); merged = true; break; } }
       if (!merged) break; }
     const out = {}; for (const G of groups) G.m.forEach((x, i) => out[x] = base + G.c + (i - (G.m.length - 1)/2)*gap); return out; })();
-  for (const b of J.PL) { const ang = spread[b], [x, y] = P(ang, 506);
+  // aspects of the moving planets onto the signs/houses they look at (as in the 3D view)
+  if (SKY.show.transit && SKY.show.asp) {
+    o += `<defs>${J.SEVEN.map(b => `<marker id="w2a-${b}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${SKY_COL[b]}"/></marker>`).join('')}</defs><g class="w2-asp">`;
+    for (const b of J.SEVEN) { const ts = Math.floor((((TT[b].lon % 360) + 360) % 360)/30);
+      for (const off of (ASP_OFF[b] || [7])) { const tg = (ts + off - 1) % 12, [sx, sy] = P(spread[b], 482), [ex, ey] = P(tg*30 + 15, 150), cx = (sx + ex)*0.32, cy = (sy + ey)*0.32;
+        o += `<path d="M${f(sx)} ${f(sy)} Q${f(cx)} ${f(cy)} ${f(ex)} ${f(ey)}" fill="none" stroke="${SKY_COL[b]}" stroke-width="2.2" stroke-dasharray="7 5" stroke-opacity=".75" marker-end="url(#w2a-${b})"><title>Transit ${b} (${J.SIGNS[ts]}) ${off}${off === 3 ? 'rd' : 'th'} aspect on ${J.SIGNS[tg]}, your ${J.ORD((tg - LAG + 12) % 12 + 1)} house</title></path>`; } }
+    o += '</g>';
+  }
+  if (SKY.show.transit) for (const b of J.PL) { const ang = spread[b], [x, y] = P(ang, 506);
     o += `<circle cx="${f(x)}" cy="${f(y)}" r="23" fill="#0b1226" stroke="#fff" stroke-width="2"/><image href="${skyIconURL(b)}" x="${f(x - 19)}" y="${f(y - 19)}" width="38" height="38" data-tr2="${b}" class="w2-hit"><title>Transit ${b}${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? ' (retrograde)' : ''}: ${J.SIGNS[T[b].sign]} ${J.fmtDeg(T[b].deg)}, ${J.NAKS[T[b].nak][0]}</title></image>
       ${T[b].retro && !['Rahu', 'Ketu'].includes(b) ? `<text x="${f(x + 20)}" y="${f(y - 16)}" class="w2-r">℞</text>` : ''}${relTag(b, x, y, false, TT[b].lon)}`; }
   const d = new Date(Date.now() + SKY.off*864e5);
@@ -5597,7 +5676,7 @@ function initSky3D() {
     return T;
   };
   rows();
-  $('#pane').querySelectorAll('[data-sky]').forEach(c => c.addEventListener('change', () => { SKY.show[c.dataset.sky] = c.checked; if (c.dataset.sky === 'rel' || c.dataset.sky === 'eff') { store.set(c.dataset.sky === 'rel' ? 'jk-skyrel' : 'jk-skyeff', c.checked); if (SKY.mode !== '2d') { SKY.mode = '2d'; try { localStorage.setItem('jk-skymode', '2d'); } catch (e) {} } skyApplyMode(); return; } if (SKY.apply) SKY.apply(); }));
+  $('#pane').querySelectorAll('[data-sky]').forEach(c => c.addEventListener('change', () => { SKY.show[c.dataset.sky] = c.checked; if (SKY.mode === '2d' && !['rel', 'eff'].includes(c.dataset.sky)) { if (SKY.apply) SKY.apply(); skyApplyMode(); return; } if (c.dataset.sky === 'rel' || c.dataset.sky === 'eff') { store.set(c.dataset.sky === 'rel' ? 'jk-skyrel' : 'jk-skyeff', c.checked); if (SKY.mode !== '2d') { SKY.mode = '2d'; try { localStorage.setItem('jk-skymode', '2d'); } catch (e) {} } skyApplyMode(); return; } if (SKY.apply) SKY.apply(); }));
   const range = $('#skyRange');
   range.addEventListener('input', () => { SKY.off = +range.value; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
   $('#skyToday').addEventListener('click', () => { SKY.off = 0; range.value = 0; const T = rows(); if (SKY.moveT) SKY.moveT(T); });
