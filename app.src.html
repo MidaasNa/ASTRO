@@ -217,6 +217,26 @@ body.teff-on .trel-key{display:none !important}
 .ef-mx td.ef-cell{vertical-align:top;font-size:12.5px} .ef-mx th{font-size:12.5px;vertical-align:top;text-align:left}
 .ef-mx td.ef-gp,.ef-mx td.ef-g,.ef-t tr.ef-gp td,.ef-t tr.ef-g td{background:var(--good-soft)} .ef-mx td.ef-gm,.ef-mx td.ef-nm,.ef-t tr.ef-gm td,.ef-t tr.ef-nm td{background:var(--mixed-soft)} .ef-mx td.ef-mm,.ef-t tr.ef-mm td{background:var(--bad-soft)} .ef-mx td.ef-mp,.ef-mx td.ef-np,.ef-t tr.ef-mp td,.ef-t tr.ef-np td{background:var(--accent-soft)}
 .sky2d svg .relsvg.ef-gp rect{fill:#1e7a46} .sky2d svg .relsvg.ef-g rect{fill:#5fae4e} .sky2d svg .relsvg.ef-gm rect{fill:#c98a16} .sky2d svg .relsvg.ef-np rect{fill:#5b9bd5} .sky2d svg .relsvg.ef-n rect{fill:#7d8494} .sky2d svg .relsvg.ef-nm rect{fill:#e08a5a} .sky2d svg .relsvg.ef-mp rect{fill:#3b6fb6} .sky2d svg .relsvg.ef-m rect{fill:#7d6f8a} .sky2d svg .relsvg.ef-mm rect{fill:#b3261e}
+.relb.ef-v{background:#1f8f8a} .relb.ef-vy{background:#6b3fa0}
+.chartbox svg .relsvg.ef-v rect,.sky2d svg .relsvg.ef-v rect{fill:#1f8f8a} .chartbox svg .relsvg.ef-vy rect,.sky2d svg .relsvg.ef-vy rect{fill:#6b3fa0}
+.ef-t tr.ef-v td,.ef-t tr.ef-vy td{background:var(--good-soft)}
+.tmp-ex summary{cursor:pointer} .tmp-ex[open] summary{margin-bottom:4px}
+.profbar{margin:0 0 12px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.pf-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.pf-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.pf-chips{display:flex;flex-wrap:wrap;gap:8px;flex:1}
+.pf-chip{display:inline-flex;align-items:stretch;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:var(--panel)}
+.pf-chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.pf-load{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;padding:5px 6px 5px 10px;cursor:pointer;font-size:13.5px;color:inherit}
+.pf-load small{color:var(--muted);font-size:11.5px}
+.pf-ico{font-size:15px}
+.pf-mini{border:0;background:transparent;padding:0 7px;cursor:pointer;color:var(--muted);font-size:12px}
+.pf-mini:hover{color:var(--accent)}
+.pf-tools{display:flex;gap:6px;flex-wrap:wrap}
+.pf-imp{cursor:pointer}
+.pf-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;padding:10px;border-radius:8px;background:var(--panel-2);font-size:13.5px}
+.pf-form input,.pf-form select{margin-left:4px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font:inherit}
+.pf-note{margin:8px 0 0;font-size:12px;color:var(--muted)}
 .aspguide{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .ag-rules{font-size:13.5px} .ag-rules ul{margin:4px 0 6px 18px;padding:0}
 .ag-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0} .ag-pick span{font-size:12.5px;color:var(--muted);margin-right:2px}
@@ -582,6 +602,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <p class="src">Rules and interpretations follow P.V.R. Narasimha Rao, <i>Vedic Astrology: An Integrated Approach</i>.</p>
   </header>
 
+  <section class="profbar" id="profbar" aria-label="Family profiles"></section>
   <form class="birth" id="birth" autocomplete="off">
     <div class="f c3"><label for="nm">Name (optional)</label><input id="nm" placeholder="e.g. Anjali"></div>
     <div class="f c2"><label for="dt">Date of birth</label><input id="dt" type="date" required></div>
@@ -658,7 +679,7 @@ footer{margin-top:42px;padding-top:16px;border-top:1px solid var(--line);font-si
     <button role="tab" data-t="transits" aria-selected="false">Transits now</button>
     <button role="tab" data-t="remedies" aria-selected="false">Remedies</button>
     <button role="tab" data-t="details" aria-selected="false">Chart details</button>
-    <button role="tab" data-t="sky3d" aria-selected="false">3D sky</button>
+    <button role="tab" data-t="sky3d" aria-selected="false">Sky wheel</button>
     <button role="tab" data-t="advanced" aria-selected="false">Advanced</button>
     <button role="tab" data-t="learn" aria-selected="false">Learn astrology</button>
   </nav>
@@ -786,7 +807,7 @@ function cast(isExample) {
   C.events = J.lifeEvents(C, myevOpts());
   $('#examplebar').hidden = !isExample;
   if (!isExample) store.set('jk-birth', {nm: inp.name, dt: inp.dv, tm: inp.tv, city: inp.city, lat: inp.lat, lon: inp.lon, tz: inp.tz, tzname: $('#tzname').value, yr: $('#yr').value, ayan: $('#ayan').value, node: $('#node').value});
-  renderTop(); renderChart(); renderNow(); renderTab();
+  renderTop(); renderChart(); renderNow(); renderTab(); renderProfiles();
 }
 $('#birth').addEventListener('submit', e => { e.preventDefault(); cast(false); });
 $('#yr').addEventListener('change', () => { if (C) cast($('#examplebar').hidden === false); });
@@ -1220,6 +1241,37 @@ function relSit(b) { // relationship of planet b with the lord of the sign it si
   return J.natRel(b, J.SIGN_LORD[s]);
 }
 const relBadge = (r, small) => { const c = REL_CAT[r] || ['N', 'rn', r]; return `<span class="relb ${c[1]}${small ? ' sm' : ''}" title="${c[2]}">${c[0]}</span>`; };
+function relWhy(b, r) {
+  if (['Rahu', 'Ketu'].includes(b)) return '<span class="muted">nodes use only exaltation, debilitation and own sign</span>';
+  if (r === 'exalted') return 'exalted: friendship not needed';
+  if (r === 'debilitated') return 'debilitated: friendship not needed';
+  if (r === 'own' || r === 'moolatrikona') return 'its own sign: it is the host';
+  const key = VIEW_KEY(), s = C.P[b][key], lord = J.SIGN_LORD[s], nat = J.natRel(b, lord);
+  if (view !== 'd1') return `natural ${nat} <span class="muted">(temporary friendship is counted only in the birth chart)</span>`;
+  const d = J.hFrom(C.P[b].sign, C.P[lord].sign), tmp = [2, 3, 4, 10, 11, 12].includes(d) ? 'friend' : 'enemy';
+  const res = (REL_CAT[r] || [0, 0, r])[2].replace(' sign', '').replace('’s', '');
+  return `natural <b>${nat}</b> + temporary <b>${tmp}</b> = <b>${res}</b><br><small class="muted">${lord} sits in ${J.SIGNS[C.P[lord].sign]}, ${J.ORD(d)} from ${b}’s sign ${J.SIGNS[s]} (${[2, 3, 4, 10, 11, 12].includes(d) ? '2–4 or 10–12 away: friend' : '1 or 5–9 away: enemy'})</small>`;
+}
+function relWhyD1(b) {
+  const p = C.P[b], s = p.sign, lord = J.SIGN_LORD[s];
+  if (['Rahu', 'Ketu'].includes(b)) return {r: 'neutral', why: '<span class="muted">nodes use only exaltation, debilitation and own sign</span>'};
+  const r = p.dignity;
+  if (r === 'exalted') return {r, why: 'exalted: friendship not needed'};
+  if (r === 'debilitated') return {r, why: 'debilitated: friendship not needed'};
+  if (r === 'own' || r === 'moolatrikona') return {r, why: 'its own sign: it is the host'};
+  const nat = J.natRel(b, lord), d = J.hFrom(s, C.P[lord].sign), tf = [2, 3, 4, 10, 11, 12].includes(d), res = (REL_CAT[r] || [0, 0, r])[2].replace(' sign', '').replace('’s', '');
+  return {r, why: `natural <b>${nat}</b> + temporary <b>${tf ? 'friend' : 'enemy'}</b> = <b>${res}</b><br><small class="muted">${lord} sits in ${J.SIGNS[C.P[lord].sign]}, ${J.ORD(d)} from ${J.SIGNS[s]} (${tf ? '2–4 or 10–12 away: friend' : '1 or 5–9 away: enemy'})</small>`};
+}
+const TMP_EXPLAIN = () => `<h4>Temporary friends and enemies</h4>
+  <p>The table above is <b>natural friendship</b>: a planet’s fixed personality, the same in every chart. Parashara adds a second, <b>temporary friendship</b> (tatkalika), which depends on <b>where the two planets sit in your chart</b>, like seating in a room:</p>
+  <ul class="ln-list"><li>Placed <b>2, 3, 4, 10, 11 or 12 signs apart</b>: <b>temporary friends</b>. Close enough to support each other, like colleagues at neighbouring desks.</li>
+    <li>In the <b>same sign</b> or <b>5–9 signs apart</b>: <b>temporary enemies</b>. Crowded and competing, or far apart and facing away; they cannot help each other in this chart.</li>
+    <li>It is mutual: if A is 3rd from B, B is 11th from A.</li></ul>
+  <div class="tablewrap"><table class="ln-t"><thead><tr><th>Natural</th><th>+ Temporary friend</th><th>+ Temporary enemy</th></tr></thead><tbody>
+    <tr><td><b>Friend</b></td><td>${relBadge('great friend’s sign', true)} great friend</td><td>${relBadge('neutral', true)} neutral</td></tr>
+    <tr><td><b>Neutral</b></td><td>${relBadge('friendly', true)} friend</td><td>${relBadge('inimical', true)} enemy</td></tr>
+    <tr><td><b>Enemy</b></td><td>${relBadge('neutral', true)} neutral</td><td>${relBadge('bitter enemy’s sign', true)} bitter enemy</td></tr></tbody></table></div>
+  ${lnSimple('a natural friend can still be a cool host if it sits in the wrong place in your chart. So always check both: personality (natural) and seating (temporary).')}`;
 function relGuideRender() {
   const box = $('#relguide'); if (!box || !C) return;
   box.hidden = !relOn; $('#relguidebtn').setAttribute('aria-pressed', relOn); if (!relOn) return;
@@ -1229,13 +1281,23 @@ function relGuideRender() {
     const asp = ['Rahu', 'Ketu'].includes(b) ? '<span class="muted">no aspects in this book</span>' : offs(b).map(o => { const t = (s + o - 1) % 12, tl = J.SIGN_LORD[t];
       const rr = tl === b ? 'own' : J.natRel(b, tl); return `${J.ORD(o)} → ${J.SIGNS[t]} (H${J.hFrom(lag, t)}, lord ${tl}) ${relBadge(rr, true)}`; }).join('<br>');
     const cls = REL_CAT[r] ? REL_CAT[r][1] : 'rn';
-    return `<tr class="rel-r ${cls}"><td><b style="color:var(${PCOL[b] || '--muted'})">${b}</b></td><td>${J.SIGNS[s]} (H${h})</td><td>${lord}</td><td>${relBadge(r)} ${(REL_CAT[r] || [0, 0, r])[2]}</td><td>${asp}</td></tr>`; }).join('');
+    return `<tr class="rel-r ${cls}"><td><b style="color:var(${PCOL[b] || '--muted'})">${b}</b></td><td>${J.SIGNS[s]} (H${h})</td><td>${lord}</td><td>${relBadge(r)} ${(REL_CAT[r] || [0, 0, r])[2]}</td><td>${relWhy(b, r)}</td><td>${asp}</td></tr>`; }).join('');
   box.innerHTML = `<div class="ag-rules"><b>Friends and enemies.</b> Every sign has a lord. A planet sitting in a sign is a <b>guest</b> of that lord:
      <ul><li><b>Own sign</b> or <b>exalted</b>: at home or honoured, so it gives its results <b>easily</b>.</li><li><b>Friend’s sign</b>: a welcome guest, so results come <b>comfortably</b>.</li><li><b>Neutral sign</b>: an ordinary guest, so results are <b>moderate</b>.</li><li><b>Enemy’s sign</b> or <b>debilitated</b>: an unwelcome guest, so results come <b>with struggle or delay</b>.</li></ul>
      The same test works for <b>aspects</b>: a planet looking into a friend’s sign is received warmly; into an enemy’s sign, its gaze causes friction. The badges are now on the chart beside each planet.</div>
     <div class="rel-key">${['exalted', 'own', 'friendly', 'neutral', 'inimical', 'debilitated'].map(r => `<span>${relBadge(r)} ${REL_CAT[r][2]}</span>`).join('')}</div>
+    <details class="ag-rules tmp-ex" style="margin-top:8px"><summary><b>What is a temporary friend or enemy?</b></summary>
+      <p>Planets have two kinds of relationship. <b>Natural friendship</b> is their fixed personality, the same in every chart (the Parashara table below). <b>Temporary friendship</b> (tatkalika) depends on <b>where they sit in your chart</b>, like the seating in a room:</p>
+      <ul><li>Two planets placed <b>2, 3, 4, 10, 11 or 12 signs apart</b> are <b>temporary friends</b>: close enough to support each other, like colleagues at neighbouring desks.</li>
+        <li>Planets in the <b>same sign</b> or <b>5–9 signs apart</b> are <b>temporary enemies</b>: either crowded into one place and competing, or sitting far apart and facing away from each other.</li>
+        <li>It is mutual: if A is 3rd from B, then B is 11th from A, so both count each other as friends.</li></ul>
+      <p>Parashara adds the two: friend + friend = <b>great friend</b>; friend + enemy = <b>neutral</b>; neutral + friend = <b>friend</b>; neutral + enemy = <b>enemy</b>; enemy + friend = <b>neutral</b>; enemy + enemy = <b>bitter enemy</b>. So a natural friend can still be a cool host in your chart, which is what happened to your Sun.</p>
+      <div class="tablewrap"><table class="ln-t"><thead><tr><th>Natural</th><th>+ Temporary friend</th><th>+ Temporary enemy</th></tr></thead><tbody>
+        <tr><td><b>Friend</b></td><td>${relBadge('great friend’s sign', true)} great friend</td><td>${relBadge('neutral', true)} neutral</td></tr>
+        <tr><td><b>Neutral</b></td><td>${relBadge('friendly', true)} friend</td><td>${relBadge('inimical', true)} enemy</td></tr>
+        <tr><td><b>Enemy</b></td><td>${relBadge('neutral', true)} neutral</td><td>${relBadge('bitter enemy’s sign', true)} bitter enemy</td></tr></tbody></table></div></details>
     <h4 style="margin:12px 0 4px">Your planets${view !== 'd1' ? ` (${view.toUpperCase()} chart)` : ''}</h4>
-    <div class="tablewrap"><table class="ln-t rel-t"><thead><tr><th>Planet</th><th>Sits in</th><th>Host (sign lord)</th><th>Relationship</th><th>Its aspects land in</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="tablewrap"><table class="ln-t rel-t"><thead><tr><th>Planet</th><th>Sits in</th><th>Host (sign lord)</th><th>Relationship</th><th>Why (natural + temporary)</th><th>Its aspects land in</th></tr></thead><tbody>${rows}</tbody></table></div>
     <h4 style="margin:12px 0 4px">Natural friendships (Parashara)</h4>
     <div class="tablewrap"><table class="ln-t"><thead><tr><th>Planet</th><th>Friends</th><th>Neutral</th><th>Enemies</th></tr></thead><tbody>${nat}</tbody></table></div>
     <p class="note">${view === 'd1' ? 'For the planets sitting in D1, the app uses the full (compound) relationship, which adds temporary friendship from the chart (planets 2–4 or 10–12 signs apart become temporary friends), so a natural neutral can show as F or E. ' : ''}Aspects use the natural friendships in the second table. Rahu and Ketu use only exaltation, debilitation and own sign.</p>`;
@@ -1267,13 +1329,25 @@ const EFF = {
   nu: ['N−', 'ef-nm', 'Leans difficult', 'A neutral planet in an uncomfortable sign: it leans towards difficulty.'],
   mc: ['M+', 'ef-mp', 'Controlled', 'A bad planet in a comfortable sign: its harm is limited and disciplined; it can even protect the house it sits in, and gives the matters of its houses with effort.'],
   mn: ['M', 'ef-m', 'Some trouble', 'A bad planet in a neutral sign: its difficult side shows, moderately.'],
-  mu: ['M−', 'ef-mm', 'Most troublesome', 'A bad planet in an uncomfortable sign: frustrated, it brings losses, conflict, delay or illness to the houses it rules, sits in and looks at.']};
-const effOf = b => EFF[NATURE(b) + COMFORT(relSit(b))];
+  mu: ['M−', 'ef-mm', 'Most troublesome', 'A bad planet in an uncomfortable sign: frustrated, it brings losses, conflict, delay or illness to the houses it rules, sits in and looks at.'],
+  dc: ['D!', 'ef-mm', 'Strong troublemaker', 'A lord of only the 6th, 8th or 12th, comfortable: strong, so the trouble of its houses (disease, enemies, debt, sudden events, losses) is strong too.'],
+  dn: ['D', 'ef-m', 'Some trouble', 'A lord of only the 6th, 8th or 12th in a neutral sign: its houses’ trouble shows moderately.'],
+  du: ['V', 'ef-v', 'Harm cancelled', 'Kettavan kettal: a lord of only the 6th, 8th or 12th in an uncomfortable sign is too weak to harm; the trouble of its houses shrinks.'],
+  dy: ['VRY', 'ef-vy', 'Vipareeta Raja Yoga', 'A lord of only the 6th, 8th or 12th sitting in another of those houses: the bad houses cancel each other (Harsha, Sarala or Vimala yoga); rise after adversity.']};
+// a planet whose every ruled house is 6, 8 or 12 (judged from the birth chart)
+const pureDus = b => { if (['Rahu', 'Ketu'].includes(b)) return false; const L = C.P[b].lordOf; return L.length > 0 && L.every(h => [6, 8, 12].includes(h)); };
+// effect for planet b with relationship r, sitting in house h of the chart being read (h optional)
+function effFor(b, r, h) {
+  if (pureDus(b)) { if (h && [6, 8, 12].includes(h)) return EFF.dy; return EFF['d' + COMFORT(r)]; }
+  return EFF[NATURE(b) + COMFORT(r)];
+}
+const effOf = b => { const lag = view === 'd1' ? C.lagna : C.L[view]; return effFor(b, relSit(b), J.hFrom(lag, C.P[b][VIEW_KEY()])); };
 function effGuideRender() {
   const box = $('#effguide'); if (!box || !C) return;
   box.hidden = !effOn; $('#effguidebtn').setAttribute('aria-pressed', effOn); if (!effOn) return;
   const key = VIEW_KEY(), lag = view === 'd1' ? C.lagna : C.L[view], sg = b => C.P[b][key], offs = b => ASP_OFF[b] || [7];
   const natW = {g: 'good planet', n: 'neutral planet', m: 'bad planet'}, comW = {c: 'comfortable sign', n: 'neutral sign', u: 'uncomfortable sign'};
+  const cell2 = k => `<span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> <b>${EFF[k][2]}</b>: ${EFF[k][3]}`;
   const cell = k => `<td class="ef-cell ${EFF[k][1]}"><span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> <b>${EFF[k][2]}</b><br><small>${EFF[k][3]}</small></td>`;
   const matrix = `<div class="tablewrap"><table class="ln-t ef-mx"><thead><tr><th></th><th>Comfortable sign<br><small>own, exalted, friend’s</small></th><th>Neutral sign</th><th>Uncomfortable sign<br><small>enemy’s, debilitated</small></th></tr></thead><tbody>
     <tr><th>Good planet<br><small>benefic for your lagna</small></th>${cell('gc')}${cell('gn')}${cell('gu')}</tr>
@@ -1281,12 +1355,15 @@ function effGuideRender() {
     <tr><th>Bad planet<br><small>malefic for your lagna, Rahu, Ketu</small></th>${cell('mc')}${cell('mn')}${cell('mu')}</tr></tbody></table></div>`;
   const rows = J.PL.map(b => { const e = effOf(b), nat = NATURE(b), r = relSit(b), s = sg(b), h = J.hFrom(lag, s);
     const rules = C.P[b].lordOf.filter(x => x).map(J.ORD), looks = ['Rahu', 'Ketu'].includes(b) ? [] : offs(b).map(o => J.ORD(J.hFrom(lag, (s + o - 1) % 12)));
-    const fn = ['Rahu', 'Ketu'].includes(b) ? 'shadow planet (treated as bad)' : ({yogakaraka: 'yogakaraka (best)', benefic: 'functional benefic', malefic: 'functional malefic', neutral: 'functionally neutral'})[C.func[b]];
+    const fn = ['Rahu', 'Ketu'].includes(b) ? 'shadow planet (treated as bad)' : pureDus(b) ? `lord of only ${C.P[b].lordOf.map(J.ORD).join(' & ')} (kettavan)` : ({yogakaraka: 'yogakaraka (best)', benefic: 'functional benefic', malefic: 'functional malefic', neutral: 'functionally neutral'})[C.func[b]];
     return `<tr class="ef-r ${e[1]}"><td><b style="color:var(${PCOL[b] || '--muted'})">${b}</b></td><td>${fn}</td><td>${(REL_CAT[r] || [0, 0, r])[2]}</td><td><span class="relb ${e[1]}">${e[0]}</span> <b>${e[2]}</b></td><td>Rules ${rules.length ? rules.join(' & ') : '—'} · sits in ${J.ORD(h)}${looks.length ? ' · looks at ' + looks.join(', ') : ''}</td></tr>`; }).join('');
   box.innerHTML = `<div class="ag-rules"><b>Planet effect = what kind of planet × how comfortable it is.</b> Two questions decide how a planet behaves in your chart:
      <ul><li><b>Is it a good or bad planet for your lagna?</b> (functional nature: lords of trines are good, lords of 3, 6, 11 and some others are bad; Rahu and Ketu count as bad.)</li><li><b>Is it comfortable where it sits?</b> (own, exalted or friend’s sign = comfortable; enemy’s sign or debilitated = uncomfortable.)</li></ul>
      A good planet that is comfortable gives the most; a bad planet that is uncomfortable harms the most. A bad planet that is comfortable is <b>controlled</b>, and a good planet that is uncomfortable is <b>held back</b>. The badges on the chart now show each planet’s box below.</div>
     ${matrix}
+    <div class="ag-rules" style="margin-top:8px"><b>Special case: kettavan kettal.</b> A planet that rules <b>only</b> the 6th, 8th or 12th (houses of disease and enemies, sudden trouble, loss) works the other way round, because its power is used only for harm:
+      <ul><li>${cell2('dc')} if it is comfortable: strong lord, strong trouble.</li><li>${cell2('du')} if it is uncomfortable: too weak to harm.</li><li>${cell2('dy')} if it sits in another of the 6th, 8th or 12th: the bad houses cancel each other.</li></ul>
+      A planet that also rules a good house (like your career or money house) is judged by the main table, because its weakness hurts that good house too.</div>
     <h4 style="margin:12px 0 4px">Your planets${view !== 'd1' ? ` (${view.toUpperCase()} chart)` : ''}</h4>
     <div class="tablewrap"><table class="ln-t ef-t"><thead><tr><th>Planet</th><th>Good or bad for you</th><th>Comfort</th><th>Effect</th><th>Where the effect lands</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="note">“Where the effect lands”: a planet’s effect shows in the houses it <b>rules</b>, the house it <b>sits in</b> and the houses it <b>looks at</b>, most strongly during its dasa and sub-periods. This is a first-level reading; aspects from other planets, conjunctions and the dasa can strengthen or soften it.</p>`;
@@ -1295,13 +1372,79 @@ document.addEventListener('click', e => { if (e.target.closest('#effguidebtn')) 
 
 // ---------- Planet effect layer on the transit charts: nature for your lagna x comfort of the sign it moves through ----------
 let tEffOn = store.get('jk-teff') === true;
-const tEffOf = (b, T) => EFF[NATURE(b) + COMFORT(trRel(b, T))];
+const tEffOf = (b, T) => effFor(b, trRel(b, T));
 function applyTEff() {
   document.querySelectorAll('[data-teff]').forEach(x => x.setAttribute('aria-pressed', tEffOn)); document.body.classList.toggle('teff-on', tEffOn);
-  const k = $('#noweffkey'); if (k && !k.innerHTML) k.innerHTML = ['gc', 'gn', 'gu', 'nc', 'nn', 'nu', 'mc', 'mn', 'mu'].map(x => `<span><span class="relb ${EFF[x][1]}">${EFF[x][0]}</span> ${EFF[x][2]}</span>`).join('') + '<span class="muted">· good/bad for your lagna × comfort of the sign it is moving through</span>';
+  const k = $('#noweffkey'); if (k && !k.innerHTML) k.innerHTML = ['gc', 'gn', 'gu', 'nc', 'nn', 'nu', 'mc', 'mn', 'mu', 'dc', 'du', 'dy'].map(x => `<span><span class="relb ${EFF[x][1]}">${EFF[x][0]}</span> ${EFF[x][2]}</span>`).join('') + '<span class="muted">· good/bad for your lagna × comfort of the sign it is moving through</span>';
 }
 document.addEventListener('click', e => { if (!e.target.closest('[data-teff]')) return; tEffOn = !tEffOn; store.set('jk-teff', tEffOn); applyTEff();
   try { renderNow(); } catch (err) {} if (tab === 'transits') try { renderTransitChart(); } catch (err) {} });
+
+// ---------- Family profiles: saved birth details, one click to switch (stored only in this browser) ----------
+const PROF_REL = ['Self', 'Wife', 'Husband', 'Daughter', 'Son', 'Father', 'Mother', 'Father-in-law', 'Mother-in-law', 'Brother', 'Sister', 'Friend', 'Other'];
+const PROF_ICON = {Self: '🧑', Wife: '👩', Husband: '👨', Daughter: '👧', Son: '👦', Father: '👴', Mother: '👵', 'Father-in-law': '👴', 'Mother-in-law': '👵', Brother: '🧑', Sister: '👩', Friend: '🤝', Other: '⭐'};
+let profEdit = null; // null, 'new' or a profile id being edited
+const profList = () => { const L = store.get('jk-profiles'); return Array.isArray(L) ? L : []; };
+const profSave = L => store.set('jk-profiles', L);
+const profFromForm = () => ({nm: $('#nm').value.trim(), dt: $('#dt').value, tm: $('#tm').value, city: $('#city').value.trim(), lat: parseFloat($('#lat').value), lon: parseFloat($('#lon').value),
+  tz: parseFloat($('#tz').value), tzname: $('#tzname').value, yr: $('#yr').value, ayan: $('#ayan').value, node: $('#node').value});
+const profSame = (a, b) => a && b && a.dt === b.dt && String(a.tm).slice(0, 5) === String(b.tm).slice(0, 5) && Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lon - b.lon) < 0.01;
+function profActive() { if (!C || !C.inp) return null; const cur = {dt: C.inp.dv, tm: C.inp.tv, lat: C.inp.lat, lon: C.inp.lon}; return profList().find(x => profSame(x, cur)) || null; }
+function profLoad(x) {
+  $('#nm').value = x.nm || ''; $('#dt').value = x.dt; $('#tm').value = x.tm; $('#city').value = x.city || ''; $('#lat').value = x.lat; $('#lon').value = x.lon; $('#tz').value = x.tz; $('#tzname').value = x.tzname || '';
+  if (x.yr) $('#yr').value = x.yr; if (x.ayan) $('#ayan').value = x.ayan; if (x.node) $('#node').value = x.node;
+  ['_sb', '_kp', '_yog', '_chara', '_vr', '_ts', '_houseTable', '_recTL', '_houseTL', '_careerTL'].forEach(k => { if (C) delete C[k]; });
+  cast(false);
+}
+async function profExport() {
+  const json = JSON.stringify({app: 'janma-kundali', profiles: profList()}, null, 1), filename = 'janma-kundali-profiles.json';
+  // inside the Claude artifact viewer, files must go through its downloads capability; elsewhere (e.g. GitHub Pages) a normal download link works
+  if (window.claude && typeof window.claude.use === 'function') {
+    try { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({filename, data: json}); return; } } catch (err) { if (err && /declin|cancel|reject/i.test(String(err.message || err))) return; }
+  }
+  const blob = new Blob([json], {type: 'application/json'}), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function renderProfiles() {
+  const bar = $('#profbar'); if (!bar) return;
+  const L = profList(), act = profActive();
+  const chips = L.map(x => `<span class="pf-chip${act && act.id === x.id ? ' on' : ''}"><button type="button" class="pf-load" data-pfload="${x.id}" title="${esc(x.dt)} ${esc(String(x.tm).slice(0, 5))} · ${esc(x.city || '')}"><span class="pf-ico">${PROF_ICON[x.rel] || '⭐'}</span><b>${esc(x.nm || 'Unnamed')}</b><small>${esc(x.rel || '')}</small></button><button type="button" class="pf-mini" data-pfedit="${x.id}" title="Edit ${esc(x.nm)}">✎</button><button type="button" class="pf-mini" data-pfdel="${x.id}" title="Delete ${esc(x.nm)}">✕</button></span>`).join('');
+  const editing = profEdit ? (profEdit === 'new' ? null : L.find(x => x.id === profEdit)) : null;
+  const relSel = cur => `<select id="pfRel">${PROF_REL.map(r => `<option${r === cur ? ' selected' : ''}>${r}</option>`).join('')}</select>`;
+  const form = profEdit ? `<div class="pf-form">${profEdit === 'new' ? `Save the birth details in the form below as a profile.` : `Editing <b>${esc(editing ? editing.nm : '')}</b>: change the birth details in the form below, then press Update.`}
+      <label>Name <input id="pfName" value="${esc(editing ? editing.nm : $('#nm').value.trim())}" placeholder="e.g. Pritika"></label>
+      <label>Relation ${relSel(editing ? editing.rel : (L.length ? 'Wife' : 'Self'))}</label>
+      <button type="button" class="btn" data-pfsave>${profEdit === 'new' ? 'Save profile' : 'Update profile'}</button> <button type="button" class="btn ghost" data-pfcancel>Cancel</button></div>` : '';
+  bar.innerHTML = `<div class="pf-head"><span class="pf-title">Family profiles</span>
+      <div class="pf-chips">${chips || '<span class="muted">No profiles yet. Enter a birth chart below and save it.</span>'}</div>
+      <div class="pf-tools"><button type="button" class="btn ghost" data-pfnew>＋ Save this chart</button>${L.length ? `<button type="button" class="btn ghost" data-pfexport title="Download your profiles as a backup file">Export</button>` : ''}<label class="btn ghost pf-imp" title="Load profiles from a backup file">Import<input type="file" accept=".json,application/json" data-pfimport hidden></label></div></div>
+    ${form}
+    ${L.length ? '<p class="pf-note">Each profile keeps its own life events and settings. Profiles are saved only in this browser; use Export to back them up or move them to your phone.</p>' : ''}`;
+}
+document.addEventListener('click', e => {
+  const t = e.target;
+  const ld = t.closest('[data-pfload]'); if (ld) { const x = profList().find(p => p.id === ld.dataset.pfload); if (x) { profEdit = null; profLoad(x); window.scrollTo({top: 0, behavior: 'smooth'}); } return; }
+  if (t.closest('[data-pfnew]')) { profEdit = 'new'; renderProfiles(); const n = $('#pfName'); if (n) n.focus(); return; }
+  const ed = t.closest('[data-pfedit]'); if (ed) { const x = profList().find(p => p.id === ed.dataset.pfedit); if (x) { profEdit = x.id; profLoad(x); renderProfiles(); } return; }
+  if (t.closest('[data-pfcancel]')) { profEdit = null; renderProfiles(); return; }
+  const dl = t.closest('[data-pfdel]'); if (dl) { const L = profList(), x = L.find(p => p.id === dl.dataset.pfdel);
+    if (x && confirm(`Delete the profile "${x.nm}"? Its birth details are removed from this browser (its logged life events stay saved).`)) { profSave(L.filter(p => p.id !== x.id)); renderProfiles(); } return; }
+  if (t.closest('[data-pfsave]')) {
+    const v = profFromForm(), nm = ($('#pfName').value || '').trim(), rel = $('#pfRel').value;
+    if (!nm) { alert('Please enter a name for this profile.'); return; }
+    if (!v.dt || !v.tm || !isFinite(v.lat) || !isFinite(v.lon) || !isFinite(v.tz)) { alert('Fill in the birth date, time and place in the form first.'); return; }
+    let L = profList();
+    if (profEdit === 'new') { const dup = L.find(x => profSame(x, v)); if (dup) { if (!confirm(`These birth details are already saved as "${dup.nm}". Save another copy?`)) return; }
+      L.push({id: 'p' + Date.now().toString(36), rel, ...v, nm}); }
+    else L = L.map(x => x.id === profEdit ? {...x, ...v, nm, rel} : x);
+    $('#nm').value = nm; profSave(L); profEdit = null; cast(false); return; }
+  if (t.closest('[data-pfexport]')) { profExport(); return; }
+});
+document.addEventListener('change', e => { const inp = e.target.closest('[data-pfimport]'); if (!inp || !inp.files[0]) return;
+  const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result), arr = Array.isArray(d) ? d : d.profiles; if (!Array.isArray(arr)) throw new Error('no profiles');
+      const L = profList(); let n = 0; for (const x of arr) { if (!x || !x.dt || !x.tm || !isFinite(+x.lat)) continue; if (L.some(y => profSame(y, x))) continue; L.push({...x, id: x.id && !L.some(y => y.id === x.id) ? x.id : 'p' + Date.now().toString(36) + n}); n++; }
+      profSave(L); renderProfiles(); alert(`${n} profile${n === 1 ? '' : 's'} imported.`); } catch (err) { alert('That file is not a profiles backup.'); } inp.value = ''; };
+  r.readAsText(inp.files[0]); });
 
 let tipsOn = true;
 function setTips(on) { tipsOn = on; store.set('jk-tips', on); document.querySelectorAll('[data-tiptoggle]').forEach(x => x.setAttribute('aria-pressed', on)); if (!on) document.querySelectorAll('.charttip').forEach(t => t.hidden = true); }
@@ -1666,6 +1809,7 @@ function layersTable() {
       themes: `Your ${J.ORD(q.house)} house = ${HOUSE_AREA[q.house].toLowerCase()}. Your 7th = marriage; your 10th = career.`,
       lords: `${ll} rules your ${q.lordOf.map(J.ORD).join(' and ')} and carries ${q.lordOf.length > 1 ? 'both' : 'it'} to your ${J.ORD(q.house)}.`,
       strength: `${ll} is ${DW[q.dignity] || 'in a ' + q.dignity + ' sign, so it gives moderately'}.`,
+      effect: (() => { const sat = effD1('Saturn').e, ll2 = effD1(ll).e; return `${ll}: ${ll2[0]} ${ll2[2]}. Saturn: ${sat[0]} ${sat[2]}.`; })(),
       dasa: C.cur ? `Now: ${C.cur.md.lord} main period, ${C.cur.ad.lord} sub-period (until ${C.cur.ad.end.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'})}).` : '',
       transit: `Saturn is moving through your ${J.ORD(sh)} house (${HOUSE_SHORT[sh]}) now.`,
       combine: C.cur ? `${C.cur.ad.lord}’s sub-period plus Saturn in your ${J.ORD(sh)}: read both together.` : ''}; })();
@@ -1674,13 +1818,30 @@ function layersTable() {
     ['2', 'House themes', 'What does each house mean in life?', 'The 12 houses: their areas of life, people and body parts, and the groups (kendra, trikona, dusthana, upachaya). Green houses are good, red are difficult.', ex.themes, 'houses', 'a'],
     ['3', 'Lordship', 'Which planet carries which house?', 'Every house has a lord. The lord takes that house’s matters to wherever it sits.', ex.lords, 'lords', 'b'],
     ['4', 'Strength (dignity)', 'How easily does it deliver?', 'Exalted or own sign: easily. Enemy sign or debilitated: with struggle or delay.', ex.strength, 'dignity', 'b'],
-    ['5', 'Dasa (timing)', 'When does the door open?', 'A planet gives its results in its own main period and sub-periods, filtered by your age.', ex.dasa, 'dasa', 'c'],
-    ['6', 'Transit (trigger)', 'Which month?', 'Where planets move now, read the same way as birth placements: who, how, where.', ex.transit, 'transit', 'c'],
-    ['7', 'Putting it together', 'Do the layers agree?', 'Birth promise + strength + dasa + transit. One layer alone is a guess; when they agree it is a prediction.', ex.combine, 'method', 'd']];
+    ['5', 'Planet effect', 'Will it help or harm?', 'Good or bad planet for your lagna × comfortable or uncomfortable sign. Lords of only the 6th, 8th or 12th work the other way round (kettavan kettal).', ex.effect, 'effect', 'b'],
+    ['6', 'Dasa (timing)', 'When does the door open?', 'A planet gives its results in its own main period and sub-periods, filtered by your age.', ex.dasa, 'dasa', 'c'],
+    ['7', 'Transit (trigger)', 'Which month?', 'Where planets move now, read the same way as birth placements: who, how, where.', ex.transit, 'transit', 'c'],
+    ['8', 'Putting it together', 'Do the layers agree?', 'Birth promise + strength + dasa + transit. One layer alone is a guess; when they agree it is a prediction.', ex.combine, 'method', 'd']];
   return `<div class="tablewrap"><table class="ln-t ly-t"><thead><tr><th>Layer</th><th>The question it answers</th><th>What you learn</th><th>${C ? 'In your chart' : 'Example'}</th><th></th></tr></thead><tbody>
     ${L.map(r => `<tr class="ly-${r[6]}"><td><span class="ly-n">${r[0]}</span><b>${r[1]}</b></td><td><b>${r[2]}</b></td><td>${r[3]}</td><td>${r[4] || '—'}</td><td><button type="button" class="szbtn" data-lesson="${r[5]}">Open lesson →</button></td></tr>`).join('')}
   </tbody></table></div>
-  <p class="note">Layers 1–2 tell you <b>what</b> a chart talks about; 3–4 tell you <b>how well</b>; 5–6 tell you <b>when</b>; 7 is the skill of combining them.</p>`;
+  <p class="note">Layers 1–2 tell you <b>what</b> a chart talks about; 3–5 tell you <b>how well, and for good or ill</b>; 6–7 tell you <b>when</b>; 8 is the skill of combining them.</p>`;
+}
+// planet effect in the birth chart (D1), for the Learn tab
+function effD1(b) {
+  const p = C.P[b], s = p.sign;
+  let r = p.dignity;
+  if (['Rahu', 'Ketu'].includes(b)) r = J.EXALT[b][0] === s ? 'exalted' : (J.EXALT[b][0] + 6) % 12 === s ? 'debilitated' : J.OWN[b].includes(s) ? 'own' : 'neutral';
+  return {r, e: effFor(b, r, p.house)};
+}
+function effMatrixHTML() {
+  const cell = k => `<td class="ef-cell ${EFF[k][1]}"><span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> <b>${EFF[k][2]}</b><br><small>${EFF[k][3]}</small></td>`;
+  return `<div class="tablewrap"><table class="ln-t ef-mx"><thead><tr><th></th><th>Comfortable sign<br><small>own, exalted, friend’s</small></th><th>Neutral sign</th><th>Uncomfortable sign<br><small>enemy’s, debilitated</small></th></tr></thead><tbody>
+    <tr><th>Good planet<br><small>benefic for your lagna</small></th>${cell('gc')}${cell('gn')}${cell('gu')}</tr>
+    <tr><th>Neutral planet</th>${cell('nc')}${cell('nn')}${cell('nu')}</tr>
+    <tr><th>Bad planet<br><small>malefic for your lagna, Rahu, Ketu</small></th>${cell('mc')}${cell('mn')}${cell('mu')}</tr>
+    <tr><th>Lord of only 6th, 8th or 12th<br><small>kettavan</small></th>${cell('dc')}${cell('dn')}${cell('du')}</tr></tbody></table></div>
+    <p class="note">Last row, extra case: a kettavan sitting in another of the 6th, 8th or 12th gives <span class="relb ${EFF.dy[1]}">${EFF.dy[0]}</span> <b>${EFF.dy[2]}</b>: ${EFF.dy[3]}</p>`;
 }
 const LESSONS = [
 {id: 'what', t: 'What is Vedic astrology?', lvl: 'Start here', body: () => `
@@ -1823,9 +1984,14 @@ const LESSONS = [
   <p>Planets have natural friends and enemies. This decides whether a planet feels welcome in another’s sign, and whether two planets sitting together cooperate or clash.</p>
   ${lnTable(['Planet', 'Friends', 'Neutral', 'Enemies'], J.SEVEN.map(b => [lnPl(b), J.NAT[b].f.join(', '), J.NAT[b].n.join(', ') || '—', J.NAT[b].e.join(', ') || '—']))}
   ${lnSimple('there are roughly two teams. <b>Team Sun</b>: Sun, Moon, Mars, Jupiter. <b>Team Saturn</b>: Saturn, Venus, Mercury. Players tend to like their own team.')}
+  ${TMP_EXPLAIN()}
+  ${C ? lnMine(`<p>Every planet in your birth chart, with the working shown:</p><div class="tablewrap"><table class="ln-t rel-t"><thead><tr><th>Planet</th><th>Sits in</th><th>Host</th><th>Result</th><th>Why (natural + temporary)</th></tr></thead><tbody>${J.PL.map(b => { const {r, why} = relWhyD1(b), cls = REL_CAT[r] ? REL_CAT[r][1] : 'rn';
+      return `<tr class="rel-r ${cls}"><td>${lnPl(b)}</td><td>${J.SIGNS[C.P[b].sign]} (H${C.P[b].house})</td><td>${J.SIGN_LORD[C.P[b].sign]}</td><td>${relBadge(r)} ${(REL_CAT[r] || [0, 0, r])[2]}</td><td>${why}</td></tr>`; }).join('')}</tbody></table></div>`) : ''}
   ${lnMine(`<p>Your Venus sits in ${J.SIGNS[C.P.Venus.sign]}, owned by ${lnPl(J.SIGN_LORD[C.P.Venus.sign])}. Venus counts that owner as ${J.NAT.Venus.f.includes(J.SIGN_LORD[C.P.Venus.sign]) ? 'a friend' : J.NAT.Venus.e.includes(J.SIGN_LORD[C.P.Venus.sign]) ? 'an enemy' : 'neutral'}, so its dignity is “${C.P.Venus.dignity}”.</p>`)}`,
   quiz: [['Is Saturn a friend of the Sun?', ['Yes', 'No, an enemy'], 1],
-         ['Venus’s friends are…', ['Sun and Moon', 'Mercury and Saturn', 'Mars and Jupiter'], 1]]},
+         ['Venus’s friends are…', ['Sun and Moon', 'Mercury and Saturn', 'Mars and Jupiter'], 1],
+         ['Two planets sit 9 signs apart. In this chart they are…', ['temporary friends', 'temporary enemies'], 1],
+         ['Natural friend + temporary enemy gives…', ['great friend', 'neutral', 'bitter enemy'], 1]]},
 
 {id: 'func', t: 'Good and bad planets for YOUR ascendant', lvl: 'Core skill', body: () => `
   <p>Beginners often think Jupiter is always good and Saturn is always bad. In Vedic astrology, a planet’s effect for <i>you</i> depends mostly on <b>which houses it owns from your lagna</b>. This is its <b>functional nature</b>.</p>
@@ -1841,6 +2007,23 @@ const LESSONS = [
   quiz: [['A yogakaraka owns…', ['two dusthanas', 'a kendra and a trine', 'only the 12th house'], 1],
          ['For prediction, which matters more for a chart?', ['natural nature', 'functional nature (houses owned from lagna)'], 1]]},
 
+{id: 'effect', t: 'Planet effect: will it help or harm?', lvl: 'Core skill', body: () => `
+  <p>You now know two separate facts about every planet: whether it is <b>good or bad for your lagna</b> (the previous lesson) and whether it is <b>comfortable where it sits</b> (strength and friendships). Put them together and you can predict how a planet will behave.</p>
+  ${lnSimple('Good planet + comfortable = gives the most. Bad planet + uncomfortable = harms the most. Bad + comfortable = controlled. Good + uncomfortable = held back.')}
+  ${effMatrixHTML()}
+  <h4>Why can a weak bad planet still hurt you?</h4>
+  <p>Weakness takes away a planet’s <b>power</b>. If that power is used only for harm (a lord of only the 6th, 8th or 12th), weakness is good: <i>kettavan kettal, kittidum rajayogam</i>. But most “bad” planets <b>also rule a good house</b>. Then the weakness hurts that good house too, and an unhappy malefic also shows more of its harsh nature (an unhappy Mars gets angrier, an unhappy Saturn delays more).</p>
+  <h4>Where the effect shows</h4>
+  <p>A planet’s effect lands on the houses it <b>rules</b>, the house it <b>sits in</b> and the houses it <b>looks at</b>, most strongly in its <b>dasa and sub-periods</b>.</p>
+  ${C ? lnMine(`<div class="tablewrap"><table class="ln-t ef-t"><thead><tr><th>Planet</th><th>Good or bad for you</th><th>Comfort and why</th><th>Effect</th><th>Where it lands</th></tr></thead><tbody>${J.PL.map(b => { const {r, e} = effD1(b), p = C.P[b];
+      const fn = ['Rahu', 'Ketu'].includes(b) ? 'shadow planet (bad)' : pureDus(b) ? `lord of only ${p.lordOf.map(J.ORD).join(' & ')} (kettavan)` : ({yogakaraka: 'yogakaraka (best)', benefic: 'good', malefic: 'bad', neutral: 'neutral'})[C.func[b]];
+      const looks = ['Rahu', 'Ketu'].includes(b) ? '' : ' · looks at ' + (ASP_OFF[b] || [7]).map(o => J.ORD((p.house + o - 2) % 12 + 1)).join(', ');
+      return `<tr class="ef-r ${e[1]}"><td>${lnPl(b)}</td><td>${fn}</td><td>${(REL_CAT[r] || [0, 0, r])[2]}<br><small>${relWhyD1(b).why}</small></td><td><span class="relb ${e[1]}">${e[0]}</span> <b>${e[2]}</b></td><td>rules ${p.lordOf.length ? p.lordOf.map(J.ORD).join(' & ') : '—'} · sits in ${J.ORD(p.house)}${looks}</td></tr>`; }).join('')}</tbody></table></div>
+    <p>Your strongest helpers: ${J.PL.filter(b => effD1(b).e[0] === 'G+').map(lnPl).join(', ') || 'none at full strength'}. The planets to handle with care: ${J.PL.filter(b => ['M−', 'D!'].includes(effD1(b).e[0])).map(lnPl).join(', ') || 'none'}. ${J.PL.some(b => effD1(b).e[0] === 'VRY') ? `You have a <b>Vipareeta Raja Yoga</b> from ${J.PL.filter(b => effD1(b).e[0] === 'VRY').map(lnPl).join(', ')}.` : ''}</p>`) : ''}
+  <p>See it on your chart: press <b>Planet effect</b> above the birth chart, the transit charts, or tick it in the Sky wheel. Each planet gets its badge.</p>`,
+  quiz: [['Saturn is a bad planet for your lagna and sits in an enemy’s sign. It also rules your 10th house (career). What happens to your career?', ['It improves, because a weak bad planet is good', 'It struggles, because the weakness also hurts the good house Saturn rules', 'Nothing changes'], 1],
+         ['A planet rules only your 8th house and sits in an enemy’s sign. What is the effect?', ['Harm cancelled (kettavan kettal)', 'Most troublesome', 'Best'], 0],
+         ['Jupiter is good for your lagna and exalted. Its effect is…', ['Controlled', 'Held back', 'Best'], 2]]},
 {id: 'aspects', t: 'Aspects and conjunctions', lvl: 'Core skill', body: () => `
   <p><b>Conjunction</b>: two or more planets in the same sign blend their results, like roommates.</p>
   <p><b>Aspect (drishti)</b>: a planet also “looks at” other houses and influences them from a distance.</p>
@@ -2217,7 +2400,7 @@ function wireLearn() {
 }
 
 // ---------- 3D sky: the zodiac wheel with signs, 27 nakshatras, houses, birth planets and moving transits (three.js, loaded on first use) ----------
-const SKY = {chart2d: 'd1', mode: (() => { try { return localStorage.getItem('jk-skymode') || '3d'; } catch (err) { return '3d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true, rel: (() => { try { return JSON.parse(localStorage.getItem('jk-skyrel')) === true; } catch (e) { return false; } })(), eff: (() => { try { return JSON.parse(localStorage.getItem('jk-skyeff')) === true; } catch (e) { return false; } })()}};
+const SKY = {chart2d: 'd1', mode: (() => { try { return localStorage.getItem('jk-skymode') || '2d'; } catch (err) { return '2d'; } })(), raf: 0, renderer: null, off: 0, play: false, step: '7', show: {natal: true, transit: true, naks: true, asp: true, rel: (() => { try { return JSON.parse(localStorage.getItem('jk-skyrel')) === true; } catch (e) { return false; } })(), eff: (() => { try { return JSON.parse(localStorage.getItem('jk-skyeff')) === true; } catch (e) { return false; } })()}};
 // Navagraha mandala tradition: each graha has its own shape (pitha) and colour
 const SKY_COL = {Sun: '#F2552C', Moon: '#F2F3F7', Mars: '#D7263D', Mercury: '#2FB560', Jupiter: '#F7C531', Venus: '#FFF1D6', Saturn: '#4C63D9', Rahu: '#8E889E', Ketu: '#E08A3C'};
 const SKY_SHAPE = {Sun: 'Sun', Moon: 'crescent Moon', Mars: 'sword', Mercury: 'brain', Jupiter: 'praying hands', Venus: 'car', Saturn: 'crow', Rahu: 'bodiless head', Ketu: 'headless body'};
@@ -3657,7 +3840,7 @@ function sky2D(T) {
     if (J.EXALT[b][0] === sg) return 'exalted'; if ((J.EXALT[b][0] + 6) % 12 === sg) return 'debilitated'; if (J.OWN[b].includes(sg)) return 'own';
     return ['Rahu', 'Ketu'].includes(b) ? 'neutral' : J.natRel(b, J.SIGN_LORD[sg]); };
   const relTag = (b, x, y, natal, lon) => { if (!SKY.show.rel && !SKY.show.eff) return ''; const sg = Math.floor((((lon % 360) + 360) % 360)/30), r = relIn(b, sg, natal), rc = REL_CAT[r] || ['N', 'rn', r];
-    const c = SKY.show.eff ? (e => [e[0], e[1], `${e[2]} (${rc[2]})`])(EFF[NATURE(b) + COMFORT(r)]) : rc, w = c[0].length > 2 ? 34 : c[0].length > 1 ? 28 : 20;
+    const c = SKY.show.eff ? (e => [e[0], e[1], `${e[2]} (${rc[2]})`])(effFor(b, r, natal ? (sg - (dv === 'd9' ? C.L.d9 : dv === 'd10' ? C.L.d10 : C.lagna) + 12) % 12 + 1 : 0)) : rc, w = c[0].length > 2 ? 34 : c[0].length > 1 ? 28 : 20;
     return `<g class="relsvg ${c[1]}" pointer-events="none"><title>${natal ? 'Birth' : 'Transit'} ${b} in ${J.SIGNS[sg]}: ${c[2]}</title><rect x="${f(x + 10)}" y="${f(y + 8)}" width="${w}" height="17" rx="8.5" stroke="#070b18" stroke-width="1.5"/><text x="${f(x + 10 + w/2)}" y="${f(y + 21)}" text-anchor="middle">${c[0]}</text></g>`; };
   for (const b of J.PL) { const [x, y] = P(NP[b].lon, rn(b));
     o += `<image href="${skyIconURL(b)}" x="${f(x - 22)}" y="${f(y - 22)}" width="44" height="44" data-pl2="${b}" class="w2-hit"><title>Birth ${b}: ${J.SIGNS[C.P[b].sign]} ${J.fmtDeg(C.P[b].deg)}, ${J.NAKS[C.P[b].nak][0]} · D9 ${J.SIGNS[C.P[b].d9]} · D10 ${J.SIGNS[C.P[b].d10]}</title></image>${relTag(b, x, y, true, NP[b].lon)}`; }
@@ -4820,7 +5003,7 @@ function tTransits() {
         <div class="seg" role="group" aria-label="Count houses from"><button type="button" data-tref="lagna" aria-pressed="true">From lagna</button><button type="button" data-tref="moon" aria-pressed="false">From Moon</button></div>
       </div>
       <div class="chartbox" id="tchartbox"></div>
-      <div class="rel-key teff-key">${['gc', 'gn', 'gu', 'nc', 'nn', 'nu', 'mc', 'mn', 'mu'].map(k => `<span><span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> ${EFF[k][2]}</span>`).join('')}</div><div class="rel-key trel-key">${['exalted', 'own', 'friendly', 'neutral', 'inimical', 'debilitated'].map(r => `<span>${relBadge(r)} ${REL_CAT[r][2]}</span>`).join('')}</div>
+      <div class="rel-key teff-key">${['gc', 'gn', 'gu', 'nc', 'nn', 'nu', 'mc', 'mn', 'mu', 'dc', 'du', 'dy'].map(k => `<span><span class="relb ${EFF[k][1]}">${EFF[k][0]}</span> ${EFF[k][2]}</span>`).join('')}</div><div class="rel-key trel-key">${['exalted', 'own', 'friendly', 'neutral', 'inimical', 'debilitated'].map(r => `<span>${relBadge(r)} ${REL_CAT[r][2]}</span>`).join('')}</div>
       <p class="hint" style="margin-top:8px">Hover over or tap a house for the transit details and the book's result, and to highlight the aspects landing on it. Turn Tooltips off to see the arrows unobstructed. R = retrograde. The outlined box is the house you count from.</p>
     </div>
     <div class="tside">
